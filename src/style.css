@@ -57,13 +57,13 @@
   text-align: center;
   padding: 20px 24px;
   text-decoration: none;
-  font-size: 15px;
+  font-size: 28px;
   font-weight: 800;
   transition: all 0.3s ease;
   position: relative;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 24px;
 }
 
 .topnav a.logo-link {
@@ -73,9 +73,13 @@
 }
 
 .nav-logo {
-  height: 40px;
+  height: 86px;
   width: auto;
   display: block;
+}
+
+.nav-logo-font{
+  color: #13562C;
 }
 
 .nav-right {
