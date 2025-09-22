@@ -2,6 +2,7 @@ import { useState } from 'react'
 import './App.css'
 import Motions from './components/Motions.jsx'
 import Main from './components/MainPage.jsx'
+import LoginPage from './components/LoginPage.jsx'
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 function App() {
   const [count, setCount] = useState(0)
@@ -23,6 +24,7 @@ function App() {
           <Routes>
             <Route path="/" element={<Main />}></Route>
             <Route path="/motions" element={<Motions />}></Route>
+            <Route path="/login" element={<LoginPage />}></Route>
           </Routes>
           </BrowserRouter>
     </>
