@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import './App.css'
 import Motions from './components/Motions.jsx'
+import Main from './components/MainPage.jsx'
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 function App() {
   const [count, setCount] = useState(0)
@@ -8,7 +9,7 @@ function App() {
   return (
     <>
           <div className="topnav">
-            <a className="logo-link" href="#home">
+            <a className="logo-link" href="/">
               <span className="nav-logo-font">Commie</span>
               <img src="/logo.png" alt="Logo" className="nav-logo"></img>
             </a>
@@ -20,6 +21,7 @@ function App() {
           </div>
           <BrowserRouter>
           <Routes>
+            <Route path="/" element={<Main />}></Route>
             <Route path="/motions" element={<Motions />}></Route>
           </Routes>
           </BrowserRouter>

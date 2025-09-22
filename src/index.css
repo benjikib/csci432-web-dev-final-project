@@ -40,17 +40,17 @@ button {
   font-size: 1em;
   font-weight: 500;
   font-family: inherit;
-  background-color: #1a1a1a;
+  background-color: #13562C;
   cursor: pointer;
   transition: border-color 0.25s;
+  height: fit-content;
+  width: fit-content;
 }
 button:hover {
-  border-color: #646cff;
+  border-color: #1bc75a;
+  color: #1bc75a;
 }
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
-}
+
 
 @media (prefers-color-scheme: light) {
   :root {
