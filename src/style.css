@@ -220,7 +220,7 @@
 
 #motions-container {
   flex: 1;
-  padding: 24px;
+  padding: 5%;
   display: flex;
   flex-direction: column;
   overflow-x: hidden;
@@ -263,10 +263,6 @@
 }
 
 /* Motion details stuff */
-.details-page {
-  display: grid;
-  grid-template-columns: 2;
-}
 .details-container {
   flex: 1;
   padding: 5%;
