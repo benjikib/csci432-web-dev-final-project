@@ -262,6 +262,54 @@
   justify-content: space-between;
 }
 
+/* Motion details stuff */
+.details-page {
+  display: grid;
+  grid-template-columns: 2;
+}
+.details-container {
+  flex: 1;
+  padding: 5%;
+  display: grid;
+  grid-template-columns: 1;
+  grid-template-rows: 4;
+}
+.details-motion-title {
+  color: #1e293b;
+  text-align: left;
+  font-size: 23px;
+  font-weight: 500;
+}
+.details-overview {
+  display: grid;
+  grid-template-columns: 1;
+  grid-template-rows: 2;
+}
+.details-overview-title {
+  color: #1e293b;
+  text-align: left;
+  font-size: 16px;
+  font-weight: 500;
+}
+.details-overview-contents {
+  color: #1e293b;
+  text-align: center;
+  font-size: 24px;
+  font-weight: 500;
+}
+.details-description-title {
+  color: #1e293b;
+  text-align: left;
+  font-size: 19px;
+  font-weight: 500;
+}
+.details-description-contents {
+  color: #1e293b;
+  text-align: left;
+  font-size: 19px;
+  font-weight: 500;
+}
+
 /* Mobile responsive */
 @media screen and (max-width: 600px) {
   .topnav {
