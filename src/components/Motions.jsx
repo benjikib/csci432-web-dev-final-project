@@ -1,6 +1,10 @@
-import { useState } from 'react'
+import { useNavigate } from "react-router-dom"
+
 function Motions() {
-    const [count, setCount] = useState(0)
+    const navigate = useNavigate()
+    const detailsClicked = () => {
+      navigate("/motiondetails")
+    }
 
   return (
     <>
@@ -14,7 +18,7 @@ function Motions() {
             <div class="motions-grid">
                 <div class="motion-card">
                 <div class="row1">
-                    <a class="title" href="#">Motion #1</a>
+                    <a class="title" href="" onClick={detailsClicked}>Motion #1</a>
                 </div>
                 <div class="row2">
                     Description Text.
@@ -25,7 +29,7 @@ function Motions() {
                 </div>
                 <div class="motion-card">
                 <div class="row1">
-                    <a class="title" href="#">Motion #2</a>
+                    <a class="title" href="" onClick={detailsClicked}>Motion #2</a>
                 </div>
                 <div class="row2">
                     Another description.
