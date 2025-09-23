@@ -6,9 +6,9 @@ function MotionDetails() {
         <main id="main">
             <div id="side-bar">
                 Side 
-                <img src="/logo.png" alt="Logo" className="main-logo"></img>
-                <img src="/logo.png" alt="Logo" className="main-logo"></img>
-                <img src="/logo.png" alt="Logo" className="main-logo"></img>
+                <img src="/logo.png" alt="Logo" className="custom-logo"></img>
+                <img src="/logo.png" alt="Logo" className="custom-logo"></img>
+                <img src="/logo.png" alt="Logo" className="custom-logo"></img>
             </div>
             <div className="details-container">
                 <div className="details-motion-title">Motion to Stop People Having Fun in the Community</div>
@@ -22,7 +22,7 @@ function MotionDetails() {
                 </div>
                 <div className="details-overview">
                     <div className="details-description-title">Voting</div>
-                    <img src="/logo.png" alt="Logo" className="main-logo"></img>
+                    <img src="/logo.png" alt="Logo" className="custom-logo"></img>
                 </div>
             </div>
         </main>
