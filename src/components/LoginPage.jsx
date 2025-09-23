@@ -1,30 +1,67 @@
 import { useState } from 'react'
+import { useNavigate } from "react-router-dom"
 function LoginPage() {
-  const [count, setCount] = useState(0)
+    const navigate = useNavigate()
+    const [count, setCount] = useState(0)
+    const [active, setActive] = useState("join");
+  
+    const submit = () => {
+    navigate("/motions")
+  }
 
   return (
     <>
+        { active === "join" ? 
         <div className="login-container">
             <div className="login-card">
                 <h3 className="login-title">Join YOUR Community</h3>
-            <div className="row1">
-                <a className="title">Join</a><a className="title">Log In</a>
+            <div className="input-row">
+                <div className={`login-option ${active === "join" ? "active" : ""}`}onClick={() => setActive("join")}>
+                    Join
+                </div>
+                <div className={`login-option ${active === "login" ? "active" : ""}`}onClick={() => setActive("login")}>
+                    Log In
+                </div>
             </div>
-            <div className="row1">
+            <div className="input-row">
                 <input type="email" placeholder='Email' />
             </div>
-            <div className="row1">
+            <div className="input-row">
                 <input type="text" placeholder='First Name' /><input type="text" placeholder='Last Name' />
             </div>
-            <div className="row1">
+            <div className="input-row">
                 <input type="text" placeholder='Community Code' />
             </div>
-            <div className="row1">
-                <button2>Sign Up</button2>
+            <div className="input-row">
+                <button2 onClick={() => setActive("login")}>Sign Up</button2>
             </div>
-                <a>By signing up, you agree to our Terms of Service and Privacy Policy</a>
+                <a className="terms">By signing up, you agree to our Terms of Service and Privacy Policy</a>
+            </div>
+        </div> :
+        <div className="login-container">
+            <div className="login-card">
+                <h3 className="login-title">Join YOUR Community</h3>
+            <div className="input-row">
+                <div className={`login-option ${active === "join" ? "active" : ""}`}onClick={() => setActive("join")}>
+                    Join
+                </div>
+                <div className={`login-option ${active === "login" ? "active" : ""}`}onClick={() => setActive("login")}>
+                    Log In
+                </div>
+            </div>
+            <div className="input-row">
+                <input type="email" placeholder='Email' />
+            </div>
+            <div className="input-row">
+                <input type="password" placeholder='Password' />
+            </div>
+            <div className="input-row">
+                <button2 onClick={submit}>Login</button2>
+            </div>
+                <a className="terms">By signing up, you agree to our Terms of Service and Privacy Policy</a>
             </div>
         </div>
+        }
     </>
   )
 }

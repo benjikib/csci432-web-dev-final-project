@@ -26,6 +26,7 @@ body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
+  overflow-x: hidden;
 }
 
 h1 {
@@ -40,15 +41,14 @@ button {
   font-size: 1em;
   font-weight: 500;
   font-family: inherit;
-  background-color: #13562C;
+  background-color: #54966D;
   cursor: pointer;
   transition: border-color 0.25s;
   height: fit-content;
   width: fit-content;
 }
 button:hover {
-  border-color: #1bc75a;
-  color: #1bc75a;
+  background-color: #5ca377;
 }
 
 button2 {
@@ -63,9 +63,46 @@ button2 {
   cursor: pointer;
   transition: border-color 0.25s;
   height: 25px;
-  width: 250px;
+  width: 200px;
+  margin-left: 10%;
 }
 
+button2:hover {
+  background-color: #5ca377;
+}
+
+input {
+  width: 100%;
+  margin: 5px;
+  padding: 10px 14px;
+  font-size: 16px;
+  border: 1px solid #13562C;
+  border-radius: 8px;
+  background-color: #fff;
+  color: #111827;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+input:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.3);
+}
+
+input::placeholder {
+  color: #9ca3af;
+}
+
+input:disabled {
+  background-color: #f3f4f6;
+  color: #9ca3af;
+  cursor: not-allowed;
+}
+
+input.error {
+  border-color: #dc2626;
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.2);
+}
 
 @media (prefers-color-scheme: light) {
   :root {

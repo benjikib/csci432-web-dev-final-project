@@ -1,6 +1,6 @@
 import { useState } from 'react'
 function Motions() {
-  const [count, setCount] = useState(0)
+    const [count, setCount] = useState(0)
 
   return (
     <>
