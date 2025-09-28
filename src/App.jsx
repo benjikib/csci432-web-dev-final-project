@@ -25,7 +25,7 @@ function App() {
             <Route path="/" element={<Main />}></Route>
             <Route path="/motions" element={<Motions />}></Route>
             <Route path="/login" element={<LoginPage />}></Route>
-            <Route path="/motiondetails" element={<MotionDetails />}></Route>
+            <Route path="/motiondetails/:id" element={<MotionDetails />}></Route>
           </Routes>
           </BrowserRouter>
     </>
