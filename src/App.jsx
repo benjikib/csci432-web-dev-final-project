@@ -7,7 +7,6 @@ import Settings from './components/Settings.jsx'
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 function App() {
-
   return (
     <>
           <div className="topnav">
@@ -27,7 +26,7 @@ function App() {
             <Route path="/motions" element={<Motions />}></Route>
             <Route path="/login" element={<LoginPage />}></Route>
             <Route path="/settings" element={<Settings />}></Route>
-            <Route path="/motiondetails" element={<MotionDetails />}></Route>
+            <Route path="/motiondetails/:id" element={<MotionDetails />}></Route>
           </Routes>
           </BrowserRouter>
     </>
