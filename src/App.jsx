@@ -3,6 +3,7 @@ import Motions from './components/Motions.jsx'
 import Main from './components/MainPage.jsx'
 import LoginPage from './components/LoginPage.jsx'
 import MotionDetails from './components/MotionDetails.jsx'
+import Settings from './components/Settings.jsx'
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 function App() {
@@ -16,7 +17,7 @@ function App() {
             </a>
             <div className="nav-right">
               <a href="#notifications" title="Notifications">Notifications</a>
-              <a href="#settings" title="Settings">Settings</a>
+              <a href="/settings" title="Settings">Settings</a>
               <a href="#profile" title="Profile">Profile</a>
             </div>
           </div>
@@ -25,6 +26,7 @@ function App() {
             <Route path="/" element={<Main />}></Route>
             <Route path="/motions" element={<Motions />}></Route>
             <Route path="/login" element={<LoginPage />}></Route>
+            <Route path="/settings" element={<Settings />}></Route>
             <Route path="/motiondetails" element={<MotionDetails />}></Route>
           </Routes>
           </BrowserRouter>
