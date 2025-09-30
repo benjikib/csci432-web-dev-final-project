@@ -2,9 +2,18 @@ import { useState } from 'react'
 import { useNavigate } from "react-router-dom"
 function LoginPage() {
     const navigate = useNavigate()
-    const [count, setCount] = useState(0)
     const [active, setActive] = useState("join");
-  
+    const handleLogin = async () => {
+        try {
+        const res = await fetch('/sample.json');
+        const data = await res.json();
+
+        navigate('/profile', { state: { user: data } });
+        } catch (err) {
+        console.error('Failed to fetch users:', err);
+        } finally {
+        }
+    };
   return (
     <>
         { active === "join" ? 
@@ -52,7 +61,7 @@ function LoginPage() {
                 <input type="password" placeholder='Password' />
             </div>
             <div className="input-row">
-                <button2 onClick={() => navigate("/motions")}>Login</button2>
+                <button2 onClick={handleLogin}>Login</button2>
             </div>
                 <a className="terms">By signing up, you agree to our Terms of Service and Privacy Policy</a>
             </div>
