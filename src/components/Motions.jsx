@@ -1,8 +1,12 @@
 import MotionCard from "./MotionCard"
 import { getMotions } from "./MotionStorage"
+import { useLocation } from "react-router-dom"
 
 function Motions() {
     const motions = getMotions()
+    const location = useLocation();
+    const { users } = location.state || {}; 
+
 
   return (
     <>

@@ -313,6 +313,67 @@
   font-weight: 500;
 }
 
+.user-profile-container {
+  max-width: 600px;
+  margin: 200px auto;
+  padding: 24px;
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  font-family: Arial, sans-serif;
+}
+
+.user-profile-container h2 {
+  font-size: 24px;
+  font-weight: 600;
+  margin-bottom: 24px;
+  text-align: center;
+}
+
+.user-profile-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.user-avatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background-color: #ccc;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
+  font-weight: bold;
+  margin-right: 16px;
+}
+
+.user-header-info h3 {
+  margin: 0;
+  font-size: 20px;
+}
+
+.user-header-info p {
+  margin: 4px 0 0 0;
+  color: #666;
+}
+
+.user-profile-details .user-detail {
+  display: flex;
+  margin-bottom: 12px;
+}
+
+.user-profile-details .label {
+  width: 120px;
+  font-weight: bold;
+  color: #333;
+}
+
+.user-profile-details .value {
+  color: #555;
+}
+
 /* Mobile responsive */
 @media screen and (max-width: 600px) {
   .topnav {
