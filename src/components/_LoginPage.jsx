@@ -38,7 +38,7 @@ function LoginPage() {
                 <input type="text" placeholder='Community Code' />
             </div>
             <div className="input-row">
-                <div class="
+                <div className="
                 rounded-lg border-[1px] border-transparent
                 px-[1.2em] py-[0.6em]
                 text-white bg-[#54966D] hover:bg-[#5ca377]

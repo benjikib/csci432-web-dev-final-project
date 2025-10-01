@@ -3,13 +3,13 @@ import { useNavigate, useLocation } from "react-router-dom"
 
 
 function Profile() {
-    const [count, setCount] = useState(0)
     const location = useLocation();
     const { user } = location.state || {};
 
   return (
     <>
-        <div className="user-profile-container">
+        <button onClick={() => {console.log("working")}}>hi</button>
+        {/* <div className="user-profile-container">
             <h2>My Profile</h2>
 
             <div className="user-profile-header">
@@ -42,7 +42,7 @@ function Profile() {
                 <span className="value">{user.comid}</span>
                 </div>
             </div>
-        </div>
+        </div> */}
     </>
     );
 

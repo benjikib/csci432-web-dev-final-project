@@ -1,3 +1,14 @@
+const SearchBar = () => {
+        return (
+                <>
+                        <div className="flex items-center border-1 border-black bg-superlight-green rounded-sm ml-25 w-100">
+                                <span className="material-symbols-outlined text-black ml-1">search</span>
+                                <span className="font-[400] text-xs text-black/60 ml-2">Search for motions</span>
+                        </div> 
+                </>
+        )
+};
+
 
 const HeaderNav = () => {
         return (
@@ -20,15 +31,19 @@ const HeaderNav = () => {
                         <a href="/" className="flex items-center space-x-2">
                                 <span className="text-lighter-green font-extrabold text-2xl">Commie</span>
                                 <img src="/logo.png" alt="Logo" className="w-18 h-18"></img>
-                                <div className="text-black ml-25 rounded-sm w-120 text-left border-1">Search</div>
+                                <SearchBar/>
+                                {/* <div className="flex items-center border-1 border-black bg-superlight-green rounded-sm ml-25 w-100">
+                                        <span className="material-symbols-outlined text-black ml-1">search</span>
+                                        <span className="font-[400] text-xs text-black/60 ml-2">Search for motions</span>
+                                </div>  */}
                         </a>
 
                         {/* 1. RIGHT Elements (Evenly Spaced) */}
                         {/* We wrap the three elements in a container using 'space-x-8' for spacing */}
                         <div className="flex items-center gap-8 text-md">
-                                <a href="#notifications" title="Notifications" className="text-gray-700 hover:text-gray-900">Notifications</a>
-                                <a href="#settings" title="Settings" className="text-gray-700 hover:text-gray-900">Settings</a>
-                                <a href="#profile" title="Profile" className="text-gray-700 hover:text-gray-900">Profile</a>
+                                <a href="/notifications" title="Notifications" className="text-gray-700 hover:text-gray-900">Notifications</a>
+                                <a href="/settings" title="Settings" className="text-gray-700 hover:text-gray-900">Settings</a>
+                                <a href="/profile" title="Profile" className="text-gray-700 hover:text-gray-900">Profile</a>
                         </div>
                 
                 </div>
