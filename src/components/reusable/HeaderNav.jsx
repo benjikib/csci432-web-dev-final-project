@@ -20,6 +20,7 @@ const HeaderNav = () => {
                         <a href="/" className="flex items-center space-x-2">
                                 <span className="text-lighter-green font-extrabold text-2xl">Commie</span>
                                 <img src="/logo.png" alt="Logo" className="w-18 h-18"></img>
+                                <div className="text-black ml-25 rounded-sm w-120 text-left border-1">Search</div>
                         </a>
 
                         {/* 1. RIGHT Elements (Evenly Spaced) */}
