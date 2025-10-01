@@ -10,7 +10,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 function App() {
   return (
     <>
-          <div className="topnav">
+          {/* <div className="topnav">
             <a className="logo-link" href="/">
               <span className="nav-logo-font">Commie</span>
               <img src="/logo.png" alt="Logo" className="nav-logo"></img>
@@ -21,7 +21,7 @@ function App() {
               <a href="/settings" title="Settings">Settings</a>
               <a href="/profile" title="Profile">Profile</a>
             </div>
-          </div>
+          </div> */}
           <BrowserRouter>
           <Routes>
             <Route path="/" element={<Main />}></Route>

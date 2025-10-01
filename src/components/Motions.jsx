@@ -1,6 +1,9 @@
 import MotionCard from "./MotionCard"
+import SideBar from './reusable/SideBar'
+import HeaderNav from './reusable/HeaderNav'
 import { getMotions } from "./MotionStorage"
 import { useLocation } from "react-router-dom"
+import { useNavigate } from "react-router-dom"
 
 function Motions() {
     const motions = getMotions()
@@ -10,10 +13,8 @@ function Motions() {
 
   return (
     <>
-        <main id="main">
-        <div id="side-bar">
-            Side 
-        </div>
+        <HeaderNav />
+        <SideBar />  
         <div id="motions-container">
             <div className="motions-section">
             <h2 className="section-title">Motions</h2>
@@ -27,7 +28,6 @@ function Motions() {
             </div>
             </div>
         </div>
-        </main>
     </>
   )
 }

@@ -1,3 +1,5 @@
+import SideBar from './reusable/SideBar'
+import HeaderNav from './reusable/HeaderNav'
 import { useParams } from "react-router-dom"
 import { getMotionById } from "./MotionStorage"
 
@@ -14,16 +16,19 @@ function MotionDetails() {
             </main>
         )
     }
+  
+  return (
+    <>
+        <HeaderNav />
+        <SideBar />
+        {/* <div className="mt-20 ml-[16rem] flex flex-col gap-8 items-start"> 
 
-    return (
-        <>
-            <main id="main">
-                <div id="side-bar">
-                    Side
-                    <img src="/logo.png" alt="Logo" className="custom-logo"></img>
-                    <img src="/logo.png" alt="Logo" className="custom-logo"></img>
-                    <img src="/logo.png" alt="Logo" className="custom-logo"></img>
-                </div>
+            <div className="text-gray-700 text-2xl">{details.title}</div>
+
+            <div className="text-black text-2xl self-center text-center">{details.overview}</div>
+            
+        </div> */}
+          <div className="mt-20 ml-[16rem]">
                 <div className="details-container">
                     <div className="details-motion-title">{motion.title}</div>
                     <div className="details-overview">
@@ -40,8 +45,8 @@ function MotionDetails() {
                         <img src="/logo.png" alt="Logo" className="custom-logo"></img>
                     </div>
                 </div>
-            </main>
-        </>
-    )
+          </div>
+    </>
+  )
 }
 export default MotionDetails
