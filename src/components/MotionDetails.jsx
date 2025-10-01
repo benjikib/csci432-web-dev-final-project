@@ -1,16 +1,22 @@
 import SideBar from './reusable/SideBar'
 import HeaderNav from './reusable/HeaderNav'
+import { useParams } from "react-router-dom"
+import { getMotionById } from "./MotionStorage"
 
 function MotionDetails() {
-    const motion = {
-        title: "Motion to Stop People Having Fun in the Community",
-        description: "\“I move that we should ban all forms of fun from the community.\”",
-        fullDescription: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
-        voting: {
+    const { id } = useParams()
+    const motion = getMotionById(id)
 
-        }
+    if (!motion) {
+        return (
+            <main id="main">
+                <div className="details-container">
+                    <div className="details-motion-title">Motion Not Found</div>
+                </div>
+            </main>
+        )
     }
-
+  
   return (
     <>
         <HeaderNav />
@@ -35,7 +41,7 @@ function MotionDetails() {
                     </div>
                     <div className="details-overview">
                         <div className="details-description-title">Voting</div>
-                        <div>Current Votes: 1</div>
+                        <div>Current Votes: {motion.votes}</div>
                         <img src="/logo.png" alt="Logo" className="custom-logo"></img>
                     </div>
                 </div>

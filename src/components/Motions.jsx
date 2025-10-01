@@ -1,40 +1,30 @@
-import { useNavigate } from "react-router-dom"
+import MotionCard from "./MotionCard"
 import SideBar from './reusable/SideBar'
 import HeaderNav from './reusable/HeaderNav'
+import { getMotions } from "./MotionStorage"
+import { useLocation } from "react-router-dom"
+import { useNavigate } from "react-router-dom"
 
 function Motions() {
-    const navigate = useNavigate()
+    const motions = getMotions()
+    const location = useLocation();
+    const { users } = location.state || {}; 
+
 
   return (
     <>
         <HeaderNav />
         <SideBar />  
-        <div id="motions-container" className="mt-20 ml-[16rem]">
-            <div class="motions-section">
-            <h2 class="section-title">Motions</h2>
-            <div class="motions-grid">
-                <div class="motion-card">
-                <div class="row1">
-                    <a class="title" href="" onClick={() => navigate("/motiondetails")}>Motion #1</a>
-                </div>
-                <div class="row2">
-                    Description Text.
-                </div>
-                <div class="row3">
-                    Votes:
-                </div>
-                </div>
-                <div class="motion-card">
-                <div class="row1">
-                    <a class="title" href="" onClick={()=> navigate("/motiondetails")}>Motion #2</a>
-                </div>
-                <div class="row2">
-                    Another description.
-                </div>
-                <div class="row3">
-                    Votes:
-                </div>
-                </div>
+        <div id="motions-container">
+            <div className="motions-section">
+            <h2 className="section-title">Motions</h2>
+            <div className="motions-grid">
+                {motions.map(motion => (
+                    <MotionCard
+                        key={motion.id}
+                        motion={motion}
+                    />
+                ))}
             </div>
             </div>
         </div>
