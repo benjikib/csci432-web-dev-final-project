@@ -1,15 +1,15 @@
 import { useNavigate } from "react-router-dom"
+import SideBar from './reusable/SideBar'
+import HeaderNav from './reusable/HeaderNav'
 
 function Motions() {
     const navigate = useNavigate()
 
   return (
     <>
-        <main id="main">
-        <div id="side-bar">
-            Side 
-        </div>
-        <div id="motions-container">
+        <HeaderNav />
+        <SideBar />  
+        <div id="motions-container" className="mt-20 ml-[16rem]">
             <div class="motions-section">
             <h2 class="section-title">Motions</h2>
             <div class="motions-grid">
@@ -38,7 +38,6 @@ function Motions() {
             </div>
             </div>
         </div>
-        </main>
     </>
   )
 }
