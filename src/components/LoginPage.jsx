@@ -29,7 +29,13 @@ function LoginPage() {
                 <input type="text" placeholder='Community Code' />
             </div>
             <div className="input-row">
-                <button2 onClick={() => setActive("login")}>Sign Up</button2>
+                <div class="
+                rounded-lg border-[1px] border-transparent
+                px-[1.2em] py-[0.6em]
+                text-white bg-[#54966D] hover:bg-[#5ca377]
+                font-medium font-inherit
+                cursor-pointer
+                w-50 mx-auto" onClick={() => setActive("login")}>Sign Up</div>
             </div>
                 <a className="terms">By signing up, you agree to our Terms of Service and Privacy Policy</a>
             </div>
@@ -52,7 +58,15 @@ function LoginPage() {
                 <input type="password" placeholder='Password' />
             </div>
             <div className="input-row">
-                <button2 onClick={() => navigate("/motions")}>Login</button2>
+                {/* <div className="ml-[15%] bg-[#54966D] rounded-lg cursor-pointer transition: border-color 0.25s h-[35px] w-[200px] text-white text-base font-inherit font-medium"  */}
+                <div class="
+                rounded-lg border-[1px] border-transparent
+                px-[1.2em] py-[0.6em]
+                text-white bg-[#54966D] hover:bg-[#5ca377]
+                font-medium font-inherit
+                cursor-pointer
+                w-50 mx-auto" onClick={() => navigate("/motions")}>Login</div>
+                {/* </div> */}
             </div>
                 <a className="terms">By signing up, you agree to our Terms of Service and Privacy Policy</a>
             </div>
