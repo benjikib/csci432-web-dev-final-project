@@ -1,7 +1,7 @@
 const SearchBar = () => {
         return (
                 <>
-                        <div className="flex items-center border-1 border-black bg-superlight-green rounded-sm ml-25 w-100">
+                        <div className="flex items-center border-1 border-black bg-superlight-green rounded-sm ml-25 w-100 h-7.5">
                                 <span className="material-symbols-outlined text-black ml-1">search</span>
                                 <span className="font-[400] text-xs text-black/60 ml-2">Search for motions</span>
                         </div> 
