@@ -1,10 +1,10 @@
 import './App.css'
-import Motions from './components/Motions.jsx'
-import Main from './components/MainPage.jsx'
-import LoginPage from './components/LoginPage.jsx'
-import MotionDetails from './components/MotionDetails.jsx'
-import Settings from './components/Settings.jsx'
-import Profile from './components/Profile.jsx'
+import Motions from './components/_MotionsPage.jsx'
+import Main from './components/_MainPage.jsx'
+import LoginPage from './components/_LoginPage.jsx'
+import MotionDetails from './components/_MotionDetailsPage.jsx'
+import Settings from './components/_SettingsPage.jsx'
+import Profile from './components/_ProfilePage.jsx'
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 function App() {
