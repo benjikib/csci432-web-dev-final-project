@@ -28,7 +28,7 @@ function MotionDetails() {
             <div className="text-black text-2xl self-center text-center">{details.overview}</div>
             
         </div> */}
-          <div className="mt-20 ml-[16rem]">
+        <div className="mt-20 ml-[16rem]">
                 <div className="details-container">
                     <div className="details-motion-title">{motion.title}</div>
                     <div className="details-overview">
@@ -45,7 +45,7 @@ function MotionDetails() {
                         <img src="/logo.png" alt="Logo" className="custom-logo"></img>
                     </div>
                 </div>
-          </div>
+        </div>
     </>
   )
 }

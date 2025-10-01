@@ -15,7 +15,7 @@ function Motions() {
     <>
         <HeaderNav />
         <SideBar />  
-        <div id="motions-container">
+        <div className="mt-20 ml-[16rem]">
             <div className="motions-section">
             <h2 className="section-title">Motions</h2>
             <div className="motions-grid">
