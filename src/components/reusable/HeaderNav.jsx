@@ -36,7 +36,7 @@ const HeaderNav = () => {
         
                         {/* 2. LEFT Elements (Grouped for Logo) */}
                         {/* We wrap the logo elements in a container to justify them as a single unit */}
-                        <a href="/" className="flex items-center space-x-2">
+                        <a className="flex items-center space-x-2">
                                 <span className="text-lighter-green font-extrabold text-2xl">Commie</span>
                                 <img src="/logo.png" alt="Logo" className="w-18 h-18"></img>
                                 <SearchBar/>
