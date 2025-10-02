@@ -154,10 +154,15 @@
   font-weight: 650;
   color: #BECBC3;
   margin: 0 0 24px 0;
-  padding: 0 50px;
+  padding: 0 24px;
   border-bottom: 2px solid;
   cursor: pointer;
-
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  flex: 1;
+  min-width: 0;
 }
 
 .login-option.active{
@@ -174,6 +179,11 @@
   color: #1e293b;
   margin-bottom: 8px;
   width: 300px;
+}
+
+/* Ensure the two tabs share space evenly to avoid wrap due to font width */
+.input-row .login-option{
+  flex-basis: 50%;
 }
 
 .terms{
@@ -320,7 +330,7 @@
   background-color: #fff;
   border-radius: 8px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-  font-family: Arial, sans-serif;
+  font-family: Inter, Arial, sans-serif;
 }
 
 .user-profile-container h2 {
@@ -415,6 +425,107 @@ html {
 /* Optional: Body styling to prevent margin issues */
 body {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   background: #F8FEF9;
+}
+
+/* Site name font - Lalezar */
+.site-name {
+  font-family: Lalezar, cursive;
+}
+
+/* Integrated Landing Page Layout */
+.integrated-landing-page {
+  display: flex;
+  min-height: 100vh;
+  background: #F8FEF9;
+}
+
+.branding-section {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  background: #F8FEF9;
+}
+
+.branding-content {
+  text-align: center;
+  max-width: 500px;
+}
+
+.branding-content .main-logo-font {
+  margin-bottom: 20px;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.branding-content .main-logo {
+  height: 240px;
+  width: auto;
+  margin-left: 20px;
+  vertical-align: middle;
+  display: inline-block;
+}
+
+.tagline {
+  font-size: 18px;
+  color: #1e293b;
+  margin: 0 0 20px 0;
+  line-height: 1.5;
+  font-weight: 700;
+}
+
+.attribution {
+  font-size: 14px;
+  color: #64748b;
+  margin: 0;
+  font-style: italic;
+  font-weight: 500;
+}
+
+.auth-section {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  background: #F8FEF9;
+}
+
+/* Update existing login styles for integrated layout */
+.integrated-landing-page .login-container {
+  margin-top: 0;
+  width: 100%;
+  max-width: 500px;
+}
+
+.integrated-landing-page .login-card {
+  margin-top: 0;
+  width: 100% !important;
+  max-width: 100%;
+  height: 600px;
+  padding: 80px 64px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+/* Mobile responsive for integrated layout */
+@media screen and (max-width: 768px) {
+  .integrated-landing-page {
+    flex-direction: column;
+  }
+  
+  .branding-section,
+  .auth-section {
+    padding: 20px;
+  }
+  
+  .branding-content .main-logo {
+    height: 160px;
+  }
+  
+  .tagline {
+    font-size: 16px;
+  }
 }
