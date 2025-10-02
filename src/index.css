@@ -79,7 +79,7 @@ button2:hover {
   background-color: #5ca377;
 }
 
-input {
+/* input {
   width: 100%;
   margin: 5px;
   padding: 10px 14px;
@@ -90,7 +90,7 @@ input {
   color: #111827;
   outline: none;
   transition: border-color 0.2s, box-shadow 0.2s;
-}
+} */
 
 input:focus {
   border-color: #2563eb;
