@@ -716,6 +716,8 @@ body {
 
   .vote-buttons {
     flex-direction: column;
+  }
+}
 /* Site name font - Lalezar */
 .site-name {
   font-family: Lalezar, cursive;
