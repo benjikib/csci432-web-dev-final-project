@@ -125,7 +125,9 @@ The application uses React Router with the following routes:
 ## Contributing
 
 All group members should:
-1. Create a feature branch for new work
-2. Commit and develop on said branch
-3. Test the changes for functionality before making a PR
-4. Submit a pull request, and have another member review it 
+1. Avoid pushing directly to master/main
+2. Create a feature branch for new work
+3. Develop and commit on said branch
+4. Test the new changes for functionality before making a PR
+5. Submit a pull request, and have another member review it
+6. Once reviewed for functionality and adherance to best practices, merge the branch to main
