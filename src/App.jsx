@@ -11,6 +11,10 @@ function AppContent() {
   const location = useLocation();
   const background = location.state?.background;
 
+  // Check if we're on a motion details route without background state (direct navigation)
+  const isMotionDetailsRoute = location.pathname.startsWith('/motiondetails/');
+  const shouldShowModal = background || isMotionDetailsRoute;
+
   return (
     <>
       <Routes location={background || location}>
@@ -22,7 +26,7 @@ function AppContent() {
         <Route path="/profile" element={<Profile />}></Route>
       </Routes>
 
-      {background && (
+      {shouldShowModal && (
         <Routes>
           <Route path="/motiondetails/:id" element={<MotionDetails />}></Route>
         </Routes>

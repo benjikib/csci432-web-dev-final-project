@@ -1,4 +1,4 @@
-import { useParams, useNavigate } from "react-router-dom"
+import { useParams, useNavigate, useLocation } from "react-router-dom"
 import { getMotionById } from "./MotionStorage"
 import { useState } from "react"
 import { BsFillFilterSquareFill, BsChatLeftDotsFill, BsCheckCircleFill } from "react-icons/bs"
@@ -6,11 +6,17 @@ import { BsFillFilterSquareFill, BsChatLeftDotsFill, BsCheckCircleFill } from "r
 function MotionDetails() {
     const { id } = useParams()
     const navigate = useNavigate()
+    const location = useLocation()
     const motion = getMotionById(id)
     const [activeTab, setActiveTab] = useState("description")
 
     const handleClose = () => {
-        navigate(-1)
+        // If there's a background state, go back; otherwise, navigate to motions page
+        if (location.state?.background) {
+            navigate(-1)
+        } else {
+            navigate('/motions')
+        }
     }
 
     const handleBackdropClick = (e) => {
