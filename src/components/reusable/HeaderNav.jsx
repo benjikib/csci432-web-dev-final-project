@@ -1,7 +1,7 @@
 const SearchBar = () => {
         return (
                 <>
-                        <div className="flex items-center border-1 border-black bg-superlight-green rounded-sm ml-25 w-100 h-7.5">
+                        <div className="flex items-center border-1 border-black bg-superlight-green rounded-sm mr-165 w-100 h-7.5">
                                 <span className="material-symbols-outlined text-black ml-1">search</span>
                                 <span className="font-[400] text-xs text-black/60 ml-2">Search for motions</span>
                         </div> 
@@ -31,12 +31,14 @@ const HeaderNav = () => {
                         <a href="/" className="flex items-center space-x-2">
                                 <span className="text-lighter-green font-extrabold text-2xl site-name">Commie</span>
                                 <img src="/logo.png" alt="Logo" className="w-18 h-18"></img>
-                                <SearchBar/>
+                                
                                 {/* <div className="flex items-center border-1 border-black bg-superlight-green rounded-sm ml-25 w-100">
                                         <span className="material-symbols-outlined text-black ml-1">search</span>
                                         <span className="font-[400] text-xs text-black/60 ml-2">Search for motions</span>
                                 </div>  */}
+                                
                         </a>
+                        <SearchBar/>
 
                         {/* 1. RIGHT Elements (Evenly Spaced) */}
                         {/* We wrap the three elements in a container using 'space-x-8' for spacing */}
