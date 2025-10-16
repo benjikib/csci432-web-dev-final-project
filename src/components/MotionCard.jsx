@@ -1,17 +1,17 @@
-import { useNavigate } from "react-router-dom"
+import { useNavigate, useLocation } from "react-router-dom"
 
 function MotionCard({ motion }) {
     const navigate = useNavigate()
+    const location = useLocation()
 
-    const handleClick = (e) => {
-        e.preventDefault()
-        navigate(`/motiondetails/${motion.id}`)
+    const handleClick = () => {
+        navigate(`/motiondetails/${motion.id}`, { state: { background: location } })
     }
 
     return (
-        <div className="motion-card">
+        <div className="motion-card" onClick={handleClick}>
             <div className="row1">
-                <a className="title" href="#" onClick={handleClick}>{motion.title}</a>
+                <span className="title">{motion.title}</span>
             </div>
             <div className="row2">
                 {motion.description}

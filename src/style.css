@@ -14,6 +14,7 @@
   flex-direction: column;
   justify-content: space-between;
   color: black;
+  cursor: pointer;
 }
 
 .motion-card:hover {
@@ -122,9 +123,7 @@
 
 .login-card {
   width: 400px !important;
-  max-width: 100%;
   height: 500px;
-  max-height: 100%;
   box-sizing: border-box;
   border: 1px solid #e2e8f0;
   border-radius: 5px;
@@ -154,10 +153,15 @@
   font-weight: 650;
   color: #BECBC3;
   margin: 0 0 24px 0;
-  padding: 0 50px;
+  padding: 0 24px;
   border-bottom: 2px solid;
   cursor: pointer;
-
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  flex: 1;
+  min-width: 0;
 }
 
 .login-option.active{
@@ -174,6 +178,11 @@
   color: #1e293b;
   margin-bottom: 8px;
   width: 300px;
+}
+
+/* Ensure the two tabs share space evenly to avoid wrap due to font width */
+.input-row .login-option{
+  flex-basis: 50%;
 }
 
 .terms{
@@ -267,6 +276,7 @@
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  cursor: pointer;
 }
 
 /* Motion details stuff */
@@ -320,7 +330,7 @@
   background-color: #fff;
   border-radius: 8px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-  font-family: Arial, sans-serif;
+  font-family: Inter, Arial, sans-serif;
 }
 
 .user-profile-container h2 {
@@ -415,6 +425,395 @@ html {
 /* Optional: Body styling to prevent margin issues */
 body {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   background: #F8FEF9;
+}
+
+/* Modal Styles */
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 20px;
+}
+
+.modal-content {
+  background: #ffffff;
+  border-radius: 16px;
+  max-width: 800px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  animation: modalSlideIn 0.3s ease-out;
+}
+
+.modal-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  font-size: 24px;
+  line-height: 1;
+  color: #64748b;
+  cursor: pointer;
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  min-height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+  z-index: 10;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  padding: 0;
+}
+
+.modal-close:hover {
+  background-color: #ef4444;
+  border-color: #ef4444;
+  color: #ffffff;
+  transform: scale(1.1);
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Modal Header */
+.modal-header {
+  padding: 32px 60px 24px 32px;
+  border-bottom: 2px solid #e2e8f0;
+  background: linear-gradient(to bottom, #ffffff, #f8fafc);
+}
+
+.modal-title {
+  margin: 0 0 8px 0;
+  font-size: 28px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.modal-subtitle {
+  margin: 0;
+  font-size: 16px;
+  color: #64748b;
+  line-height: 1.5;
+}
+
+/* Modal Body with Sidebar */
+.modal-body {
+  display: flex;
+  min-height: 400px;
+}
+
+.modal-sidebar {
+  width: 80px;
+  background-color: #f8fafc;
+  border-right: 1px solid #e2e8f0;
+  padding: 24px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.tab-button {
+  background: transparent;
+  border: none;
+  padding: 20px;
+  text-align: center;
+  font-size: 24px;
+  font-weight: 500;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tab-button:hover {
+  background-color: #e2e8f0;
+  color: #0f172a;
+}
+
+.tab-button.active {
+  color: #13562C;
+  background-color: #ffffff;
+  font-weight: 600;
+}
+
+.tab-button.active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background-color: #13562C;
+}
+
+/* Modal Main Content */
+.modal-main-content {
+  flex: 1;
+  padding: 32px;
+  overflow-y: auto;
+}
+
+.tab-content {
+  animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.content-title {
+  margin: 0 0 16px 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.content-text {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.7;
+  color: #475569;
+}
+
+/* Voting Section */
+.voting-section {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  margin-top: 24px;
+}
+
+.vote-count {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 32px;
+  background: linear-gradient(135deg, #13562C 0%, #1a7a3f 100%);
+  border-radius: 12px;
+  color: white;
+}
+
+.vote-number {
+  font-size: 48px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.vote-label {
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-top: 8px;
+  opacity: 0.9;
+}
+
+.vote-buttons {
+  display: flex;
+  gap: 16px;
+}
+
+.vote-button {
+  flex: 1;
+  padding: 16px 32px;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.vote-yes {
+  background-color: #13562C;
+  color: white;
+}
+
+.vote-yes:hover {
+  background-color: #1a7a3f;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(19, 86, 44, 0.3);
+}
+
+.vote-no {
+  background-color: #ef4444;
+  color: white;
+}
+
+.vote-no:hover {
+  background-color: #dc2626;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+}
+
+/* Responsive modal */
+@media screen and (max-width: 600px) {
+  .modal-content {
+    max-width: 100%;
+    max-height: 100vh;
+    border-radius: 0;
+  }
+
+  .modal-body {
+    flex-direction: column;
+  }
+
+  .modal-sidebar {
+    width: 100%;
+    flex-direction: row;
+    border-right: none;
+    border-bottom: 1px solid #e2e8f0;
+    padding: 0;
+  }
+
+  .tab-button {
+    flex: 1;
+    text-align: center;
+  }
+
+  .tab-button.active::before {
+    left: 0;
+    right: 0;
+    top: auto;
+    bottom: 0;
+    width: auto;
+    height: 4px;
+  }
+
+  .vote-buttons {
+    flex-direction: column;
+  }
+}
+/* Site name font - Lalezar */
+.site-name {
+  font-family: Lalezar, cursive;
+}
+
+/* Integrated Landing Page Layout */
+.integrated-landing-page {
+  display: flex;
+  min-height: 100vh;
+  background: #F8FEF9;
+}
+
+.branding-section {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  background: #F8FEF9;
+}
+
+.branding-content {
+  text-align: center;
+  max-width: 500px;
+}
+
+.branding-content .main-logo-font {
+  margin-bottom: 20px;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.branding-content .main-logo {
+  height: 240px;
+  width: auto;
+  margin-left: 20px;
+  vertical-align: middle;
+  display: inline-block;
+}
+
+.tagline {
+  font-size: 18px;
+  color: #1e293b;
+  margin: 0 0 20px 0;
+  line-height: 1.5;
+  font-weight: 700;
+}
+
+.attribution {
+  font-size: 14px;
+  color: #64748b;
+  margin: 0;
+  font-style: italic;
+  font-weight: 500;
+}
+
+.auth-section {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  background: #F8FEF9;
+}
+
+/* Update existing login styles for integrated layout */
+.integrated-landing-page .login-container {
+  margin-top: 0;
+  width: 100%;
+  max-width: 500px;
+}
+
+.integrated-landing-page .login-card {
+  margin-top: 0;
+  width: 400px !important;
+  height: 600px;
+  padding: 80px 64px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+/* Mobile responsive for integrated layout */
+@media screen and (max-width: 768px) {
+  .integrated-landing-page {
+    flex-direction: column;
+  }
+  
+  .branding-section,
+  .auth-section {
+    padding: 20px;
+  }
+  
+  .branding-content .main-logo {
+    height: 160px;
+  }
+  
+  .tagline {
+    font-size: 16px;
+  }
 }

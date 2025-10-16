@@ -2,6 +2,7 @@ const SearchBar = () => {
         return (
                 <>
                         {/* <div className="flex items-center border-1 border-black bg-superlight-green rounded-sm ml-25 w-100 h-7.5">
+                        <div className="flex items-center border-1 border-black bg-superlight-green rounded-sm mr-165 w-100 h-7.5">
                                 <span className="material-symbols-outlined text-black ml-1">search</span>
                                 <div className="font-[400] text-xs text-black/60 ml-2">Search for motions</div>
                         </div>  */}
@@ -36,15 +37,17 @@ const HeaderNav = () => {
         
                         {/* 2. LEFT Elements (Grouped for Logo) */}
                         {/* We wrap the logo elements in a container to justify them as a single unit */}
-                        <a className="flex items-center space-x-2">
-                                <span className="text-lighter-green font-extrabold text-2xl">Commie</span>
+                        <a href="/" className="flex items-center space-x-2">
+                                <span className="text-lighter-green font-extrabold text-2xl site-name">Commie</span>
                                 <img src="/logo.png" alt="Logo" className="w-18 h-18"></img>
-                                <SearchBar/>
+                                
                                 {/* <div className="flex items-center border-1 border-black bg-superlight-green rounded-sm ml-25 w-100">
                                         <span className="material-symbols-outlined text-black ml-1">search</span>
                                         <span className="font-[400] text-xs text-black/60 ml-2">Search for motions</span>
                                 </div>  */}
+                                
                         </a>
+                        <SearchBar/>
 
                         {/* 1. RIGHT Elements (Evenly Spaced) */}
                         {/* We wrap the three elements in a container using 'space-x-8' for spacing */}

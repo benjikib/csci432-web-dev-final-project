@@ -1,38 +1,45 @@
 import './App.css'
-import Motions from './components/_MotionsPage.jsx'
-import Main from './components/_MainPage.jsx'
-import LoginPage from './components/_LoginPage.jsx'
-import MotionDetails from './components/_MotionDetailsPage.jsx'
-import Settings from './components/_SettingsPage.jsx'
-import Profile from './components/_ProfilePage.jsx'
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import Motions from './components/MotionsPage.jsx'
+import Main from './components/MainPage.jsx'
+import LoginPage from './components/LoginPage.jsx'
+import MotionDetails from './components/MotionDetailsPage.jsx'
+import Settings from './components/SettingsPage.jsx'
+import Profile from './components/ProfilePage.jsx'
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
+
+function AppContent() {
+  const location = useLocation();
+  const background = location.state?.background;
+
+  // Check if we're on a motion details route without background state (direct navigation)
+  const isMotionDetailsRoute = location.pathname.startsWith('/motiondetails/');
+  const shouldShowModal = background || isMotionDetailsRoute;
+
+  return (
+    <>
+      <Routes location={background || location}>
+        <Route path="/" element={<Main />}></Route>
+        <Route path="/motions" element={<Motions />}></Route>
+        <Route path="/login" element={<LoginPage />}></Route>
+        <Route path="/settings" element={<Settings />}></Route>
+        <Route path="/motiondetails/:id" element={<Motions />}></Route>
+        <Route path="/profile" element={<Profile />}></Route>
+      </Routes>
+
+      {shouldShowModal && (
+        <Routes>
+          <Route path="/motiondetails/:id" element={<MotionDetails />}></Route>
+        </Routes>
+      )}
+    </>
+  );
+}
 
 function App() {
   return (
-    <>
-          {/* <div className="topnav">
-            <a className="logo-link" href="/">
-              <span className="nav-logo-font">Commie</span>
-              <img src="/logo.png" alt="Logo" className="nav-logo"></img>
-            </a>
-            <div className="nav-right">
-              <a href="/motions" title="Notifications">Motions</a>
-              <a href="#notifications" title="Notifications">Notifications</a>
-              <a href="/settings" title="Settings">Settings</a>
-              <a href="/profile" title="Profile">Profile</a>
-            </div>
-          </div> */}
-          <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Main />}></Route>
-            <Route path="/motions" element={<Motions />}></Route>
-            <Route path="/login" element={<LoginPage />}></Route>
-            <Route path="/settings" element={<Settings />}></Route>
-            <Route path="/motiondetails/:id" element={<MotionDetails />}></Route>
-            <Route path="/profile" element={<Profile />}></Route>
-          </Routes>
-          </BrowserRouter>
-    </>
+    <BrowserRouter>
+      <AppContent />
+    </BrowserRouter>
   )
 }
 
