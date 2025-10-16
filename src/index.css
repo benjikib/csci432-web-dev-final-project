@@ -79,7 +79,7 @@ button2:hover {
   background-color: #5ca377;
 }
 
-input {
+.login-input {
   width: 100%;
   margin: 5px;
   padding: 10px 14px;
@@ -92,22 +92,22 @@ input {
   transition: border-color 0.2s, box-shadow 0.2s;
 }
 
-input:focus {
+.login-input:focus {
   border-color: #2563eb;
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.3);
 }
 
-input::placeholder {
+.login-input::placeholder {
   color: #9ca3af;
 }
 
-input:disabled {
+.login-input:disabled {
   background-color: #f3f4f6;
   color: #9ca3af;
   cursor: not-allowed;
 }
 
-input.error {
+.login-input.error {
   border-color: #dc2626;
   box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.2);
 }
