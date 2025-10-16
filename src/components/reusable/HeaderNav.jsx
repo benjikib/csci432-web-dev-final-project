@@ -8,9 +8,9 @@ const SearchBar = () => {
                         <div className="flex items-center border border-black bg-superlight-green rounded-sm ml-20 w-100 h-7.5">
                                 <span className="material-symbols-outlined text-black ml-1">search</span>
                                 <input
-                                        type="search"
+                                        // type="search"
                                         placeholder="Search for motions"
-                                        className="ml-2 font-[400] text-xs text-black/60"
+                                        className="ml-2 w-full border-transparent focus:outline-none font-[400] text-xs text-black/60"
                                 />
                         </div>
                 </>
