@@ -131,3 +131,6 @@ All group members should:
 4. Test the new changes for functionality before making a PR
 5. Submit a pull request, and have another member review it
 6. Once reviewed for functionality and adherance to best practices, merge the branch to main
+
+## Tasks 
+**The current state of the project, and tasks left unfinished can be found [here]().
