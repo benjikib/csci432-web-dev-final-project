@@ -137,4 +137,4 @@ All group members should:
 6. Once reviewed for functionality and adherance to best practices, merge the branch to main
 
 ## Tasks 
-**The current state of the project, and tasks left unfinished can be found [here]().
+**The current state of the project, and tasks left unfinished can be found [here](https://github.com/benjikib/csci432-web-dev-final-project/blob/main/tasks.md).
