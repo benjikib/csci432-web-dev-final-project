@@ -16,7 +16,7 @@ This project belongs to the group consisting of:
 
 **Netlify**: The project is currently hosted on Netlify, and can be accessed via this [link](https://csci432-final-project.netlify.app). 
 
-### Purpose
+## Purpose
 
 The primary goal of this project is to provide a digital platform for HOAs which follows Robert's Rules of Order.
 
