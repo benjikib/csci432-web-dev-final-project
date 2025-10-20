@@ -15,6 +15,7 @@ This project belongs to the group consisting of:
 ## Accessing 
 
 **Netlify**: The project is currently hosted on Netlify, and can be accessed via this [link](https://csci432-final-project.netlify.app). 
+
 **Vercel**: The project has been moved to Vercel, since Netlify free plan doesn't support multiple collaborators on the github, access it via this [link](https://csci432-web-dev-final-project-41xt18cw7-benjikibs-projects.vercel.app/motions)
 
 ## Purpose
