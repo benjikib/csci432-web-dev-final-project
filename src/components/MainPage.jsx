@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from "react-router-dom"
 
-function MainPage() {
+export default function MainPage() {
     const navigate = useNavigate()
     const [active, setActive] = useState("join");
     
@@ -96,4 +96,5 @@ function MainPage() {
         </div>
     )
 }
-export default MainPage
+
+

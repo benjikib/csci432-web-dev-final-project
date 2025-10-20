@@ -16,6 +16,7 @@ function Motions() {
     const motions = getMotions()
     const [searchedTerm, setSearchedTerm] = useState("");
 
+    // Everytime the state refreshes we filter the motions list to search by whats in the search bar
     let filteredMotions = motions.filter( (motion) => {
         return Object.values(motion).some( (value) => {
             return String(value).toLowerCase().includes(searchedTerm.toLowerCase())
@@ -28,7 +29,7 @@ function Motions() {
     return (
         <>
             {/* <button className="mt-20" onClick={() => {console.log(motions)}}>hi</button> */}
-            <HeaderNav searchedTerm = {searchedTerm} setSearchedTerm = {setSearchedTerm} />
+            <HeaderNav setSearchedTerm = {setSearchedTerm} />
             <SideBar />  
             <div className="mt-20 ml-[16rem]">
                 <div className="motions-section">
