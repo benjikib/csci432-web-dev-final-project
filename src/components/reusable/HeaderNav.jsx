@@ -11,7 +11,7 @@ function SearchBar( {setSearchedTerm} ) {
                                 <span className="material-symbols-outlined text-black ml-1">search</span>
                                 <input
                                         placeholder="Search for motions"
-                                        className="ml-2 w-full border-transparent focus:outline-none font-[400] text-xs text-black/60"
+                                        className="ml-1.5 w-full h-full border-transparent focus:outline-none font-[400] text-xs text-black/60"
                                         onChange={ (e) => { setSearchedTerm(e.target.value) } }
                                         autoComplete="off"
                                 />
