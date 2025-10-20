@@ -22,8 +22,8 @@ export default function SideBar() {
                           to={item.path}
                           className={`flex items-center gap-3 px-4 py-3 mb-2 rounded-lg text-white transition-all ${
                               location.pathname === item.path
-                                  ? 'bg-darker-green font-bold'
-                                  : 'hover:bg-darker-green/50'
+                                  ? 'bg-superlight-green/90 font-bold'
+                                  : 'hover:bg-superlight-green/50'
                           }`}
                       >
                           <span className="material-symbols-outlined">{item.icon}</span>
