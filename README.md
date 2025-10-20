@@ -12,7 +12,11 @@ This project belongs to the group consisting of:
 
 **Commie** is a web-based motion management and voting platform designed for HOAs: namely to be used for community governance and decision-making. The application allows users to create, view, and vote on motions in a democratic manner, following Robert's Rules of Order.
 
-### Purpose
+## Accessing 
+
+**Netlify**: The project is currently hosted on Netlify, and can be accessed via this [link](https://csci432-final-project.netlify.app). 
+
+## Purpose
 
 The primary goal of this project is to provide a digital platform for HOAs which follows Robert's Rules of Order.
 
@@ -131,3 +135,6 @@ All group members should:
 4. Test the new changes for functionality before making a PR
 5. Submit a pull request, and have another member review it
 6. Once reviewed for functionality and adherance to best practices, merge the branch to main
+
+## Tasks 
+**The current state of the project, and tasks left unfinished can be found [here](https://github.com/benjikib/csci432-web-dev-final-project/blob/main/tasks.md).
