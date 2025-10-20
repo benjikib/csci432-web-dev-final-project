@@ -1,12 +1,16 @@
 const SearchBar = () => {
         return (
                 <>
-                        <div className="flex items-center border-1 border-black bg-superlight-green rounded-sm mr-165 w-100 h-7.5">
+                        <div className="flex items-center border border-black bg-superlight-green rounded-sm ml-20 w-100 h-7.5">
                                 <span className="material-symbols-outlined text-black ml-1">search</span>
-                                <span className="font-[400] text-xs text-black/60 ml-2">Search for motions</span>
-                        </div> 
+                                <input
+                                        placeholder="Search for motions"
+                                        className="ml-2 w-full border-transparent focus:outline-none font-[400] text-xs text-black/60"
+                                />
+                        </div>
                 </>
         )
+        
 };
 
 
