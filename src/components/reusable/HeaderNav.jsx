@@ -13,6 +13,7 @@ function SearchBar( {setSearchedTerm} ) {
                                         placeholder="Search for motions"
                                         className="ml-2 w-full border-transparent focus:outline-none font-[400] text-xs text-black/60"
                                         onChange={ (e) => { setSearchedTerm(e.target.value) } }
+                                        autoComplete="off"
                                 />
                         </div>
                 </>
