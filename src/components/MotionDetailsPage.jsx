@@ -25,6 +25,15 @@ function MotionDetails() {
         }
     }
 
+    // voting logic
+
+    const [numberOfYesVotes, setNumberOfYesVotes] = useState(motion.votes);
+
+    const handleYesVote = () => {
+        motion.votes = motion.votes + 1;
+        setNumberOfYesVotes(numberOfYesVotes + 1);
+    }
+
     if (!motion) {
         return (
             <div className="modal-backdrop" onClick={handleBackdropClick}>
@@ -93,11 +102,15 @@ function MotionDetails() {
                                 <h3 className="content-title">Vote on this Motion</h3>
                                 <div className="voting-section">
                                     <div className="vote-count">
-                                        <span className="vote-number">{motion.votes}</span>
+                                        <span className="vote-number">{numberOfYesVotes}</span>
+                                            {/* {motion.votes}</span> */}
                                         <span className="vote-label">Total Votes</span>
                                     </div>
                                     <div className="vote-buttons">
-                                        <button className="vote-button vote-yes">Vote Yes</button>
+                                        <button
+                                            className="vote-button vote-yes"
+                                            onClick = { handleYesVote }
+                                            >Vote Yes</button>
                                         <button className="vote-button vote-no">Vote No</button>
                                     </div>
                                 </div>
