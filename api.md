@@ -1,21 +1,60 @@
-# API Documentation 
+# API Documentation
+---
+## Authentication
 
-## Committees 
-| URL Slug | Method | Details | Auth Required? |
+| Endpoint | Method | Description | Auth Required |
 | --- | --- | --- | --- |
-| /committees | GET | Gets the details of every committee. | Yes |
-| /committee/:id: | GET | Gets the details of a specific committee. | Yes |
-| /committee/create | POST | Creates a specific committee. | Yes |
+| `/auth/register` | POST | Register a new user | No |
+| `/auth/login` | POST | Login and receive JWT token | No |
+| `/auth/logout` | POST | Logout (invalidate token) | Yes |
+| `/auth/me` | GET | Get current user info | Yes |
 
-## Motions 
-> BASE_URL: /committee/:id:/
+---
 
-| URL Slug | Method | Details | Auth Required? |
+## Committees
+
+| Endpoint | Method | Description | Auth Required |
 | --- | --- | --- | --- |
-| /BASE_URL/motions | GET | Gets all of the motions for a specified committee. | Yes | 
-| /BASE_URL/motion/:id: | GET | Gets the details of a specific motion in a specific committee. | Yes | 
-| /BASE_URL/motion/create | POST | Creates a specific motion within a committee. | Yes | 
-| /BASE_URL/motion/:id:/comments/:page: | GET | Gets the comments of a specific motion. | Yes | 
-| /BASE_URL/motion/:id:/vote | GET | Gets the votes of a specific motion. | Yes | 
+| `/committees/:page` | GET | Get all committees (paginated) | Yes |
+| `/committee/:id` | GET | Get specific committee details | Yes |
+| `/committee/create` | POST | Create a new committee | Yes |
+| `/committee/:id` | PUT | Update a committee | Yes |
+| `/committee/:id` | DELETE | Delete a committee | Yes |
 
+---
+
+## Motions
+
+**Base**: `/committee/:id`
+
+| Endpoint | Method | Description | Auth Required |
+| --- | --- | --- | --- |
+| `/committee/:id/motions/:page` | GET | Get all motions in committee (paginated) | Yes |
+| `/committee/:id/motion/:motionId` | GET | Get specific motion details | Yes |
+| `/committee/:id/motion/create` | POST | Create a new motion | Yes |
+| `/committee/:id/motion/:motionId` | PUT | Update a motion | Yes |
+| `/committee/:id/motion/:motionId` | DELETE | Delete a motion | Yes |
+
+## Comments
+
+**Base**: `/committee/:id/motion/:motionId`
+
+| Endpoint | Method | Description | Auth Required |
+| --- | --- | --- | --- |
+| `/committee/:id/motion/:motionId/comments/:page` | GET | Get all comments (paginated) | Yes |
+| `/committee/:id/motion/:motionId/comment/create` | POST | Create a comment | Yes |
+| `/committee/:id/motion/:motionId/comment/:commentId` | PUT | Update a comment | Yes |
+| `/committee/:id/motion/:motionId/comment/:commentId` | DELETE | Delete a comment | Yes |
+
+---
+
+## Voting
+
+**Base**: `/committee/:id/motion/:motionId`
+
+| Endpoint | Method | Description | Auth Required |
+| --- | --- | --- | --- |
+| `/committee/:id/motion/:motionId/votes` | GET | Get vote summary and details | Yes |
+| `/committee/:id/motion/:motionId/vote` | POST | Cast or update a vote | Yes |
+| `/committee/:id/motion/:motionId/vote` | DELETE | Remove your vote | Yes |
 
