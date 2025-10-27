@@ -2,6 +2,7 @@ import { useParams, useNavigate, useLocation } from "react-router-dom"
 import { getMotionById } from "./MotionStorage"
 import { useState } from "react"
 import { BsFillFilterSquareFill, BsChatLeftDotsFill, BsCheckCircleFill } from "react-icons/bs"
+import MotionDetailsComments from "./MotionDetailsComments"
 
 function MotionDetails() {
     const { id } = useParams()
@@ -95,6 +96,7 @@ function MotionDetails() {
                                 <h3 className="content-title">Comments</h3>
                                 <p className="content-text">No comments yet. Be the first to comment!</p>
                                 {/* comments implemented here */}
+                                <MotionDetailsComments />
                             </div>
                         )}
 
