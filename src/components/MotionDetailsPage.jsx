@@ -94,6 +94,7 @@ function MotionDetails() {
                             <div className="tab-content">
                                 <h3 className="content-title">Comments</h3>
                                 <p className="content-text">No comments yet. Be the first to comment!</p>
+                                {/* comments implemented here */}
                             </div>
                         )}
 
