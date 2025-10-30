@@ -156,12 +156,22 @@ html.dark .row1 {
   align-items: center;
 }
 
+html.dark .login-card {
+  background: #1f2937;
+  border-color: #374151;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
 .login-title{
   font-size: 20px;
   font-weight: 650;
   color: #0f172a;
   margin: 0 0 24px 0;
   padding: 0 12px;
+}
+
+html.dark .login-title {
+  color: #f3f4f6;
 }
 
 .login-option{
@@ -180,9 +190,18 @@ html.dark .row1 {
   min-width: 0;
 }
 
+html.dark .login-option {
+  color: #6b7280;
+}
+
 .login-option.active{
   color: #13562C;
   border-bottom: 4px solid #13562C;
+}
+
+html.dark .login-option.active {
+  color: #10b981;
+  border-bottom-color: #10b981;
 }
 
 .input-row{
@@ -215,19 +234,39 @@ html.dark .row1 {
   transition: border-color 0.2s, box-shadow 0.2s;
 }
 
+html.dark .login-input {
+  background-color: #374151;
+  border-color: #4b5563;
+  color: #f3f4f6;
+}
+
 .login-input:focus {
   border-color: #2563eb;
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.3);
+}
+
+html.dark .login-input:focus {
+  border-color: #10b981;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.3);
 }
 
 .login-input::placeholder {
   color: #9ca3af;
 }
 
+html.dark .login-input::placeholder {
+  color: #6b7280;
+}
+
 .login-input:disabled {
   background-color: #f3f4f6;
   color: #9ca3af;
   cursor: not-allowed;
+}
+
+html.dark .login-input:disabled {
+  background-color: #1f2937;
+  color: #6b7280;
 }
 
 .login-input.error {
@@ -240,6 +279,10 @@ html.dark .row1 {
   font-size:12px;
   margin-top: 10%;
   cursor: pointer;
+}
+
+html.dark .terms {
+  color: #9ca3af;
 }
 
 #main {
@@ -268,6 +311,10 @@ html.dark .row1 {
   color: #13562C;
   font-size: 64px;
   font-weight: 800;
+}
+
+html.dark .main-logo-font {
+  color: #10b981;
 }
 
 #side-bar {
@@ -853,6 +900,10 @@ html.dark .content-text {
   background: #F8FEF9;
 }
 
+html.dark .integrated-landing-page {
+  background: #111827;
+}
+
 .branding-section {
   flex: 1;
   display: flex;
@@ -860,6 +911,10 @@ html.dark .content-text {
   justify-content: center;
   padding: 40px;
   background: #F8FEF9;
+}
+
+html.dark .branding-section {
+  background: #111827;
 }
 
 .branding-content {
@@ -889,12 +944,20 @@ html.dark .content-text {
   font-weight: 700;
 }
 
+html.dark .tagline {
+  color: #f3f4f6;
+}
+
 .attribution {
   font-size: 14px;
   color: #64748b;
   margin: 0;
   font-style: italic;
   font-weight: 500;
+}
+
+html.dark .attribution {
+  color: #9ca3af;
 }
 
 .auth-section {
@@ -904,6 +967,10 @@ html.dark .content-text {
   justify-content: center;
   padding: 40px;
   background: #F8FEF9;
+}
+
+html.dark .auth-section {
+  background: #111827;
 }
 
 /* Update existing login styles for integrated layout */
