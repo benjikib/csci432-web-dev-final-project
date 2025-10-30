@@ -6,6 +6,7 @@ export default function SideBar() {
       const location = useLocation();
 
       const navItems = [
+          { path: '/committees', label: 'Committees', icon: 'groups' },
           { path: '/motions', label: 'Active Motions', icon: 'description' },
           { path: '/motions-history', label: 'Motions History', icon: 'history' },
           { path: '/user-control', label: 'User Control', icon: 'admin_panel_settings' },

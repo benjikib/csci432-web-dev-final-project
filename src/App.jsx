@@ -5,6 +5,8 @@ import LoginPage from './components/LoginPage.jsx'
 import MotionDetails from './components/MotionDetailsPage.jsx'
 import Settings from './components/SettingsPage.jsx'
 import Profile from './components/ProfilePage.jsx'
+import CommitteesPage from './components/CommitteesPage.jsx'
+import CommitteeMotionsPage from './components/CommitteeMotionsPage.jsx'
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 
 function AppContent() {
@@ -20,6 +22,8 @@ function AppContent() {
       <Routes location={background || location}>
         <Route path="/" element={<Main />}></Route>
         <Route path="/motions" element={<Motions />}></Route>
+        <Route path="/committees" element={<CommitteesPage />}></Route>
+        <Route path="/committee/:id" element={<CommitteeMotionsPage />}></Route>
         <Route path="/login" element={<LoginPage />}></Route>
         <Route path="/settings" element={<Settings />}></Route>
         <Route path="/motiondetails/:id" element={<Motions />}></Route>
