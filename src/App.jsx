@@ -5,9 +5,9 @@ import LoginPage from './components/LoginPage.jsx'
 import MotionDetails from './components/MotionDetailsPage.jsx'
 import Settings from './components/SettingsPage.jsx'
 import Profile from './components/ProfilePage.jsx'
-import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
+import {Routes, Route, useLocation } from "react-router-dom";
 
-function AppContent() {
+export default function App() {
   const location = useLocation();
   const background = location.state?.background;
 
@@ -34,13 +34,3 @@ function AppContent() {
     </>
   );
 }
-
-function App() {
-  return (
-    <BrowserRouter>
-      <AppContent />
-    </BrowserRouter>
-  )
-}
-
-export default App
