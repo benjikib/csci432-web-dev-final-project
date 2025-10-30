@@ -7,6 +7,8 @@ import Settings from './components/SettingsPage.jsx'
 import Profile from './components/ProfilePage.jsx'
 import CommitteesPage from './components/CommitteesPage.jsx'
 import CommitteeMotionsPage from './components/CommitteeMotionsPage.jsx'
+import NotFoundPage from './components/NotFoundPage.jsx'
+import { ThemeProvider } from './context/ThemeContext.jsx'
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 
 function AppContent() {
@@ -28,6 +30,7 @@ function AppContent() {
         <Route path="/settings" element={<Settings />}></Route>
         <Route path="/motiondetails/:id" element={<Motions />}></Route>
         <Route path="/profile" element={<Profile />}></Route>
+        <Route path="*" element={<NotFoundPage />}></Route>
       </Routes>
 
       {shouldShowModal && (
@@ -41,9 +44,11 @@ function AppContent() {
 
 function App() {
   return (
-    <BrowserRouter>
-      <AppContent />
-    </BrowserRouter>
+    <ThemeProvider>
+      <BrowserRouter>
+        <AppContent />
+      </BrowserRouter>
+    </ThemeProvider>
   )
 }
 
