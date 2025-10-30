@@ -86,7 +86,7 @@ export default function MainPage() {
                             text-white bg-[#54966D] hover:bg-[#5ca377]
                             font-medium font-inherit
                             cursor-pointer
-                            w-50 mx-auto" onClick={() => navigate("/motions")}>Login</div>
+                            w-50 mx-auto" onClick={() => navigate("/committees")}>Login</div>
                         </div>
                         <a className="terms">By signing up, you agree to our Terms of Service and Privacy Policy</a>
                     </div>

@@ -1,16 +1,73 @@
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { getCommitteeById } from '../CommitteeStorage';
 
 //   const SideBar = () => {
 export default function SideBar() {
 
       const location = useLocation();
+      const navigate = useNavigate();
 
       const navItems = [
           { path: '/committees', label: 'Committees', icon: 'groups' },
-          { path: '/motions', label: 'Active Motions', icon: 'description' },
-          { path: '/motions-history', label: 'Motions History', icon: 'history' },
           { path: '/user-control', label: 'User Control', icon: 'admin_panel_settings' },
       ];
+
+      // Determine back navigation and committee context based on current path
+      const getNavigationContext = () => {
+          const path = location.pathname;
+
+          // Check if we're on a motion details page: /committee/:id/motion/:motionId
+          const motionMatch = path.match(/^\/committee\/(\d+)\/motion\/\d+$/);
+          if (motionMatch) {
+              const committeeId = motionMatch[1];
+              const committee = getCommitteeById(committeeId);
+              return {
+                  backNav: {
+                      label: committee?.title || 'Committee',
+                      path: `/committee/${committeeId}`
+                  },
+                  committeeId: committeeId,
+                  showSettings: false
+              };
+          }
+
+          // Check if we're on a committee settings page: /committee/:id/settings
+          const settingsMatch = path.match(/^\/committee\/(\d+)\/settings$/);
+          if (settingsMatch) {
+              const committeeId = settingsMatch[1];
+              const committee = getCommitteeById(committeeId);
+              return {
+                  backNav: {
+                      label: committee?.title || 'Committee',
+                      path: `/committee/${committeeId}`
+                  },
+                  committeeId: committeeId,
+                  showSettings: false
+              };
+          }
+
+          // Check if we're on a committee page: /committee/:id
+          const committeeMatch = path.match(/^\/committee\/(\d+)$/);
+          if (committeeMatch) {
+              const committeeId = committeeMatch[1];
+              return {
+                  backNav: {
+                      label: 'Committees',
+                      path: '/committees'
+                  },
+                  committeeId: committeeId,
+                  showSettings: true
+              };
+          }
+
+          return {
+              backNav: null,
+              committeeId: null,
+              showSettings: false
+          };
+      };
+
+      const navContext = getNavigationContext();
 
       return (
           <div className="fixed top-0 left-0 z-10 h-screen w-60 flex">
@@ -33,9 +90,31 @@ export default function SideBar() {
                   ))}
               </div>
 
-              {/* Light green section for additional content */}
+              {/* Light green section for back navigation and committee controls */}
               <div className="flex-1 h-screen bg-lighter-green pt-24 px-6">
-                  {/* This area can be used for additional content */}
+                  {navContext.backNav && (
+                      <Link
+                          to={navContext.backNav.path}
+                          className="flex items-center gap-2 !text-white hover:!text-gray-100 transition-colors group mb-4"
+                      >
+                          <span className="material-symbols-outlined !text-white text-2xl group-hover:translate-x-[-4px] transition-transform">
+                              arrow_back
+                          </span>
+                          <span className="text-lg font-medium !text-white">{navContext.backNav.label}</span>
+                      </Link>
+                  )}
+
+                  {navContext.showSettings && navContext.committeeId && (
+                      <Link
+                          to={`/committee/${navContext.committeeId}/settings`}
+                          className="flex items-center gap-2 !text-white hover:!text-gray-100 transition-colors group mt-6"
+                      >
+                          <span className="material-symbols-outlined !text-white text-2xl">
+                              settings
+                          </span>
+                          <span className="text-lg font-medium !text-white">Settings</span>
+                      </Link>
+                  )}
               </div>
           </div>
       );

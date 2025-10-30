@@ -1,21 +1,21 @@
 import { useParams, useNavigate, useLocation } from "react-router-dom"
-import { getMotionById } from "./MotionStorage"
+import { getMotionById } from "./CommitteeStorage"
 import { useState } from "react"
 import { BsFillFilterSquareFill, BsChatLeftDotsFill, BsCheckCircleFill } from "react-icons/bs"
 
 function MotionDetails() {
-    const { id } = useParams()
+    const { committeeId, motionId } = useParams()
     const navigate = useNavigate()
     const location = useLocation()
-    const motion = getMotionById(id)
+    const motion = getMotionById(committeeId, motionId)
     const [activeTab, setActiveTab] = useState("description")
 
     const handleClose = () => {
-        // If there's a background state, go back; otherwise, navigate to motions page
+        // If there's a background state, go back; otherwise, navigate to committee page
         if (location.state?.background) {
             navigate(-1)
         } else {
-            navigate('/motions')
+            navigate(`/committee/${committeeId}`)
         }
     }
 
@@ -27,11 +27,13 @@ function MotionDetails() {
 
     // voting logic
 
-    const [numberOfYesVotes, setNumberOfYesVotes] = useState(motion.votes);
+    const [numberOfYesVotes, setNumberOfYesVotes] = useState(motion?.votes || 0);
 
     const handleYesVote = () => {
-        motion.votes = motion.votes + 1;
-        setNumberOfYesVotes(numberOfYesVotes + 1);
+        if (motion) {
+            motion.votes = (motion.votes || 0) + 1;
+            setNumberOfYesVotes(numberOfYesVotes + 1);
+        }
     }
 
     if (!motion) {

@@ -19,9 +19,9 @@ function CommitteesPage() {
         <>
             <HeaderNav setSearchedTerm={setSearchedTerm} />
             <SideBar />
-            <div className="mt-20 ml-[16rem]">
+            <div className="mt-20 ml-[16rem] px-8 min-h-screen bg-[#F8FEF9] dark:bg-gray-900">
                 <div className="motions-section">
-                    <h2 className="section-title">Committees</h2>
+                    <h2 className="section-title dark:text-gray-100">Committees</h2>
                     <div className="motions-grid">
                         {filteredCommittees.map(committee => (
                             <Link

@@ -5,7 +5,8 @@ function MotionCard({ motion }) {
     const location = useLocation()
 
     const handleClick = () => {
-        navigate(`/motiondetails/${motion.id}`, { state: { background: location } })
+        // Use the API-compliant route structure
+        navigate(`/committee/${motion.committeeId}/motion/${motion.id}`, { state: { background: location } })
     }
 
     return (
