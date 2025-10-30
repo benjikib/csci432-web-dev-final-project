@@ -95,24 +95,24 @@ export default function SideBar() {
                   {navContext.backNav && (
                       <Link
                           to={navContext.backNav.path}
-                          className="flex items-center gap-2 !text-white hover:!text-gray-100 transition-colors group mb-4"
+                          className="flex items-center gap-2 !text-gray-300 hover:!text-white transition-colors group mb-4"
                       >
-                          <span className="material-symbols-outlined !text-white text-2xl group-hover:translate-x-[-4px] transition-transform">
+                          <span className="material-symbols-outlined !text-gray-300 group-hover:!text-white text-2xl group-hover:translate-x-[-4px] transition-all">
                               arrow_back
                           </span>
-                          <span className="text-lg font-medium !text-white">{navContext.backNav.label}</span>
+                          <span className="text-lg font-medium !text-gray-300 group-hover:!text-white">{navContext.backNav.label}</span>
                       </Link>
                   )}
 
                   {navContext.showSettings && navContext.committeeId && (
                       <Link
                           to={`/committee/${navContext.committeeId}/settings`}
-                          className="flex items-center gap-2 !text-white hover:!text-gray-100 transition-colors group mt-6"
+                          className="flex items-center gap-2 !text-gray-300 hover:!text-white transition-colors group mt-6"
                       >
-                          <span className="material-symbols-outlined !text-white text-2xl">
+                          <span className="material-symbols-outlined !text-gray-300 group-hover:!text-white text-2xl">
                               settings
                           </span>
-                          <span className="text-lg font-medium !text-white">Settings</span>
+                          <span className="text-lg font-medium !text-gray-300 group-hover:!text-white">Settings</span>
                       </Link>
                   )}
               </div>
