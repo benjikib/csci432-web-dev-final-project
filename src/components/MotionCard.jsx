@@ -11,14 +11,14 @@ function MotionCard({ motion }) {
 
     return (
         <div className="motion-card" onClick={handleClick}>
-            <div className="row1">
-                <span className="title">{motion.title}</span>
+            <div className="motion-header">
+                <h3 className="motion-title font-bold">{motion.title}</h3>
             </div>
-            <div className="row2">
-                {motion.description}
-            </div>
-            <div className="row3">
-                Votes: {motion.votes || 0}
+            <p className="motion-description">{motion.description}</p>
+            <div className="motion-footer">
+                <span className="text-sm text-gray-600">
+                    Votes: {motion.votes || 0}
+                </span>
             </div>
         </div>
     )

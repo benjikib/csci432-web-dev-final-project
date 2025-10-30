@@ -30,7 +30,7 @@ function CommitteesPage() {
                                 className="motion-card block"
                             >
                                 <div className="motion-header">
-                                    <h3 className="motion-title">{committee.title}</h3>
+                                    <h3 className="motion-title font-bold">{committee.title}</h3>
                                 </div>
                                 <p className="motion-description">{committee.description}</p>
                                 <div className="motion-footer">
