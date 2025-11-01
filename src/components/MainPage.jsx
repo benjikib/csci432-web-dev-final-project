@@ -30,7 +30,7 @@ export default function MainPage() {
                     <img src="/logo.png" alt="Logo" className="main-logo"></img>
                     <p className="tagline">Collaborate and make decisions with ease on a single, simple platform.</p>
                     <p className="attribution">Based on Robert's Rules of Order (RONR)</p>
-                    <button onClick={() => loginWithRedirect()}>Log In</button>;
+                    {/* <button onClick={() => loginWithRedirect()}>Log In</button>;
                     <button onClick={() => logout({ logoutParams: { returnTo: window.location.origin } })}>Log Out</button>
                     <button onClick={() => {console.log(isAuthenticated)}}>check</button>
                     {isLoading ? (
@@ -41,7 +41,7 @@ export default function MainPage() {
                     </div>
                     ) : (
                     <div className="text-red-500">Not logged in</div>
-                    )}
+                    )} */}
                 </div>
             </div>
 
