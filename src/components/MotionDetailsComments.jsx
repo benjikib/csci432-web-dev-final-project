@@ -1,9 +1,17 @@
 import { useState, useEffect, useRef } from "react";
+import { useAuth0 } from "@auth0/auth0-react";
 
 export default function MotionDetailsComments() {
-  const [comments, setComments] = useState([]);
+  const [comments, setComments] = useState([
+    {
+      id: 1,
+      text: "Hello! This is a test message to see how the chat looks.",
+      sender: "JohnDoe"
+    }
+  ]);
   const [newComment, setNewComment] = useState("");
   const chatEndRef = useRef(null);
+  const { user, isAuthenticated } = useAuth0();
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -23,11 +31,11 @@ export default function MotionDetailsComments() {
   }, [comments]);
 
   return (
-        <div className="mx-auto bg-superlight-green shadow-md rounded-lg p-4 flex flex-col h-96">
+        <div className="mx-auto bg-superlight-green shadow-md rounded-lg p-4 flex flex-col h-110">
                 <h2 className="text-lg font-semibold mb-3 text-gray-800">Chat</h2>
 
                 {/* Chat area */}
-                <div className="flex-grow overflow-y-auto bg-white border border-lighter-green/30 rounded-md p-3 space-y-2">
+                <div className="flex-grow overflow-y-auto bg-white border border-lighter-green/30 rounded-md p-3 space-y-3">
                 
                 {comments.length === 0 ? (
                         <p className="text-gray-600 text-sm text-center mt-10">
@@ -35,16 +43,38 @@ export default function MotionDetailsComments() {
                         </p>
                 ) : (
                         comments.map((comment) => (
-                        <div className={`flex ${ comment.sender === "user" ? "justify-end" : "justify-start" }`}>
-                                <div
-                                className={`flex px-3 py-2 rounded-xl max-w-[90%] whitespace-pre-wrap break-all  ${
-                                        comment.sender === "user"
-                                        ? "bg-lighter-green justify-end text-white text-left rounded-br-none"
-                                        : "bg-gray-200 justify-start text-gray-800 text-left rounded-bl-none"
-                                }`}
-                                >
-                                {comment.text}
+                        <div key={comment.id} className={`flex items-end gap-2 ${comment.sender === "user" ? "justify-end" : "justify-start"}`}>
+                                {comment.sender !== "user" && (
+                                        <div className="w-8 h-8 rounded-full bg-gray-300 flex-shrink-0 overflow-hidden">
+                                                <div className="w-full h-full flex items-center justify-center text-gray-600">
+                                                        {comment.sender ? comment.sender.charAt(0).toUpperCase() : 'U'}
+                                                </div>
+                                        </div>
+                                )}
+                                <div className="flex flex-col max-w-[85%]">
+                                        <span className={`text-xs text-gray-500 mb-1 px-1 ${comment.sender === "user" ? "text-end" : "text-start"}`}>
+                                                {comment.sender === "user" 
+                                                        ? (isAuthenticated ? (user.name || 'You') : 'You')
+                                                        : (comment.sender || 'User')
+                                                }
+                                        </span>
+                                        <div
+                                                className={`px-3 py-2 rounded-xl w-full whitespace-pre-wrap break-words ${
+                                                        comment.sender === "user"
+                                                        ? "bg-lighter-green text-white rounded-br-none"
+                                                        : "bg-gray-200 text-gray-800 rounded-bl-none"
+                                                }`}
+                                        >
+                                                {comment.text}
+                                        </div>
                                 </div>
+                                {comment.sender === "user" && (
+                                        <div className="w-8 h-8 rounded-full bg-lighter-green flex-shrink-0 overflow-hidden">
+                                                <div className="w-full h-full flex items-center justify-center text-white">
+                                                        You
+                                                </div>
+                                        </div>
+                                )}
                         </div>
                         ))
                 )}
