@@ -9,7 +9,7 @@ import NotFoundPage from './components/NotFoundPage.jsx'
 import { ThemeProvider } from './context/ThemeContext.jsx'
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 
-function AppContent() {
+export default function App() {
   const location = useLocation();
   const background = location.state?.background;
 
@@ -37,15 +37,3 @@ function AppContent() {
     </>
   );
 }
-
-function App() {
-  return (
-    <ThemeProvider>
-      <BrowserRouter>
-        <AppContent />
-      </BrowserRouter>
-    </ThemeProvider>
-  )
-}
-
-export default App
