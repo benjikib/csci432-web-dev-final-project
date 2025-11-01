@@ -12,25 +12,30 @@ export default function SideBar() {
       ];
 
       return (
-          <div className="fixed top-0 left-0 z-10 h-screen w-60 bg-lighter-green">
-              <div className="fixed top-0 left-0 z-10 h-screen w-20 bg-darker-green" />
-
-              <nav className="relative z-20 pt-24 px-4">
+          <div className="fixed top-0 left-0 z-10 h-screen w-60 flex">
+              {/* Dark green section with icons */}
+              <div className="w-20 h-screen bg-darker-green flex flex-col items-center pt-24 gap-6">
                   {navItems.map((item) => (
                       <Link
                           key={item.path}
                           to={item.path}
-                          className={`flex items-center gap-3 px-4 py-3 mb-2 rounded-lg text-white transition-all ${
+                          className={`flex items-center justify-center w-14 h-14 rounded-lg transition-all ${
                               location.pathname === item.path
-                                  ? 'bg-superlight-green/90 font-bold'
-                                  : 'hover:bg-superlight-green/50'
+                                  ? '!text-white scale-125'
+                                  : '!text-superlight-green/60 hover:!text-superlight-green/90 hover:scale-110'
                           }`}
                       >
-                          <span className="material-symbols-outlined">{item.icon}</span>
-                          <span>{item.label}</span>
+                          <span className={`material-symbols-outlined ${
+                              location.pathname === item.path ? 'text-4xl' : 'text-3xl'
+                          }`}>{item.icon}</span>
                       </Link>
                   ))}
-              </nav>
+              </div>
+
+              {/* Light green section for additional content */}
+              <div className="flex-1 h-screen bg-lighter-green pt-24 px-6">
+                  {/* This area can be used for additional content */}
+              </div>
           </div>
       );
       
