@@ -43,9 +43,9 @@ export default function MotionDetailsComments() {
                         </p>
                 ) : (
                         comments.map((comment) => (
-                        <div key={comment.id} className={`flex items-end gap-2 ${comment.sender === "user" ? "justify-end" : "justify-start"}`}>
+                        <div key={comment.id} className={`flex items-center gap-2 ${comment.sender === "user" ? "justify-end" : "justify-start"}`}>
                                 {comment.sender !== "user" && (
-                                        <div className="w-8 h-8 rounded-full bg-gray-300 flex-shrink-0 overflow-hidden">
+                                        <div className="w-8 h-8 rounded-full bg-gray-300 flex-shrink-0 overflow-hidden self-start mt-6">
                                                 <div className="w-full h-full flex items-center justify-center text-gray-600">
                                                         {comment.sender ? comment.sender.charAt(0).toUpperCase() : 'U'}
                                                 </div>
@@ -69,8 +69,8 @@ export default function MotionDetailsComments() {
                                         </div>
                                 </div>
                                 {comment.sender === "user" && (
-                                        <div className="w-8 h-8 rounded-full bg-lighter-green flex-shrink-0 overflow-hidden">
-                                                <div className="w-full h-full flex items-center justify-center text-white">
+                                        <div className="w-8 h-8 rounded-full bg-lighter-green flex-shrink-0 overflow-hidden self-start mt-6">
+                                                <div className="w-full h-full flex items-center justify-center text-white text-xs">
                                                         You
                                                 </div>
                                         </div>
