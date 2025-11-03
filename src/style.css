@@ -538,6 +538,11 @@ html.dark body {
   background: #111827;
 }
 
+/* Disable scroll when applied (toggled only on landing page) */
+.no-scroll {
+  overflow: hidden;
+}
+
 /* Modal Styles */
 .modal-backdrop {
   position: fixed;
@@ -896,7 +901,7 @@ html.dark .content-text {
 /* Integrated Landing Page Layout */
 .integrated-landing-page {
   display: flex;
-  min-height: 100vh;
+  height: 100vh;
   background: #F8FEF9;
 }
 
@@ -920,6 +925,7 @@ html.dark .branding-section {
 .branding-content {
   text-align: center;
   max-width: 500px;
+  transform: translate(24px, -24px);
 }
 
 .branding-content .main-logo-font {
@@ -977,13 +983,13 @@ html.dark .auth-section {
 .integrated-landing-page .login-container {
   margin-top: 0;
   width: 100%;
-  max-width: 500px;
+  max-width: 520px;
 }
 
 .integrated-landing-page .login-card {
   margin-top: 0;
-  width: 400px !important;
-  height: 600px;
+  width: 460px !important;
+  height: 640px;
   padding: 80px 64px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.08);
 }
@@ -992,6 +998,7 @@ html.dark .auth-section {
 @media screen and (max-width: 768px) {
   .integrated-landing-page {
     flex-direction: column;
+    height: 100dvh;
   }
   
   .branding-section,
@@ -1001,6 +1008,10 @@ html.dark .auth-section {
   
   .branding-content .main-logo {
     height: 160px;
+  }
+  
+  .branding-content {
+    transform: translate(0, 0);
   }
   
   .tagline {

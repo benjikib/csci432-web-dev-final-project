@@ -1,10 +1,17 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from "react-router-dom"
 import { useAuth0 } from "@auth0/auth0-react";
 
 export default function MainPage() {
     const navigate = useNavigate()
     const [active, setActive] = useState("join");
+    
+    useEffect(() => {
+        document.body.classList.add('no-scroll')
+        return () => {
+            document.body.classList.remove('no-scroll')
+        }
+    }, [])
 
     const { loginWithRedirect } = useAuth0();
     const { logout } = useAuth0();
