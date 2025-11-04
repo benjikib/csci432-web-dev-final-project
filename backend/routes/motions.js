@@ -1,6 +1,5 @@
 const express = require('express');
 const { body, validationResult } = require('express-validator');
-const Motion = require('../models/Motion');
 const Committee = require('../models/Committee');
 
 const router = express.Router();
@@ -24,7 +23,7 @@ router.get('/committee/:id/motions/:page', async (req, res) => {
       });
     }
 
-    const result = await Motion.findByCommittee(committee._id, page, limit);
+    const result = await Committee.findMotions(committee._id, page, limit);
 
     res.json({
       success: true,
@@ -55,7 +54,7 @@ router.get('/committee/:id/motion/:motionId', async (req, res) => {
       });
     }
 
-    const motion = await Motion.findByIdAndCommittee(req.params.motionId, committee._id);
+    const motion = await Committee.findMotionById(committee._id, req.params.motionId);
 
     if (!motion) {
       return res.status(404).json({
@@ -109,9 +108,8 @@ router.post('/committee/:id/motion/create',
 
       const { title, description, fullDescription } = req.body;
 
-      // Create motion without author for now
-      const motion = await Motion.create({
-        committeeId: committee._id,
+      // Create motion as embedded document
+      const motion = await Committee.createMotion(committee._id, {
         title,
         description,
         fullDescription: fullDescription || description
@@ -162,7 +160,7 @@ router.put('/committee/:id/motion/:motionId',
         });
       }
 
-      const motion = await Motion.findByIdAndCommittee(req.params.motionId, committee._id);
+      const motion = await Committee.findMotionById(committee._id, req.params.motionId);
 
       if (!motion) {
         return res.status(404).json({
@@ -177,7 +175,7 @@ router.put('/committee/:id/motion/:motionId',
       if (req.body.fullDescription) updates.fullDescription = req.body.fullDescription;
       if (req.body.status) updates.status = req.body.status;
 
-      const updatedMotion = await Motion.updateById(req.params.motionId, updates);
+      const updatedMotion = await Committee.updateMotion(committee._id, req.params.motionId, updates);
 
       res.json({
         success: true,
@@ -210,7 +208,7 @@ router.delete('/committee/:id/motion/:motionId', async (req, res) => {
       });
     }
 
-    const motion = await Motion.findByIdAndCommittee(req.params.motionId, committee._id);
+    const motion = await Committee.findMotionById(committee._id, req.params.motionId);
 
     if (!motion) {
       return res.status(404).json({
@@ -219,7 +217,7 @@ router.delete('/committee/:id/motion/:motionId', async (req, res) => {
       });
     }
 
-    await Motion.deleteById(req.params.motionId);
+    await Committee.deleteMotion(committee._id, req.params.motionId);
 
     res.json({
       success: true,

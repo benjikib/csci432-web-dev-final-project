@@ -43,15 +43,7 @@ function CommitteesPage() {
             <SideBar />
             <div className="mt-20 ml-[16rem] px-8 min-h-screen bg-[#F8FEF9] dark:bg-gray-900">
                 <div className="motions-section">
-                    <div className="flex justify-between items-center mb-6">
-                        <h2 className="section-title dark:text-gray-100">Committees</h2>
-                        <Link
-                            to="/create-committee"
-                            className="px-6 py-2 !bg-lighter-green !text-white rounded-lg font-semibold hover:!bg-darker-green transition-all hover:scale-105 !border-none"
-                        >
-                            + Create Committee
-                        </Link>
-                    </div>
+                    <h2 className="section-title dark:text-gray-100">Committees</h2>
 
                     {loading ? (
                         <p className="text-gray-600 dark:text-gray-400 mt-4">Loading committees...</p>

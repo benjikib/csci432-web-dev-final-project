@@ -17,7 +17,7 @@ export default function App() {
   const background = location.state?.background;
 
   // Check if we're on a motion details route without background state (direct navigation)
-  const isMotionDetailsRoute = location.pathname.match(/\/committee\/\d+\/motion\/\d+/);
+  const isMotionDetailsRoute = location.pathname.match(/\/committee\/[^\/]+\/motion\/[^\/]+/);
   const shouldShowModal = background || isMotionDetailsRoute;
 
   return (

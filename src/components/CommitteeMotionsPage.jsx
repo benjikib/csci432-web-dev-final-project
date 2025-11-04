@@ -87,15 +87,7 @@ function CommitteeMotionsPage() {
                         </>
                     ) : (
                         <>
-                            <div className="flex justify-between items-center mb-6">
-                                <h2 className="section-title dark:text-gray-100">{committee.title} Motions</h2>
-                                <Link
-                                    to={`/committee/${committee.slug || id}/create-motion`}
-                                    className="px-6 py-2 !bg-lighter-green !text-white rounded-lg font-semibold hover:!bg-darker-green transition-all hover:scale-105 !border-none"
-                                >
-                                    + Create Motion
-                                </Link>
-                            </div>
+                            <h2 className="section-title dark:text-gray-100">{committee.title} Motions</h2>
                             <Tabs tabs={tabs} activeTab={activeTab} onTabChange={setActiveTab} />
 
                             {filteredMotions.length === 0 ? (
