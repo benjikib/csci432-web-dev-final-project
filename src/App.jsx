@@ -8,7 +8,6 @@ import CommitteesPage from './components/CommitteesPage.jsx'
 import CommitteeMotionsPage from './components/CommitteeMotionsPage.jsx'
 import CommitteeSettingsPage from './components/CommitteeSettingsPage.jsx'
 import NotFoundPage from './components/NotFoundPage.jsx'
-import { ThemeProvider } from './context/ThemeContext.jsx'
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 
 export default function App() {
