@@ -1,9 +1,15 @@
 import { useState } from 'react'
 import { useNavigate } from "react-router-dom"
+import { useAuth0 } from "@auth0/auth0-react";
 
 export default function MainPage() {
     const navigate = useNavigate()
     const [active, setActive] = useState("join");
+
+    const { loginWithRedirect } = useAuth0();
+    const { logout } = useAuth0();
+    const { user, isAuthenticated, isLoading } = useAuth0();
+
     
     const handleLogin = async () => {
         try {
@@ -24,6 +30,18 @@ export default function MainPage() {
                     <img src="/logo.png" alt="Logo" className="main-logo"></img>
                     <p className="tagline">Collaborate and make decisions with ease on a single, simple platform.</p>
                     <p className="attribution">Based on Robert's Rules of Order (RONR)</p>
+                    {/* <button onClick={() => loginWithRedirect()}>Log In</button>;
+                    <button onClick={() => logout({ logoutParams: { returnTo: window.location.origin } })}>Log Out</button>
+                    <button onClick={() => {console.log(isAuthenticated)}}>check</button>
+                    {isLoading ? (
+                    <div className="text-gray-500">Checking login status...</div>
+                    ) : isAuthenticated ? (
+                    <div className="w-80 h-5 border-2 border-amber-500 text-black">
+                        Logged in user: {user.email}
+                    </div>
+                    ) : (
+                    <div className="text-red-500">Not logged in</div>
+                    )} */}
                 </div>
             </div>
 
@@ -86,7 +104,7 @@ export default function MainPage() {
                             text-white bg-[#54966D] hover:bg-[#5ca377]
                             font-medium font-inherit
                             cursor-pointer
-                            w-50 mx-auto" onClick={() => navigate("/motions")}>Login</div>
+                            w-50 mx-auto" onClick={() => navigate("/committees")}>Login</div>
                         </div>
                         <a className="terms">By signing up, you agree to our Terms of Service and Privacy Policy</a>
                     </div>
