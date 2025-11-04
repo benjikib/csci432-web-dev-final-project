@@ -1,15 +1,38 @@
 import { useParams, useNavigate, useLocation } from "react-router-dom"
-import { getMotionById } from "./CommitteeStorage"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { BsFillFilterSquareFill, BsChatLeftDotsFill, BsCheckCircleFill } from "react-icons/bs"
 import MotionDetailsComments from "./MotionDetailsComments"
+import { getMotionById } from "../services/motionApi"
 
 function MotionDetails() {
     const { committeeId, motionId } = useParams()
     const navigate = useNavigate()
     const location = useLocation()
-    const motion = getMotionById(committeeId, motionId)
+    const [motion, setMotion] = useState(null)
+    const [loading, setLoading] = useState(true)
+    const [error, setError] = useState(null)
     const [activeTab, setActiveTab] = useState("description")
+
+    // Fetch motion details from API when component mounts
+    useEffect(() => {
+        async function fetchMotion() {
+            try {
+                setLoading(true);
+                setError(null);
+                const data = await getMotionById(committeeId, motionId);
+                setMotion(data.motion || data);
+            } catch (err) {
+                console.error('Error fetching motion:', err);
+                setError(err.message || 'Failed to load motion');
+            } finally {
+                setLoading(false);
+            }
+        }
+
+        if (committeeId && motionId) {
+            fetchMotion();
+        }
+    }, [committeeId, motionId])
 
     const handleClose = () => {
         // If there's a background state, go back; otherwise, navigate to committee page
@@ -28,22 +51,37 @@ function MotionDetails() {
 
     // voting logic
 
-    const [numberOfYesVotes, setNumberOfYesVotes] = useState(motion?.votes || 0);
+    const [numberOfYesVotes, setNumberOfYesVotes] = useState(motion?.votes?.yes || 0);
 
     const handleYesVote = () => {
-        if (motion) {
-            motion.votes = (motion.votes || 0) + 1;
+        if (motion && motion.votes) {
+            motion.votes.yes = (motion.votes.yes || 0) + 1;
             setNumberOfYesVotes(numberOfYesVotes + 1);
         }
     }
 
-    if (!motion) {
+    if (loading) {
         return (
             <div className="modal-backdrop" onClick={handleBackdropClick}>
                 <div className="modal-content">
                     <button className="modal-close" onClick={handleClose}>&times;</button>
                     <div className="details-container">
-                        <div className="details-motion-title">Motion Not Found</div>
+                        <div className="details-motion-title">Loading motion details...</div>
+                    </div>
+                </div>
+            </div>
+        )
+    }
+
+    if (error || !motion) {
+        return (
+            <div className="modal-backdrop" onClick={handleBackdropClick}>
+                <div className="modal-content">
+                    <button className="modal-close" onClick={handleClose}>&times;</button>
+                    <div className="details-container">
+                        <div className="details-motion-title">
+                            {error ? `Error: ${error}` : 'Motion Not Found'}
+                        </div>
                     </div>
                 </div>
             </div>
@@ -106,9 +144,13 @@ function MotionDetails() {
                                 <h3 className="content-title">Vote on this Motion</h3>
                                 <div className="voting-section">
                                     <div className="vote-count">
-                                        <span className="vote-number">{numberOfYesVotes}</span>
-                                            {/* {motion.votes}</span> */}
+                                        <span className="vote-number">{(motion.votes?.yes || 0) + (motion.votes?.no || 0) + (motion.votes?.abstain || 0)}</span>
                                         <span className="vote-label">Total Votes</span>
+                                        <div className="vote-breakdown">
+                                            <div>Yes: {motion.votes?.yes || 0}</div>
+                                            <div>No: {motion.votes?.no || 0}</div>
+                                            <div>Abstain: {motion.votes?.abstain || 0}</div>
+                                        </div>
                                     </div>
                                     <div className="vote-buttons">
                                         <button
