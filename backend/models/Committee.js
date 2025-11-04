@@ -91,6 +91,11 @@ class Committee {
       updatedAt: new Date()
     };
 
+    // If title is being updated, regenerate the slug
+    if (updates.title) {
+      updateData.slug = slugify(updates.title);
+    }
+
     const result = await this.collection().findOneAndUpdate(
       { _id: new ObjectId(id) },
       { $set: updateData },

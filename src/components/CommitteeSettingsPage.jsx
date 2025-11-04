@@ -75,11 +75,14 @@ function CommitteeSettingsPage() {
                 description
             };
 
-            await updateCommittee(id, updates);
+            const result = await updateCommittee(id, updates);
+            const updatedCommittee = result.committee;
+
             alert("Settings saved successfully!");
 
-            // Navigate back to committee page using slug if available
-            navigate(`/committee/${committee.slug || id}`);
+            // Navigate back to committee page using the NEW slug from the response
+            // Use replace to avoid back button issues
+            navigate(`/committee/${updatedCommittee.slug || updatedCommittee._id}`, { replace: true });
         } catch (error) {
             console.error('Error saving settings:', error);
             alert(`Failed to save settings: ${error.message}`);
