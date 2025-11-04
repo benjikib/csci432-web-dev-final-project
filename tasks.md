@@ -1,47 +1,50 @@
 ---
   Final Project Status - Commie (Robert's Rules of Order Platform)
-  Last Updated: October 30, 2025
 
   ✅ COMPLETED FEATURES
 
   User Interface & Navigation
 
   - ✅ Landing page with branding and integrated authentication UI
-  - ✅ Header navigation with logo, functional search bar, and links
-  - ✅ Sidebar navigation with active route highlighting
-  - ✅ Responsive design with mobile breakpoints
+  - ✅ Header navigation (HeaderNav component) with logo, search bar, and theme toggle
+  - ✅ Sidebar navigation with active route highlighting and Material Symbols icons
+  - ✅ Responsive sidebar with dark green icon section and light green contextual section
+  - ✅ Context-aware sidebar (shows back navigation, committee settings when appropriate)
+  - ✅ NavigationContext for navigation blocking/confirmation
   - ✅ Login/signup form UI (email, password, name, community code fields)
   - ✅ Settings page with state management (display name, theme toggle, notifications)
   - ✅ Profile page layout (mostly commented out but structure exists)
-  - ✅ 404 Not Found page with navigation options
-  - ✅ Reusable component library (Button, HeaderNav, SideBar, Tabs)
+  - ✅ NotFound page (404 handling)
+  - ✅ Dark mode support with ThemeContext
 
-  Dark Mode & Theming
+  Committee Management UI
 
-  - ✅ Full dark mode implementation with ThemeContext
-  - ✅ Theme persistence using localStorage
-  - ✅ Theme toggle in Settings page
-  - ✅ Dark mode styling across all components
-  - ✅ Smooth theme transitions
+  - ✅ Committees listing page (CommitteesPage.jsx) with committee cards
+  - ✅ Committee details/motions view (CommitteeMotionsPage.jsx)
+  - ✅ Committee settings page (CommitteeSettingsPage.jsx)
+  - ✅ Mock committee data storage (CommitteeStorage.jsx)
+  - ✅ Tabbed interface for motions (All, Active, Past, Voided)
+  - ✅ Committee-specific routing (/committee/:id)
 
   Motion Management UI
 
-  - ✅ Motion list view (MotionsPage.jsx)
-  - ✅ Motion card component with title, description, and vote count display
+  - ✅ Motion list view by committee
+  - ✅ Motion card component (MotionCard.jsx) with title, description, and vote count
   - ✅ Motion details modal with tabbed interface (Description, Comments, Voting tabs)
-  - ✅ Proper URL routing for motion details (/motiondetails/:id)
+  - ✅ Proper URL routing for motion details (/committee/:committeeId/motion/:motionId)
   - ✅ Modal overlay with backdrop blur effect
   - ✅ Click anywhere on card to open details
-  - ✅ Tab-based filtering system (All, Active, Past, Voided)
-  - ✅ Search functionality - filters motions by title/description in real-time
+  - ✅ Motion comments UI (MotionDetailsComments.jsx) - placeholder only
+  - ✅ Mock motion data organized by committee
 
   Tech Stack Compliance
 
-  - ✅ React 19.1.1 for frontend
-  - ✅ Vite 7.1.6 build tool configured
+  - ✅ React 19 for frontend
+  - ✅ Vite build tool configured
   - ✅ Tailwind CSS 4.1.13 implemented
-  - ✅ React Router DOM 7.9.1 for navigation
-  - ✅ MongoDB 6.20.0 configured (not actively used)
+  - ✅ Auth0 integration configured (domain and clientId set up)
+  - ✅ Material Symbols icons for UI
+  - ✅ MongoDB connection string configured (not actively used)
   - ✅ No WebSocket (compliant)
   - ✅ No web-based live audio/video (compliant)
 
@@ -50,39 +53,30 @@
   - ✅ Git repository with proper branching strategy
   - ✅ ESLint configuration for code quality
   - ✅ Feature branch workflow with pull requests
-  - ✅ Vercel deployment configured (vercel.json)
-  - ✅ API documentation created (api.md)
-  - ✅ Pages documentation created (pages.md)
+  - ✅ React Router v7 for navigation
+  - ✅ Context API for theme and navigation state
 
   ---
   ❌ REQUIRED FEATURES - NOT IMPLEMENTED
 
-  Backend Infrastructure
-
-  - ❌ Node.js/Express backend server - No server created
-  - ❌ REST API implementation - api.md exists but no actual endpoints
-  - ❌ Database connection - MongoDB imported but never connected or used
-  - ❌ Database models/schemas - No Mongoose schemas defined
-  - ❌ API security - No JWT, CORS, rate limiting, or authentication middleware
-  - ❌ Environment configuration - .env file not tracked (exists but no backend to use it)
-  - ❌ Data persistence - All data is hardcoded in MotionStorage.jsx
-
   User Authentication & Registration
 
-  - ❌ Actual user registration - Currently just navigates to /motions without validation
-  - ❌ Password hashing and storage - No bcrypt or security implementation
-  - ❌ Session management - No JWT tokens or session handling
-  - ❌ Login validation - Login button just navigates to /motions, no validation
-  - ❌ Protected routes - All pages accessible without authentication
-  - ❌ User profile editing - Settings page only updates local state
+  - ⚠️ Auth0 configured but not fully integrated - Login navigates to /committees without proper auth flow
+  - ❌ Actual user registration backend - No database storage of users
+  - ❌ Password hashing and storage - Auth0 handles this, but not connected to backend
+  - ❌ Session management - No backend session validation
+  - ❌ Login validation - Frontend uses Auth0 but backend doesn't verify
+  - ❌ Name change functionality - No user profile editing backend
   - ❌ Optional features: Short bio, phone number, address, profile picture editing
 
   Committee Management
 
-  - ❌ Creating a committee - No committee creation UI or backend
+  - ❌ Creating a committee - No committee creation UI or backend endpoint
   - ❌ Adding users to a committee - No user management system
-  - ❌ Committee listing/selection - No way to view or join committees
-  - ❌ Committee settings page - No committee configuration
+  - ⚠️ Committee listing/selection - UI exists (CommitteesPage) but uses mock data only
+  - ⚠️ Committee settings page - Page exists but no actual settings functionality
+  - ❌ Committee deletion/editing - No management functionality
+  - ❌ Committee membership tracking - Mock data only
 
   Role Control
 
@@ -101,11 +95,13 @@
 
   Motion Creation & Management
 
-  - ❌ Raise motion - No motion creation UI or backend endpoint
+  - ❌ Raise motion - No motion creation UI or backend endpoint (route exists: /committee/:id/create-motion)
   - ❌ Motion title and description input - No form implemented
   - ❌ Edit existing motions - No editing capability
   - ❌ Delete/withdraw motions - No removal functionality
-  - ❌ Motion status tracking (active, voting, passed, failed, postponed)
+  - ⚠️ Motion status tracking - Tabs exist (All, Active, Past, Voided) but no actual status logic
+  - ⚠️ Motion display - UI works with mock data organized by committee
+  - ❌ Motion persistence - All data is mock/local, lost on refresh
 
   Procedural Motions 
 
@@ -115,23 +111,22 @@
 
   Discussion Features
 
-  - ❌ Comments system - Comments tab exists in modal but no functionality
-  - ❌ Comment creation - No form to add comments
-  - ❌ Comment replies/threading - No nested comments
-  - ❌ Pro/con/neutral stance selection - No opinion categorization
-  - ❌ Comment editing/deletion - No comment management
-  - ⚠️ Current State: Comments tab displays "No comments yet" placeholder only
+  - ❌ Offline discussion implementation
+    - ❌ Comments/replies on motions - No backend storage
+    - ❌ Pro/con/neutral selection for each reply
+    - ❌ Discussion threading
+  - ⚠️ Current State: Comments tab exists in motion details modal (MotionDetailsComments.jsx) but displays "No comments yet" placeholder only
 
   Voting System
 
-  - ❌ Actual voting functionality - Voting tab exists but no interactive buttons
-  - ❌ Vote casting - No way to submit yes/no/abstain votes
+  - ⚠️ Voting UI exists in motion details modal but non-functional
+  - ❌ Actual voting functionality - Buttons exist but don't record votes
   - ❌ Vote recording - No database storage of votes
   - ❌ Vote counting - No tallying of yes/no/abstain
   - ❌ Anonymous vs. recorded voting options - No voting mode selection
-  - ❌ Vote results display - No percentage, breakdown, or voter list
+  - ❌ Vote results display - Mock vote counts shown but no real calculation
   - ❌ Voting threshold enforcement (majority, 2/3, unanimous)
-  - ⚠️ Current State: Motions have a vote count field but it's always 0
+  - ❌ Prevent duplicate voting - No vote tracking per user
 
   Decision Recording & History
 
@@ -161,63 +156,124 @@
   - ❌ Cannot-be-discussed motions - No procedural motion handling
   - ❌ Privileged motions - No recess, adjourn, point of order, etc.
 
+  Backend & Database
+
+  - ❌ Node.js backend server - No Express/Fastify server created
+  - ❌ API endpoints - No REST API exists
+  - ❌ Database models - No MongoDB schemas defined
+  - ❌ Database operations - MongoDB connection exists but unused
+  - ❌ Data persistence - All data is mock/local, lost on refresh
+  - ❌ API security - No JWT, CORS, rate limiting
+
   Additional Features
 
-  - ❌ Notification system - Notifications link exists in sidebar but no implementation
+  - ⚠️ Search functionality - Search bar exists in header with state management, but no actual filtering implemented
+  - ❌ Notification system - No implementation
   - ❌ Quorum tracking - No meeting attendance system
   - ❌ Meeting minutes - No official record generation
   - ❌ Export/print decisions - No document generation
-  - ❌ Committee pages - No UI for creating, joining, or managing committees
-  - ❌ Admin panel - No administration interface
+  - ❌ User control panel - Route exists (/user-control) in sidebar but page not created
 
   ---
 
-  ## CURRENT STATE SUMMARY
+  🔧 IMMEDIATE PRIORITIES
 
-  ### What Works:
-  The application has a **fully functional frontend UI** with:
-  - Beautiful, responsive design with dark mode
-  - Complete navigation system (header, sidebar, routing)
-  - Motion browsing with search and filtering by status
-  - Motion detail modal with tabs for description, comments, and voting
-  - Settings page with working theme toggle
-  - Login/signup forms (UI only, no validation)
+  High Priority (Core Functionality)
 
-  ### Critical Missing Pieces:
-  The application is **100% frontend only** with:
-  - **No backend server** - No Express/Node.js server exists
-  - **No API** - api.md is documentation only, no actual endpoints
-  - **No database** - MongoDB imported but never connected
-  - **No authentication** - Login button just navigates, no validation
-  - **No data persistence** - All data hardcoded in MotionStorage.jsx
-  - **No voting** - UI exists but buttons don't work
-  - **No comments** - Tab exists but shows placeholder
-  - **No committees** - Core feature completely missing
-  - **No role management** - No concept of chair, member, observer
+  1. Create backend API server (Node.js + Express)
+     - Set up basic Express server
+     - Connect to MongoDB
+     - Create API endpoints for CRUD operations
 
-  ### Data Flow Status:
-  - Motions: Hardcoded array in `src/components/MotionStorage.jsx` (2 sample motions)
-  - Users: Not stored anywhere, login fetches `/sample.json` but doesn't use it
-  - Votes: Motion objects have `votes: 0` but value never changes
-  - Comments: Not implemented at all
-  - Settings: Stored in component state only (lost on refresh)
-  - Theme: Stored in localStorage (persists across sessions) ✅
+  2. Implement Committee Creation
+     - Create UI form for committee creation
+     - Backend endpoint to save committees
+     - Link to existing CommitteesPage display
 
-  ### Deployment Status:
-  - Frontend deployed to Vercel successfully
-  - Vercel rewrites configured for client-side routing
-  - No backend to deploy (would need separate deployment)
+  3. Implement Motion Creation
+     - Create UI form for motion creation
+     - Backend endpoint to save motions
+     - Link to existing CommitteeMotionsPage display
 
-  ### Next Steps (Priority Order):
-  1. **Create backend server** (Express + Node.js)
-  2. **Connect to MongoDB** (define schemas for Users, Committees, Motions, Votes, Comments)
-  3. **Implement authentication** (JWT, bcrypt, protected routes)
-  4. **Build API endpoints** (following api.md structure)
-  5. **Connect frontend to API** (replace MotionStorage with API calls)
-  6. **Implement voting system** (backend + frontend integration)
-  7. **Add comments functionality**
-  8. **Build committee management**
-  9. **Implement role-based permissions**
-  10. **Add motion creation/editing**
+  4. Basic Voting System
+     - Backend to record votes per user per motion
+     - Update vote counts in real-time
+     - Prevent duplicate voting
+
+  5. User Authentication Backend
+     - Verify Auth0 tokens on backend
+     - Create user profiles in database
+     - Session management
+
+  Medium Priority (Enhanced Functionality)
+
+  6. Comments/Discussion System
+     - Comment creation and storage
+     - Display comments in MotionDetailsComments
+     - Basic threading support
+
+  7. Role-Based Access Control
+     - Implement basic roles (owner, chair, member, observer)
+     - Protect routes based on roles
+     - Committee membership management
+
+  8. Motion Status Management
+     - Implement status workflow (active → voting → passed/failed)
+     - Filter motions by status (make tabs functional)
+
+  Low Priority (Nice to Have)
+
+  9. Search Implementation
+     - Connect existing search bar to actual filtering
+     - Search across committees and motions
+
+  10. Advanced Robert's Rules Features
+      - Procedural motions
+      - Amendments and sub-motions
+      - Meeting mode controls
+
+  ---
+
+  📁 CURRENT PROJECT STRUCTURE
+
+  Frontend Components (src/components/)
+  - ✅ MainPage.jsx - Landing/login page
+  - ✅ CommitteesPage.jsx - List all committees
+  - ✅ CommitteeMotionsPage.jsx - List motions for a committee
+  - ✅ CommitteeSettingsPage.jsx - Committee settings (placeholder)
+  - ✅ MotionCard.jsx - Motion card component
+  - ✅ MotionDetailsPage.jsx - Motion details modal
+  - ✅ MotionDetailsComments.jsx - Comments tab (placeholder)
+  - ✅ SettingsPage.jsx - User settings
+  - ✅ ProfilePage.jsx - User profile (mostly commented)
+  - ✅ LoginPage.jsx - Standalone login page
+  - ✅ NotFoundPage.jsx - 404 page
+  - ✅ CommitteeStorage.jsx - Mock data storage
+  - ✅ reusable/SideBar.jsx - Navigation sidebar
+  - ✅ reusable/HeaderNav.jsx - Header navigation
+  - ✅ reusable/Tabs.jsx - Tabbed interface component
+
+  Context Providers (src/context/)
+  - ✅ ThemeContext.jsx - Dark mode state management
+  - ✅ NavigationContext.jsx - Navigation blocking/confirmation
+
+  Routing
+  - / → MainPage (landing/login)
+  - /committees → CommitteesPage
+  - /committee/:id → CommitteeMotionsPage
+  - /committee/:id/settings → CommitteeSettingsPage
+  - /committee/:committeeId/motion/:motionId → MotionDetailsPage (modal)
+  - /settings → SettingsPage
+  - /profile → ProfilePage
+  - /login → LoginPage
+  - * → NotFoundPage
+
+  Missing/Needed Files
+  - ❌ Backend server (no server/ directory)
+  - ❌ API routes
+  - ❌ Database models
+  - ❌ CreateCommitteePage.jsx
+  - ❌ CreateMotionPage.jsx
+  - ❌ UserControlPage.jsx
 
   ---
