@@ -1,5 +1,5 @@
 // Local storage for committees and their motions
-const committees = [
+let committees = [
     {
         id: 1,
         title: "Finance Committee",
@@ -91,9 +91,61 @@ export const getMotionById = (committeeId, motionId) => {
     return motions.find(motion => motion.id === parseInt(motionId));
 };
 
+export const addMotion = (committeeId, motionData) => {
+    const committeeIdInt = parseInt(committeeId);
+
+    // Initialize array for committee if it doesn't exist
+    if (!committeeMotions[committeeIdInt]) {
+        committeeMotions[committeeIdInt] = [];
+    }
+
+    // Generate new ID based on existing motions
+    let maxId = 0;
+    Object.values(committeeMotions).flat().forEach(motion => {
+        if (motion.id > maxId) maxId = motion.id;
+    });
+
+    // Create new motion with generated ID
+    const newMotion = {
+        ...motionData,
+        id: maxId + 1,
+        committeeId: committeeIdInt
+    };
+
+    // Add to committee motions
+    committeeMotions[committeeIdInt].push(newMotion);
+
+    return newMotion;
+};
+
+export const addCommittee = (committeeData) => {
+    // Generate new ID based on existing committees
+    let maxId = 0;
+    committees.forEach(committee => {
+        if (committee.id > maxId) maxId = committee.id;
+    });
+
+    // Create new committee with generated ID
+    const newCommittee = {
+        ...committeeData,
+        id: maxId + 1,
+        members: committeeData.members || []
+    };
+
+    // Add to committees array
+    committees.push(newCommittee);
+
+    // Initialize empty motions array for this committee
+    committeeMotions[newCommittee.id] = [];
+
+    return newCommittee;
+};
+
 export default {
     getCommittees,
     getCommitteeById,
     getMotionsByCommittee,
-    getMotionById
+    getMotionById,
+    addMotion,
+    addCommittee
 };

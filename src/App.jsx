@@ -7,6 +7,8 @@ import Profile from './components/ProfilePage.jsx'
 import CommitteesPage from './components/CommitteesPage.jsx'
 import CommitteeMotionsPage from './components/CommitteeMotionsPage.jsx'
 import CommitteeSettingsPage from './components/CommitteeSettingsPage.jsx'
+import CreateMotionPage from './components/CreateMotionPage.jsx'
+import CreateCommitteePage from './components/CreateCommitteePage.jsx'
 import NotFoundPage from './components/NotFoundPage.jsx'
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 
@@ -23,8 +25,10 @@ export default function App() {
       <Routes location={background || location}>
         <Route path="/" element={<Main />}></Route>
         <Route path="/committees" element={<CommitteesPage />}></Route>
+        <Route path="/create-committee" element={<CreateCommitteePage />}></Route>
         <Route path="/committee/:id" element={<CommitteeMotionsPage />}></Route>
         <Route path="/committee/:id/settings" element={<CommitteeSettingsPage />}></Route>
+        <Route path="/committee/:id/create-motion" element={<CreateMotionPage />}></Route>
         <Route path="/committee/:committeeId/motion/:motionId" element={<CommitteeMotionsPage />}></Route>
         <Route path="/login" element={<LoginPage />}></Route>
         <Route path="/settings" element={<Settings />}></Route>
