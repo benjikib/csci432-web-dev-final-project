@@ -28,6 +28,30 @@ app.use((req, res, next) => {
   next();
 });
 
+// Connect to database before handling requests
+let dbConnected = false;
+
+async function ensureDbConnection() {
+  if (!dbConnected) {
+    await connectDB();
+    dbConnected = true;
+  }
+}
+
+// Middleware to ensure DB connection for each request (serverless)
+app.use(async (req, res, next) => {
+  try {
+    await ensureDbConnection();
+    next();
+  } catch (error) {
+    console.error('Database connection error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Database connection failed'
+    });
+  }
+});
+
 // Health check route
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', message: 'Server is running' });
@@ -58,10 +82,11 @@ app.use((err, req, res, next) => {
   });
 });
 
-// Connect to database and start server
+// Connect to database and start server (only for local development)
 async function startServer() {
   try {
     await connectDB();
+    dbConnected = true;
 
     app.listen(PORT, () => {
       console.log(`\n🚀 Server is running on port ${PORT}`);
@@ -96,10 +121,16 @@ async function startServer() {
   }
 }
 
-startServer();
+// Only start server if not in Vercel serverless environment
+if (process.env.VERCEL !== '1') {
+  startServer();
+}
 
 // Graceful shutdown
 process.on('SIGINT', async () => {
   console.log('\n\n👋 Shutting down gracefully...');
   process.exit(0);
 });
+
+// Export for Vercel serverless
+module.exports = app;
