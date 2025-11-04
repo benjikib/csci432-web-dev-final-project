@@ -21,21 +21,27 @@
 
   - ✅ Committees listing page (CommitteesPage.jsx) with committee cards
   - ✅ Committee details/motions view (CommitteeMotionsPage.jsx)
-  - ✅ Committee settings page (CommitteeSettingsPage.jsx)
-  - ✅ Mock committee data storage (CommitteeStorage.jsx)
+  - ✅ Committee settings page (CommitteeSettingsPage.jsx) - Fully functional with API integration
+  - ✅ Committee creation page (CreateCommitteePage.jsx) - Integrated with backend API
   - ✅ Tabbed interface for motions (All, Active, Past, Voided)
-  - ✅ Committee-specific routing (/committee/:id)
+  - ✅ Committee-specific routing with slug support (/committee/:slug or /committee/:id)
+  - ✅ Automatic slug generation from committee titles
+  - ✅ Slug auto-updates when committee title changes
+  - ✅ Committee deletion functionality
 
   Motion Management UI
 
   - ✅ Motion list view by committee
   - ✅ Motion card component (MotionCard.jsx) with title, description, and vote count
   - ✅ Motion details modal with tabbed interface (Description, Comments, Voting tabs)
+  - ✅ Motion creation page (CreateMotionPage.jsx) - Integrated with backend API
   - ✅ Proper URL routing for motion details (/committee/:committeeId/motion/:motionId)
   - ✅ Modal overlay with backdrop blur effect
   - ✅ Click anywhere on card to open details
   - ✅ Motion comments UI (MotionDetailsComments.jsx) - placeholder only
-  - ✅ Mock motion data organized by committee
+  - ✅ Motions stored as embedded documents within committee documents
+  - ✅ Vote structure with yes/no/abstain counts
+  - ✅ Dark mode styling for modal close button with red hover effect
 
   Tech Stack Compliance
 
@@ -44,7 +50,9 @@
   - ✅ Tailwind CSS 4.1.13 implemented
   - ✅ Auth0 integration configured (domain and clientId set up)
   - ✅ Material Symbols icons for UI
-  - ✅ MongoDB connection string configured (not actively used)
+  - ✅ MongoDB connected and actively used for data persistence
+  - ✅ Node.js + Express backend server running on port 3001
+  - ✅ RESTful API endpoints for committees and motions
   - ✅ No WebSocket (compliant)
   - ✅ No web-based live audio/video (compliant)
 
@@ -71,12 +79,13 @@
 
   Committee Management
 
-  - ❌ Creating a committee - No committee creation UI or backend endpoint
+  - ✅ Creating a committee - Backend API and frontend form fully functional
   - ❌ Adding users to a committee - No user management system
-  - ⚠️ Committee listing/selection - UI exists (CommitteesPage) but uses mock data only
-  - ⚠️ Committee settings page - Page exists but no actual settings functionality
-  - ❌ Committee deletion/editing - No management functionality
-  - ❌ Committee membership tracking - Mock data only
+  - ✅ Committee listing/selection - Fully integrated with MongoDB backend
+  - ✅ Committee settings page - Fully functional with save and delete operations
+  - ✅ Committee deletion/editing - Title and description editing works, navigates using updated slugs
+  - ✅ Slug-based URLs - Committees accessible via human-readable slugs
+  - ⚠️ Committee membership tracking - Field exists in database but no UI for management
 
   Role Control
 
@@ -95,13 +104,14 @@
 
   Motion Creation & Management
 
-  - ❌ Raise motion - No motion creation UI or backend endpoint (route exists: /committee/:id/create-motion)
-  - ❌ Motion title and description input - No form implemented
+  - ✅ Raise motion - Backend API and frontend form fully functional
+  - ✅ Motion title and description input - Form implemented and working
   - ❌ Edit existing motions - No editing capability
   - ❌ Delete/withdraw motions - No removal functionality
-  - ⚠️ Motion status tracking - Tabs exist (All, Active, Past, Voided) but no actual status logic
-  - ⚠️ Motion display - UI works with mock data organized by committee
-  - ❌ Motion persistence - All data is mock/local, lost on refresh
+  - ⚠️ Motion status tracking - Tabs exist (All, Active, Past, Voided) but no status change workflow
+  - ✅ Motion display - Fully integrated with MongoDB, motions embedded in committees
+  - ✅ Motion persistence - All motions stored in MongoDB and persist across sessions
+  - ✅ Embedded document structure - Motions stored within committee documents for data consistency
 
   Procedural Motions 
 
@@ -158,12 +168,14 @@
 
   Backend & Database
 
-  - ❌ Node.js backend server - No Express/Fastify server created
-  - ❌ API endpoints - No REST API exists
-  - ❌ Database models - No MongoDB schemas defined
-  - ❌ Database operations - MongoDB connection exists but unused
-  - ❌ Data persistence - All data is mock/local, lost on refresh
-  - ❌ API security - No JWT, CORS, rate limiting
+  - ✅ Node.js backend server - Express server running on port 3001
+  - ✅ API endpoints - Full REST API for committees and motions (CRUD operations)
+  - ✅ Database models - Committee model with embedded motions structure
+  - ✅ Database operations - MongoDB fully integrated with CRUD operations
+  - ✅ Data persistence - All committees and motions persist in MongoDB
+  - ⚠️ API security - CORS enabled for development, but no JWT/authentication yet
+  - ✅ Slugify utility - URL-friendly slug generation from titles
+  - ✅ Database migrations - Migration scripts for adding slugs and embedding motions
 
   Additional Features
 
@@ -180,30 +192,33 @@
 
   High Priority (Core Functionality)
 
-  1. Create backend API server (Node.js + Express)
-     - Set up basic Express server
-     - Connect to MongoDB
-     - Create API endpoints for CRUD operations
+  1. ✅ Create backend API server (Node.js + Express)
+     - ✅ Set up basic Express server
+     - ✅ Connect to MongoDB
+     - ✅ Create API endpoints for CRUD operations
 
-  2. Implement Committee Creation
-     - Create UI form for committee creation
-     - Backend endpoint to save committees
-     - Link to existing CommitteesPage display
+  2. ✅ Implement Committee Creation
+     - ✅ Create UI form for committee creation
+     - ✅ Backend endpoint to save committees
+     - ✅ Link to existing CommitteesPage display
+     - ✅ Slug-based routing implementation
 
-  3. Implement Motion Creation
-     - Create UI form for motion creation
-     - Backend endpoint to save motions
-     - Link to existing CommitteeMotionsPage display
+  3. ✅ Implement Motion Creation
+     - ✅ Create UI form for motion creation
+     - ✅ Backend endpoint to save motions
+     - ✅ Link to existing CommitteeMotionsPage display
+     - ✅ Embedded document structure
 
   4. Basic Voting System
-     - Backend to record votes per user per motion
-     - Update vote counts in real-time
-     - Prevent duplicate voting
+     - ⚠️ Vote structure exists (yes/no/abstain counts)
+     - ❌ Backend to record votes per user per motion
+     - ❌ Update vote counts in real-time
+     - ❌ Prevent duplicate voting
 
   5. User Authentication Backend
-     - Verify Auth0 tokens on backend
-     - Create user profiles in database
-     - Session management
+     - ❌ Verify Auth0 tokens on backend
+     - ❌ Create user profiles in database
+     - ❌ Session management
 
   Medium Priority (Enhanced Functionality)
 
@@ -240,7 +255,9 @@
   - ✅ MainPage.jsx - Landing/login page
   - ✅ CommitteesPage.jsx - List all committees
   - ✅ CommitteeMotionsPage.jsx - List motions for a committee
-  - ✅ CommitteeSettingsPage.jsx - Committee settings (placeholder)
+  - ✅ CommitteeSettingsPage.jsx - Committee settings (fully functional)
+  - ✅ CreateCommitteePage.jsx - Committee creation form
+  - ✅ CreateMotionPage.jsx - Motion creation form
   - ✅ MotionCard.jsx - Motion card component
   - ✅ MotionDetailsPage.jsx - Motion details modal
   - ✅ MotionDetailsComments.jsx - Comments tab (placeholder)
@@ -248,20 +265,35 @@
   - ✅ ProfilePage.jsx - User profile (mostly commented)
   - ✅ LoginPage.jsx - Standalone login page
   - ✅ NotFoundPage.jsx - 404 page
-  - ✅ CommitteeStorage.jsx - Mock data storage
   - ✅ reusable/SideBar.jsx - Navigation sidebar
   - ✅ reusable/HeaderNav.jsx - Header navigation
   - ✅ reusable/Tabs.jsx - Tabbed interface component
+
+  Frontend Services (src/services/)
+  - ✅ committeeApi.js - API service for committee operations
+  - ✅ motionApi.js - API service for motion operations
 
   Context Providers (src/context/)
   - ✅ ThemeContext.jsx - Dark mode state management
   - ✅ NavigationContext.jsx - Navigation blocking/confirmation
 
+  Backend Structure (backend/)
+  - ✅ server.js - Express server (port 3001)
+  - ✅ config/database.js - MongoDB connection
+  - ✅ models/Committee.js - Committee model with embedded motions
+  - ✅ routes/committees.js - Committee CRUD endpoints
+  - ✅ routes/motions.js - Motion CRUD endpoints (embedded in committees)
+  - ✅ utils/slugify.js - URL slug generation utility
+  - ✅ migrations/add-slugs.js - Migration to add slugs to existing committees
+  - ✅ migrations/embed-motions.js - Migration to embed motions in committees
+
   Routing
   - / → MainPage (landing/login)
   - /committees → CommitteesPage
-  - /committee/:id → CommitteeMotionsPage
+  - /create-committee → CreateCommitteePage
+  - /committee/:id → CommitteeMotionsPage (supports slugs or IDs)
   - /committee/:id/settings → CommitteeSettingsPage
+  - /committee/:id/create-motion → CreateMotionPage
   - /committee/:committeeId/motion/:motionId → MotionDetailsPage (modal)
   - /settings → SettingsPage
   - /profile → ProfilePage
@@ -269,11 +301,38 @@
   - * → NotFoundPage
 
   Missing/Needed Files
-  - ❌ Backend server (no server/ directory)
-  - ❌ API routes
-  - ❌ Database models
-  - ❌ CreateCommitteePage.jsx
-  - ❌ CreateMotionPage.jsx
   - ❌ UserControlPage.jsx
+  - ❌ User authentication integration with backend
+  - ❌ Motion editing/deletion endpoints and UI
+
+  ---
+
+  🆕 RECENT UPDATES (November 2025)
+
+  Backend Integration & Database Restructuring
+  - ✅ Created Express backend server with MongoDB integration
+  - ✅ Implemented full CRUD API for committees and motions
+  - ✅ Restructured database to use embedded motions within committee documents
+  - ✅ Created migration scripts to update existing data
+  - ✅ All data now persists in MongoDB (no more mock data)
+
+  Slug-Based Routing
+  - ✅ Implemented slugify utility for URL-friendly committee names
+  - ✅ Updated all routes to support both slugs and IDs for backward compatibility
+  - ✅ Automatic slug generation when creating committees
+  - ✅ Automatic slug updates when committee title changes
+  - ✅ Fixed navigation to use updated slugs after saving settings
+
+  UI/UX Improvements
+  - ✅ Fixed committee settings page to work with backend API
+  - ✅ Moved create buttons from page headers to sidebar
+  - ✅ Fixed dark mode styling for modal close button (red hover effect)
+  - ✅ Improved vote display structure (yes/no/abstain counts)
+  - ✅ Fixed committee and motion API integration throughout frontend
+
+  API Service Layer
+  - ✅ Created committeeApi.js service for committee operations
+  - ✅ Created motionApi.js service for motion operations
+  - ✅ Configured environment variables for API base URL
 
   ---
