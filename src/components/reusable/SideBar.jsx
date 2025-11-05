@@ -10,6 +10,7 @@ export default function SideBar() {
       const { confirmNavigation } = useNavigationBlock();
 
       const navItems = [
+          { path: '/home', label: 'Home', icon: 'home' },
           { path: '/committees', label: 'Committees', icon: 'groups' },
           { path: '/user-control', label: 'User Control', icon: 'admin_panel_settings' },
       ];
