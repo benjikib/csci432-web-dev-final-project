@@ -4,6 +4,7 @@ const jwt = require('jsonwebtoken');
 const { body, validationResult } = require('express-validator');
 const User = require('../models/User');
 const { authenticate } = require('../middleware/auth');
+const { syncAuth0User, validateAuth0Token } = require('../middleware/auth0');
 
 const router = express.Router();
 
@@ -111,6 +112,14 @@ router.post('/login',
         });
       }
 
+      // Check if user has a local password (not an Auth0-only user)
+      if (!user.password || typeof user.password !== 'string') {
+        return res.status(401).json({
+          success: false,
+          message: 'Invalid credentials. This account may use a different login method.'
+        });
+      }
+
       // Verify password
       const isPasswordValid = await bcrypt.compare(password, user.password);
       if (!isPasswordValid) {
@@ -204,6 +213,102 @@ router.get('/me', authenticate, async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Server error fetching user info'
+    });
+  }
+});
+
+/**
+ * @route   POST /auth/auth0/callback
+ * @desc    Auth0 callback to sync user with database
+ * @access  Public (requires valid Auth0 token)
+ */
+router.post('/auth0/callback', validateAuth0Token, syncAuth0User, async (req, res) => {
+  try {
+    console.log('✅ Auth0 callback hit!');
+    console.log('Request auth:', req.auth);
+    console.log('Request user:', req.user);
+
+    if (!req.user) {
+      console.error('❌ No user in request after sync');
+      return res.status(400).json({
+        success: false,
+        message: 'User sync failed'
+      });
+    }
+
+    console.log('✅ Sending successful response');
+    res.json({
+      success: true,
+      message: 'User authenticated successfully',
+      user: {
+        id: req.user.userId,
+        email: req.user.email,
+        name: req.user.name,
+        roles: req.user.roles,
+        permissions: req.user.permissions
+      }
+    });
+  } catch (error) {
+    console.error('❌ Auth0 callback error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error during authentication'
+    });
+  }
+});
+
+/**
+ * @route   POST /auth/auth0/sync
+ * @desc    Sync Auth0 user with database (creates if not exists)
+ * @access  Public (validates token and syncs)
+ */
+router.post('/auth0/sync', async (req, res) => {
+  try {
+    const { auth0Id, email, name, picture, emailVerified } = req.body;
+
+    if (!auth0Id || !email) {
+      return res.status(400).json({
+        success: false,
+        message: 'Missing required fields: auth0Id and email'
+      });
+    }
+
+    // Check if user exists
+    let user = await User.findByAuth0Id(auth0Id);
+
+    if (!user) {
+      // Create new user
+      user = await User.create({
+        auth0Id,
+        email,
+        name,
+        picture,
+        emailVerified: emailVerified || false,
+        roles: ['member']
+      });
+    } else {
+      // Update existing user's last login
+      await User.updateLastLogin(user._id);
+    }
+
+    res.json({
+      success: true,
+      message: 'User synced successfully',
+      user: {
+        id: user._id,
+        auth0Id: user.auth0Id,
+        email: user.email,
+        name: user.name,
+        picture: user.picture,
+        roles: user.roles,
+        permissions: user.permissions
+      }
+    });
+  } catch (error) {
+    console.error('Auth0 sync error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error syncing user'
     });
   }
 });

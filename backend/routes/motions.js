@@ -1,6 +1,8 @@
 const express = require('express');
 const { body, validationResult } = require('express-validator');
+const { ObjectId } = require('mongodb');
 const Committee = require('../models/Committee');
+const User = require('../models/User');
 
 const router = express.Router();
 
@@ -25,9 +27,36 @@ router.get('/committee/:id/motions/:page', async (req, res) => {
 
     const result = await Committee.findMotions(committee._id, page, limit);
 
+    // Populate author information for each motion
+    const motionsWithAuthors = await Promise.all(
+      result.motions.map(async (motion) => {
+        if (motion.author) {
+          try {
+            const authorId = typeof motion.author === 'string' ? motion.author : motion.author.toString();
+            const author = await User.findById(authorId);
+
+            return {
+              ...motion,
+              authorInfo: author ? {
+                id: author._id,
+                name: author.name,
+                email: author.email,
+                picture: author.picture
+              } : null
+            };
+          } catch (err) {
+            console.error('Error fetching author for motion:', motion.title, err);
+            return motion;
+          }
+        }
+        return motion;
+      })
+    );
+
     res.json({
       success: true,
-      ...result
+      ...result,
+      motions: motionsWithAuthors
     });
   } catch (error) {
     console.error('Get motions error:', error);
@@ -63,9 +92,29 @@ router.get('/committee/:id/motion/:motionId', async (req, res) => {
       });
     }
 
+    // Populate author information
+    let motionWithAuthor = motion;
+    if (motion.author) {
+      try {
+        const authorId = typeof motion.author === 'string' ? motion.author : motion.author.toString();
+        const author = await User.findById(authorId);
+        motionWithAuthor = {
+          ...motion,
+          authorInfo: author ? {
+            id: author._id,
+            name: author.name,
+            email: author.email,
+            picture: author.picture
+          } : null
+        };
+      } catch (err) {
+        console.error('Error fetching author:', err);
+      }
+    }
+
     res.json({
       success: true,
-      motion
+      motion: motionWithAuthor
     });
   } catch (error) {
     console.error('Get motion error:', error);
@@ -106,13 +155,14 @@ router.post('/committee/:id/motion/create',
         });
       }
 
-      const { title, description, fullDescription } = req.body;
+      const { title, description, fullDescription, author } = req.body;
 
       // Create motion as embedded document
       const motion = await Committee.createMotion(committee._id, {
         title,
         description,
-        fullDescription: fullDescription || description
+        fullDescription: fullDescription || description,
+        author: author || null
       });
 
       res.status(201).json({

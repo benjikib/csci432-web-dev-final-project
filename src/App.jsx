@@ -1,6 +1,7 @@
 import './App.css'
 import Main from './components/MainPage.jsx'
 import LoginPage from './components/LoginPage.jsx'
+import Auth0Callback from './components/Auth0Callback.jsx'
 import MotionDetails from './components/MotionDetailsPage.jsx'
 import Settings from './components/SettingsPage.jsx'
 import Profile from './components/ProfilePage.jsx'
@@ -23,14 +24,15 @@ export default function App() {
   return (
     <>
       <Routes location={background || location}>
-        <Route path="/" element={<Main />}></Route>
+        <Route path="/" element={<LoginPage />}></Route>
+        <Route path="/home" element={<Main />}></Route>
         <Route path="/committees" element={<CommitteesPage />}></Route>
         <Route path="/create-committee" element={<CreateCommitteePage />}></Route>
         <Route path="/committee/:id" element={<CommitteeMotionsPage />}></Route>
         <Route path="/committee/:id/settings" element={<CommitteeSettingsPage />}></Route>
         <Route path="/committee/:id/create-motion" element={<CreateMotionPage />}></Route>
         <Route path="/committee/:committeeId/motion/:motionId" element={<CommitteeMotionsPage />}></Route>
-        <Route path="/login" element={<LoginPage />}></Route>
+        <Route path="/callback" element={<Auth0Callback />}></Route>
         <Route path="/settings" element={<Settings />}></Route>
         <Route path="/profile" element={<Profile />}></Route>
         <Route path="*" element={<NotFoundPage />}></Route>

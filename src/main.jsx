@@ -10,10 +10,12 @@ import { NavigationProvider } from './context/NavigationContext.jsx';
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <Auth0Provider
-      domain="dev-fir4couee0o8jsdl.us.auth0.com"
-      clientId="cONfEqPt9ivEGqWHxQRsi55LxZlN89As"
+      domain={import.meta.env.VITE_AUTH0_DOMAIN}
+      clientId={import.meta.env.VITE_AUTH0_CLIENT_ID}
       authorizationParams={{
-        redirect_uri: window.location.origin
+        redirect_uri: import.meta.env.VITE_AUTH0_REDIRECT_URI || window.location.origin,
+        audience: import.meta.env.VITE_AUTH0_AUDIENCE,
+        scope: 'openid profile email'
       }}
       cacheLocation='localstorage'
     >

@@ -20,14 +20,67 @@ function SearchBar( {setSearchedTerm} ) {
 };
 
 
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001';
+
 // const HeaderNav = ( {searchedTerm, setSearchedTerm} ) => {
 export default function HeaderNav( {setSearchedTerm} ) {
+        const navigate = useNavigate();
+        const [user, setUser] = useState(null);
+        const [isAuthenticated, setIsAuthenticated] = useState(false);
+        const [isLoading, setIsLoading] = useState(true);
+
+        useEffect(() => {
+                const fetchUser = async () => {
+                        const token = localStorage.getItem('token');
+                        if (!token) {
+                                setIsLoading(false);
+                                return;
+                        }
+
+                        try {
+                                const response = await fetch(`${API_BASE_URL}/auth/me`, {
+                                        headers: {
+                                                'Authorization': `Bearer ${token}`
+                                        }
+                                });
+
+                                if (response.ok) {
+                                        const data = await response.json();
+                                        setUser(data.user);
+                                        setIsAuthenticated(true);
+                                } else {
+                                        localStorage.removeItem('token');
+                                }
+                        } catch (err) {
+                                console.error('Error fetching user:', err);
+                                localStorage.removeItem('token');
+                        } finally {
+                                setIsLoading(false);
+                        }
+                };
+
+                fetchUser();
+        }, []);
+
+        const handleLogout = () => {
+                localStorage.removeItem('token');
+                setUser(null);
+                setIsAuthenticated(false);
+                navigate('/');
+        };
+
+        const handleLogin = () => {
+                navigate('/');
+        };
 
         return (
                 <div className="fixed top-0 left-0 right-0 z-50 h-20 w-full flex items-center justify-between border border-gray-400/10 dark:border-gray-700 shadow-md shadow-gray-500/50 dark:shadow-black/50 p-8 bg-white dark:bg-gray-900">
-        
+
                         {/* The site name and the logo are grouped on the left */}
-                        <a href="/" className="flex items-center space-x-2">
+                        <a href="/committees" className="flex items-center space-x-2">
                                 <span className="text-lighter-green dark:text-white font-extrabold text-2xl site-name">Commie</span>
                                 <img src="/logo.png" alt="Logo" className="w-18 h-18"></img>
                         </a>
@@ -36,17 +89,41 @@ export default function HeaderNav( {setSearchedTerm} ) {
 
                         {/* The notifs, setting, and profile are grouped on the right */}
                         <div className="flex items-center gap-6">
-                                <a href="/notifications" title="Notifications" className="hover:scale-110 transition-all">
-                                        <span className="material-symbols-outlined text-4xl !text-gray-600 dark:!text-white hover:!text-gray-900 dark:hover:!text-gray-300">notifications</span>
-                                </a>
-                                <a href="/settings" title="Settings" className="hover:scale-110 transition-all">
-                                        <span className="material-symbols-outlined text-4xl !text-gray-600 dark:!text-white hover:!text-gray-900 dark:hover:!text-gray-300">settings</span>
-                                </a>
-                                <a href="/profile" title="Profile" className="hover:scale-110 transition-all">
-                                        <span className="material-symbols-outlined text-4xl !text-gray-600 dark:!text-white hover:!text-gray-900 dark:hover:!text-gray-300">account_circle</span>
-                                </a>
+                                {isLoading ? (
+                                        <span className="text-gray-500 dark:text-gray-400 text-sm">Loading...</span>
+                                ) : isAuthenticated ? (
+                                        <>
+                                                <a href="/notifications" title="Notifications" className="hover:scale-110 transition-all">
+                                                        <span className="material-symbols-outlined text-4xl !text-gray-600 dark:!text-white hover:!text-gray-900 dark:hover:!text-gray-300">notifications</span>
+                                                </a>
+                                                <a href="/settings" title="Settings" className="hover:scale-110 transition-all">
+                                                        <span className="material-symbols-outlined text-4xl !text-gray-600 dark:!text-white hover:!text-gray-900 dark:hover:!text-gray-300">settings</span>
+                                                </a>
+                                                <a href="/profile" title="Profile" className="hover:scale-110 transition-all">
+                                                        {user?.profilePicture || user?.picture ? (
+                                                                <img src={user.profilePicture || user.picture} alt="Profile" className="w-10 h-10 rounded-full border-2 border-gray-300 dark:border-gray-600" />
+                                                        ) : (
+                                                                <span className="material-symbols-outlined text-4xl !text-gray-600 dark:!text-white hover:!text-gray-900 dark:hover:!text-gray-300">account_circle</span>
+                                                        )}
+                                                </a>
+                                                <button
+                                                        onClick={handleLogout}
+                                                        className="text-sm px-3 py-1.5 rounded bg-red-500 hover:bg-red-600 text-white font-medium transition-all"
+                                                        title="Logout"
+                                                >
+                                                        Logout
+                                                </button>
+                                        </>
+                                ) : (
+                                        <button
+                                                onClick={handleLogin}
+                                                className="text-sm px-4 py-2 rounded bg-[#54966D] hover:bg-[#5ca377] text-white font-medium transition-all"
+                                        >
+                                                Login
+                                        </button>
+                                )}
                         </div>
-                
+
                 </div>
         );
 

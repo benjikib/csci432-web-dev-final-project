@@ -8,14 +8,39 @@ class User {
 
   static async create(userData) {
     const user = {
+      // Auth0 integration fields
+      auth0Id: userData.auth0Id || null, // Auth0 user ID (sub claim)
       email: userData.email,
-      password: userData.password, // Should be hashed before passing here
+      emailVerified: userData.emailVerified || false,
+
+      // Authentication (for local auth, will be null if using Auth0)
+      password: userData.password || null, // Should be hashed before passing here
+
+      // Basic profile
       name: userData.name,
+      nickname: userData.nickname || null,
+      picture: userData.picture || userData.profilePicture || null,
+
+      // Community info
       communityCode: userData.communityCode || null,
       bio: userData.bio || '',
       phoneNumber: userData.phoneNumber || '',
       address: userData.address || '',
-      profilePicture: userData.profilePicture || null,
+
+      // Roles and Permissions
+      roles: userData.roles || ['member'], // Default role: member. Options: admin, member, guest, chair, etc.
+      permissions: userData.permissions || [], // Array of permission strings
+
+      // Committee relationships
+      ownedCommittees: userData.ownedCommittees || [], // Array of committee IDs this user owns
+      chairedCommittees: userData.chairedCommittees || [], // Array of committee IDs this user chairs
+      memberCommittees: userData.memberCommittees || [], // Array of committee IDs this user is a member of
+
+      // Motion relationships
+      authoredMotions: userData.authoredMotions || [], // Array of motion IDs this user created
+
+      // Metadata
+      lastLogin: userData.lastLogin || null,
       createdAt: new Date(),
       updatedAt: new Date()
     };
@@ -30,6 +55,10 @@ class User {
 
   static async findById(id) {
     return await this.collection().findOne({ _id: new ObjectId(id) });
+  }
+
+  static async findByAuth0Id(auth0Id) {
+    return await this.collection().findOne({ auth0Id });
   }
 
   static async updateById(id, updates) {
@@ -47,8 +76,165 @@ class User {
     return result;
   }
 
+  static async updateLastLogin(id) {
+    return await this.updateById(id, { lastLogin: new Date() });
+  }
+
   static async deleteById(id) {
     return await this.collection().deleteOne({ _id: new ObjectId(id) });
+  }
+
+  // Role management methods
+  static async addRole(userId, role) {
+    return await this.collection().updateOne(
+      { _id: new ObjectId(userId) },
+      {
+        $addToSet: { roles: role },
+        $set: { updatedAt: new Date() }
+      }
+    );
+  }
+
+  static async removeRole(userId, role) {
+    return await this.collection().updateOne(
+      { _id: new ObjectId(userId) },
+      {
+        $pull: { roles: role },
+        $set: { updatedAt: new Date() }
+      }
+    );
+  }
+
+  static async hasRole(userId, role) {
+    const user = await this.findById(userId);
+    return user && user.roles && user.roles.includes(role);
+  }
+
+  // Permission management methods
+  static async addPermission(userId, permission) {
+    return await this.collection().updateOne(
+      { _id: new ObjectId(userId) },
+      {
+        $addToSet: { permissions: permission },
+        $set: { updatedAt: new Date() }
+      }
+    );
+  }
+
+  static async removePermission(userId, permission) {
+    return await this.collection().updateOne(
+      { _id: new ObjectId(userId) },
+      {
+        $pull: { permissions: permission },
+        $set: { updatedAt: new Date() }
+      }
+    );
+  }
+
+  static async hasPermission(userId, permission) {
+    const user = await this.findById(userId);
+    return user && user.permissions && user.permissions.includes(permission);
+  }
+
+  // Committee relationship methods
+  static async addOwnedCommittee(userId, committeeId) {
+    return await this.collection().updateOne(
+      { _id: new ObjectId(userId) },
+      {
+        $addToSet: { ownedCommittees: new ObjectId(committeeId) },
+        $set: { updatedAt: new Date() }
+      }
+    );
+  }
+
+  static async removeOwnedCommittee(userId, committeeId) {
+    return await this.collection().updateOne(
+      { _id: new ObjectId(userId) },
+      {
+        $pull: { ownedCommittees: new ObjectId(committeeId) },
+        $set: { updatedAt: new Date() }
+      }
+    );
+  }
+
+  static async addChairedCommittee(userId, committeeId) {
+    return await this.collection().updateOne(
+      { _id: new ObjectId(userId) },
+      {
+        $addToSet: { chairedCommittees: new ObjectId(committeeId) },
+        $set: { updatedAt: new Date() }
+      }
+    );
+  }
+
+  static async removeChairedCommittee(userId, committeeId) {
+    return await this.collection().updateOne(
+      { _id: new ObjectId(userId) },
+      {
+        $pull: { chairedCommittees: new ObjectId(committeeId) },
+        $set: { updatedAt: new Date() }
+      }
+    );
+  }
+
+  static async addMemberCommittee(userId, committeeId) {
+    return await this.collection().updateOne(
+      { _id: new ObjectId(userId) },
+      {
+        $addToSet: { memberCommittees: new ObjectId(committeeId) },
+        $set: { updatedAt: new Date() }
+      }
+    );
+  }
+
+  static async removeMemberCommittee(userId, committeeId) {
+    return await this.collection().updateOne(
+      { _id: new ObjectId(userId) },
+      {
+        $pull: { memberCommittees: new ObjectId(committeeId) },
+        $set: { updatedAt: new Date() }
+      }
+    );
+  }
+
+  // Motion relationship methods
+  static async addAuthoredMotion(userId, motionId) {
+    return await this.collection().updateOne(
+      { _id: new ObjectId(userId) },
+      {
+        $addToSet: { authoredMotions: new ObjectId(motionId) },
+        $set: { updatedAt: new Date() }
+      }
+    );
+  }
+
+  static async removeAuthoredMotion(userId, motionId) {
+    return await this.collection().updateOne(
+      { _id: new ObjectId(userId) },
+      {
+        $pull: { authoredMotions: new ObjectId(motionId) },
+        $set: { updatedAt: new Date() }
+      }
+    );
+  }
+
+  // Get all committees and motions for a user
+  static async getUserCommittees(userId) {
+    const user = await this.findById(userId);
+    if (!user) return null;
+
+    return {
+      owned: user.ownedCommittees || [],
+      chaired: user.chairedCommittees || [],
+      member: user.memberCommittees || []
+    };
+  }
+
+  static async getUserMotions(userId) {
+    const user = await this.findById(userId);
+    if (!user) return null;
+
+    return user.authoredMotions || [];
   }
 }
 

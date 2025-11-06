@@ -9,7 +9,12 @@ const client = new MongoClient(uri, {
     version: ServerApiVersion.v1,
     strict: true,
     deprecationErrors: true,
-  }
+  },
+  tls: true,
+  tlsAllowInvalidCertificates: false,
+  tlsAllowInvalidHostnames: false,
+  connectTimeoutMS: 30000,
+  socketTimeoutMS: 45000,
 });
 
 let db;

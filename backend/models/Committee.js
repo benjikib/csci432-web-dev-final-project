@@ -131,7 +131,7 @@ class Committee {
       title: motionData.title,
       description: motionData.description,
       fullDescription: motionData.fullDescription || motionData.description,
-      author: motionData.author || null,
+      author: motionData.author ? (typeof motionData.author === 'string' ? new ObjectId(motionData.author) : motionData.author) : null,
       status: motionData.status || 'active',
       votes: {
         yes: 0,

@@ -96,6 +96,27 @@ function MotionDetails() {
                 <div className="modal-header">
                     <h2 className="modal-title">{motion.title}</h2>
                     <p className="modal-subtitle">{motion.description}</p>
+                    {motion.authorInfo && (
+                        <div className="flex items-center gap-2 mt-3 text-gray-600 dark:text-gray-400">
+                            {motion.authorInfo.picture ? (
+                                <img
+                                    src={motion.authorInfo.picture}
+                                    alt={motion.authorInfo.email}
+                                    className="w-8 h-8 rounded-full border-2 border-gray-300 dark:border-gray-600"
+                                />
+                            ) : (
+                                <span className="material-symbols-outlined text-gray-500 dark:text-gray-400 text-3xl">account_circle</span>
+                            )}
+                            <div className="flex flex-col">
+                                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    @{motion.authorInfo.email.split('@')[0]}
+                                </span>
+                                <span className="text-xs text-gray-500 dark:text-gray-500">
+                                    Motion Author
+                                </span>
+                            </div>
+                        </div>
+                    )}
                 </div>
 
                 <div className="modal-body">

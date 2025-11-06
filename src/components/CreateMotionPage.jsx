@@ -6,25 +6,49 @@ import { getCommitteeById } from '../services/committeeApi';
 import { createMotion } from '../services/motionApi';
 import { useNavigationBlock } from '../context/NavigationContext';
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001';
+
 function CreateMotionPage() {
     const { id } = useParams();
     const navigate = useNavigate();
     const location = useLocation();
     const [committee, setCommittee] = useState(null);
+    const [currentUser, setCurrentUser] = useState(null);
     const [loading, setLoading] = useState(true);
     const [searchedTerm, setSearchedTerm] = useState("");
     const { blockNavigation, unblockNavigation, confirmNavigation } = useNavigationBlock();
     const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
-    // Fetch committee from API
+    // Fetch committee and current user from API
     useEffect(() => {
-        async function fetchCommittee() {
+        async function fetchData() {
             try {
                 setLoading(true);
-                const data = await getCommitteeById(id);
-                setCommittee(data.committee || data);
+
+                // Fetch committee
+                const committeeData = await getCommitteeById(id);
+                setCommittee(committeeData.committee || committeeData);
+
+                // Fetch current user if authenticated
+                const token = localStorage.getItem('token');
+                if (token) {
+                    try {
+                        const response = await fetch(`${API_BASE_URL}/auth/me`, {
+                            headers: {
+                                'Authorization': `Bearer ${token}`
+                            }
+                        });
+
+                        if (response.ok) {
+                            const data = await response.json();
+                            setCurrentUser(data.user);
+                        }
+                    } catch (err) {
+                        console.error('Error fetching user:', err);
+                    }
+                }
             } catch (err) {
-                console.error('Error fetching committee:', err);
+                console.error('Error fetching data:', err);
                 setCommittee(null);
             } finally {
                 setLoading(false);
@@ -32,7 +56,7 @@ function CreateMotionPage() {
         }
 
         if (id) {
-            fetchCommittee();
+            fetchData();
         }
     }, [id]);
 
@@ -106,6 +130,7 @@ function CreateMotionPage() {
                 title: formData.title,
                 description: formData.description,
                 fullDescription: formData.fullDescription || formData.description,
+                author: currentUser?.id || null, // Add current user as author
             };
 
             // Add motion via API

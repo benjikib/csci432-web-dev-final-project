@@ -17,9 +17,27 @@ function MotionCard({ motion, committeeSlug }) {
             </div>
             <p className="motion-description">{motion.description}</p>
             <div className="motion-footer">
-                <span className="text-sm text-gray-600">
-                    Votes: {(motion.votes?.yes || 0) + (motion.votes?.no || 0) + (motion.votes?.abstain || 0)}
-                </span>
+                <div className="flex items-center justify-between w-full">
+                    <span className="text-sm text-gray-600 dark:text-gray-400">
+                        Votes: {(motion.votes?.yes || 0) + (motion.votes?.no || 0) + (motion.votes?.abstain || 0)}
+                    </span>
+                    {motion.authorInfo && (
+                        <div className="flex items-center gap-2">
+                            {motion.authorInfo.picture ? (
+                                <img
+                                    src={motion.authorInfo.picture}
+                                    alt={motion.authorInfo.email}
+                                    className="w-6 h-6 rounded-full"
+                                />
+                            ) : (
+                                <span className="material-symbols-outlined text-gray-500 dark:text-gray-400 text-xl">account_circle</span>
+                            )}
+                            <span className="text-sm text-gray-600 dark:text-gray-400">
+                                @{motion.authorInfo.email.split('@')[0]}
+                            </span>
+                        </div>
+                    )}
+                </div>
             </div>
         </div>
     )
