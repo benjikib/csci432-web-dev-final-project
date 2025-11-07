@@ -38,35 +38,25 @@ const validateAuth0Token = jwtCheck({
 async function syncAuth0User(req, res, next) {
   try {
     // Check if user is authenticated via Auth0
-    if (!req.auth || !req.auth.sub) {
+    // The JWT middleware puts decoded token in req.auth.payload
+    if (!req.auth || !req.auth.payload || !req.auth.payload.sub) {
       return next();
     }
 
-    const auth0Id = req.auth.sub;
-    const email = req.auth.email;
-    const name = req.auth.name || email;
-    const picture = req.auth.picture;
-    const emailVerified = req.auth.email_verified || false;
+    const auth0Id = req.auth.payload.sub;
 
     // Check if user exists in our database
     let user = await User.findByAuth0Id(auth0Id);
 
     if (!user) {
-      // Create new user
-      user = await User.create({
-        auth0Id,
-        email,
-        name,
-        picture,
-        emailVerified,
-        roles: ['member']
+      return res.status(401).json({
+        success: false,
+        message: 'User not found. Please log in again to sync your profile.'
       });
-      console.log('Created new user from Auth0:', user._id);
-    } else {
-      // Update existing user's last login
-      await User.updateLastLogin(user._id);
-      console.log('Updated last login for user:', user._id);
     }
+
+    // Update existing user's last login
+    await User.updateLastLogin(user._id);
 
     // Attach user to request
     req.user = {

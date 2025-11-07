@@ -3,8 +3,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { body, validationResult } = require('express-validator');
 const User = require('../models/User');
-const { authenticate } = require('../middleware/auth');
-const { syncAuth0User, validateAuth0Token } = require('../middleware/auth0');
+const { authenticate, syncAuth0User, validateAuth0Token } = require('../middleware/auth0');
 
 const router = express.Router();
 
@@ -224,19 +223,13 @@ router.get('/me', authenticate, async (req, res) => {
  */
 router.post('/auth0/callback', validateAuth0Token, syncAuth0User, async (req, res) => {
   try {
-    console.log('✅ Auth0 callback hit!');
-    console.log('Request auth:', req.auth);
-    console.log('Request user:', req.user);
-
     if (!req.user) {
-      console.error('❌ No user in request after sync');
       return res.status(400).json({
         success: false,
         message: 'User sync failed'
       });
     }
 
-    console.log('✅ Sending successful response');
     res.json({
       success: true,
       message: 'User authenticated successfully',
@@ -249,7 +242,7 @@ router.post('/auth0/callback', validateAuth0Token, syncAuth0User, async (req, re
       }
     });
   } catch (error) {
-    console.error('❌ Auth0 callback error:', error);
+    console.error('Auth0 callback error:', error);
     res.status(500).json({
       success: false,
       message: 'Server error during authentication'
