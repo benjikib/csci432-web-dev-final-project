@@ -17,10 +17,22 @@
   cursor: pointer;
 }
 
+html.dark .motion-card {
+  background: #1f2937;
+  border-color: #374151;
+  color: #f3f4f6;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
 .motion-card:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
   border-color: #cbd5e1;
+}
+
+html.dark .motion-card:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+  border-color: #4b5563;
 }
 
 .row1 {
@@ -31,6 +43,10 @@
   font-weight: 600;
   color: #1e293b;
   margin-bottom: 8px;
+}
+
+html.dark .row1 {
+  color: #f3f4f6;
 }
 
 .row3 {
@@ -140,12 +156,22 @@
   align-items: center;
 }
 
+html.dark .login-card {
+  background: #1f2937;
+  border-color: #374151;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
 .login-title{
   font-size: 20px;
   font-weight: 650;
   color: #0f172a;
   margin: 0 0 24px 0;
   padding: 0 12px;
+}
+
+html.dark .login-title {
+  color: #f3f4f6;
 }
 
 .login-option{
@@ -164,9 +190,18 @@
   min-width: 0;
 }
 
+html.dark .login-option {
+  color: #6b7280;
+}
+
 .login-option.active{
   color: #13562C;
   border-bottom: 4px solid #13562C;
+}
+
+html.dark .login-option.active {
+  color: #10b981;
+  border-bottom-color: #10b981;
 }
 
 .input-row{
@@ -185,11 +220,69 @@
   flex-basis: 50%;
 }
 
+
+.login-input {
+  width: 100%;
+  margin: 5px;
+  padding: 10px 14px;
+  font-size: 16px;
+  border: 1px solid #13562C;
+  border-radius: 8px;
+  background-color: #fff;
+  color: #111827;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+html.dark .login-input {
+  background-color: #374151;
+  border-color: #4b5563;
+  color: #f3f4f6;
+}
+
+.login-input:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.3);
+}
+
+html.dark .login-input:focus {
+  border-color: #10b981;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.3);
+}
+
+.login-input::placeholder {
+  color: #9ca3af;
+}
+
+html.dark .login-input::placeholder {
+  color: #6b7280;
+}
+
+.login-input:disabled {
+  background-color: #f3f4f6;
+  color: #9ca3af;
+  cursor: not-allowed;
+}
+
+html.dark .login-input:disabled {
+  background-color: #1f2937;
+  color: #6b7280;
+}
+
+.login-input.error {
+  border-color: #dc2626;
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.2);
+}
+
 .terms{
   color: #8e8e8f;
   font-size:12px;
   margin-top: 10%;
   cursor: pointer;
+}
+
+html.dark .terms {
+  color: #9ca3af;
 }
 
 #main {
@@ -218,6 +311,10 @@
   color: #13562C;
   font-size: 64px;
   font-weight: 800;
+}
+
+html.dark .main-logo-font {
+  color: #10b981;
 }
 
 #side-bar {
@@ -251,7 +348,12 @@
   font-weight: 700;
   color: #0f172a;
   margin: 0 0 24px 0;
-  padding: 0 12px;
+  padding: 0;
+  text-align: left;
+}
+
+html.dark .section-title {
+  color: #f3f4f6;
 }
 
 .motions-grid {
@@ -426,7 +528,19 @@ html {
 body {
   margin: 0;
   font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+
+html:not(.dark) body {
   background: #F8FEF9;
+}
+
+html.dark body {
+  background: #111827;
+}
+
+/* Disable scroll when applied (toggled only on landing page) */
+.no-scroll {
+  overflow: hidden;
 }
 
 /* Modal Styles */
@@ -437,14 +551,21 @@ body {
   right: 0;
   bottom: 0;
   background-color: rgba(0, 0, 0, 0.5);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  /* backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px); */ 
+  /* THE ABOVE IS sooo laggy but below is also kinda laggy*/
+  /* background-color: rgba(0, 0, 0, 0.5);
+  animation: fadeIn 0.2s ease; */
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 9999;
   padding: 20px;
 }
+/* @keyframes fadeIn {
+  from { opacity: 0 }
+  to { opacity: 1 }
+} */
 
 .modal-content {
   background: #ffffff;
@@ -456,6 +577,10 @@ body {
   position: relative;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
   animation: modalSlideIn 0.3s ease-out;
+}
+
+html.dark .modal-content {
+  background: #1f2937;
 }
 
 .modal-close {
@@ -480,6 +605,12 @@ body {
   z-index: 10;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   padding: 0;
+}
+
+html.dark .modal-close {
+  background: #374151;
+  border-color: #4b5563;
+  color: #d1d5db;
 }
 
 .modal-close:hover {
@@ -507,6 +638,11 @@ body {
   background: linear-gradient(to bottom, #ffffff, #f8fafc);
 }
 
+html.dark .modal-header {
+  border-bottom-color: #374151;
+  background: linear-gradient(to bottom, #1f2937, #111827);
+}
+
 .modal-title {
   margin: 0 0 8px 0;
   font-size: 28px;
@@ -514,11 +650,19 @@ body {
   color: #0f172a;
 }
 
+html.dark .modal-title {
+  color: #f3f4f6;
+}
+
 .modal-subtitle {
   margin: 0;
   font-size: 16px;
   color: #64748b;
   line-height: 1.5;
+}
+
+html.dark .modal-subtitle {
+  color: #9ca3af;
 }
 
 /* Modal Body with Sidebar */
@@ -537,6 +681,11 @@ body {
   gap: 4px;
 }
 
+html.dark .modal-sidebar {
+  background-color: #111827;
+  border-right-color: #374151;
+}
+
 .tab-button {
   background: transparent;
   border: none;
@@ -553,15 +702,29 @@ body {
   justify-content: center;
 }
 
+html.dark .tab-button {
+  color: #9ca3af;
+}
+
 .tab-button:hover {
   background-color: #e2e8f0;
   color: #0f172a;
+}
+
+html.dark .tab-button:hover {
+  background-color: #374151;
+  color: #f3f4f6;
 }
 
 .tab-button.active {
   color: #13562C;
   background-color: #ffffff;
   font-weight: 600;
+}
+
+html.dark .tab-button.active {
+  color: #10b981;
+  background-color: #1f2937;
 }
 
 .tab-button.active::before {
@@ -572,6 +735,10 @@ body {
   bottom: 0;
   width: 4px;
   background-color: #13562C;
+}
+
+html.dark .tab-button.active::before {
+  background-color: #10b981;
 }
 
 /* Modal Main Content */
@@ -603,11 +770,19 @@ body {
   color: #0f172a;
 }
 
+html.dark .content-title {
+  color: #f3f4f6;
+}
+
 .content-text {
   margin: 0;
   font-size: 15px;
   line-height: 1.7;
   color: #475569;
+}
+
+html.dark .content-text {
+  color: #d1d5db;
 }
 
 /* Voting Section */
@@ -726,8 +901,12 @@ body {
 /* Integrated Landing Page Layout */
 .integrated-landing-page {
   display: flex;
-  min-height: 100vh;
+  height: 100vh;
   background: #F8FEF9;
+}
+
+html.dark .integrated-landing-page {
+  background: #111827;
 }
 
 .branding-section {
@@ -739,9 +918,14 @@ body {
   background: #F8FEF9;
 }
 
+html.dark .branding-section {
+  background: #111827;
+}
+
 .branding-content {
   text-align: center;
   max-width: 500px;
+  transform: translate(24px, -24px);
 }
 
 .branding-content .main-logo-font {
@@ -766,12 +950,20 @@ body {
   font-weight: 700;
 }
 
+html.dark .tagline {
+  color: #f3f4f6;
+}
+
 .attribution {
   font-size: 14px;
   color: #64748b;
   margin: 0;
   font-style: italic;
   font-weight: 500;
+}
+
+html.dark .attribution {
+  color: #9ca3af;
 }
 
 .auth-section {
@@ -783,17 +975,21 @@ body {
   background: #F8FEF9;
 }
 
+html.dark .auth-section {
+  background: #111827;
+}
+
 /* Update existing login styles for integrated layout */
 .integrated-landing-page .login-container {
   margin-top: 0;
   width: 100%;
-  max-width: 500px;
+  max-width: 520px;
 }
 
 .integrated-landing-page .login-card {
   margin-top: 0;
-  width: 400px !important;
-  height: 600px;
+  width: 460px !important;
+  height: 640px;
   padding: 80px 64px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.08);
 }
@@ -802,6 +998,7 @@ body {
 @media screen and (max-width: 768px) {
   .integrated-landing-page {
     flex-direction: column;
+    height: 100dvh;
   }
   
   .branding-section,
@@ -811,6 +1008,10 @@ body {
   
   .branding-content .main-logo {
     height: 160px;
+  }
+  
+  .branding-content {
+    transform: translate(0, 0);
   }
   
   .tagline {

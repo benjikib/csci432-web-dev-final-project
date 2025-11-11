@@ -1,27 +1,39 @@
 import { useParams, useNavigate, useLocation } from "react-router-dom"
-import { getMotionById } from "./MotionStorage"
+import { getMotionById } from "./CommitteeStorage"
 import { useState } from "react"
 import { BsFillFilterSquareFill, BsChatLeftDotsFill, BsCheckCircleFill } from "react-icons/bs"
+import MotionDetailsComments from "./MotionDetailsComments"
 
 function MotionDetails() {
-    const { id } = useParams()
+    const { committeeId, motionId } = useParams()
     const navigate = useNavigate()
     const location = useLocation()
-    const motion = getMotionById(id)
+    const motion = getMotionById(committeeId, motionId)
     const [activeTab, setActiveTab] = useState("description")
 
     const handleClose = () => {
-        // If there's a background state, go back; otherwise, navigate to motions page
+        // If there's a background state, go back; otherwise, navigate to committee page
         if (location.state?.background) {
             navigate(-1)
         } else {
-            navigate('/motions')
+            navigate(`/committee/${committeeId}`)
         }
     }
 
     const handleBackdropClick = (e) => {
         if (e.target === e.currentTarget) {
             handleClose()
+        }
+    }
+
+    // voting logic
+
+    const [numberOfYesVotes, setNumberOfYesVotes] = useState(motion?.votes || 0);
+
+    const handleYesVote = () => {
+        if (motion) {
+            motion.votes = (motion.votes || 0) + 1;
+            setNumberOfYesVotes(numberOfYesVotes + 1);
         }
     }
 
@@ -83,8 +95,9 @@ function MotionDetails() {
 
                         {activeTab === "comments" && (
                             <div className="tab-content">
-                                <h3 className="content-title">Comments</h3>
-                                <p className="content-text">No comments yet. Be the first to comment!</p>
+
+                                <MotionDetailsComments />
+                                
                             </div>
                         )}
 
@@ -93,11 +106,15 @@ function MotionDetails() {
                                 <h3 className="content-title">Vote on this Motion</h3>
                                 <div className="voting-section">
                                     <div className="vote-count">
-                                        <span className="vote-number">{motion.votes}</span>
+                                        <span className="vote-number">{numberOfYesVotes}</span>
+                                            {/* {motion.votes}</span> */}
                                         <span className="vote-label">Total Votes</span>
                                     </div>
                                     <div className="vote-buttons">
-                                        <button className="vote-button vote-yes">Vote Yes</button>
+                                        <button
+                                            className="vote-button vote-yes"
+                                            onClick = { handleYesVote }
+                                            >Vote Yes</button>
                                         <button className="vote-button vote-no">Vote No</button>
                                     </div>
                                 </div>

@@ -29,13 +29,13 @@ function LoginPage() {
                 </div>
             </div>
             <div className="input-row">
-                <input className="login-input"type="email" placeholder='Email' />
+                <input className="login-input" type="email" placeholder='Email' />
             </div>
             <div className="input-row">
-                <input className="login-input"type="text" placeholder='First Name' /><input className="login-input"type="text" placeholder='Last Name' />
+                <input className="login-input" type="text" placeholder='First Name' /><input className="login-input" type="text" placeholder='Last Name' />
             </div>
             <div className="input-row">
-                <input className="login-input"type="text" placeholder='Community Code' />
+                <input className="login-input" type="text" placeholder='Community Code' />
             </div>
             <div className="input-row">
                 <div className="
@@ -61,14 +61,14 @@ function LoginPage() {
                 </div>
             </div>
             <div className="input-row">
-                <input className="login-input"type="email" placeholder='Email' />
+                <input className="login-input" type="email" placeholder='Email' />
             </div>
             <div className="input-row">
-                <input className="login-input"type="password" placeholder='Password' />
+                <input className="login-input" type="password" placeholder='Password' />
             </div>
             <div className="input-row">
                 {/* <div className="ml-[15%] bg-[#54966D] rounded-lg cursor-pointer transition: border-color 0.25s h-[35px] w-[200px] text-white text-base font-inherit font-medium"  */}
-                <div class="
+                <div className="
                 rounded-lg border-[1px] border-transparent
                 px-[1.2em] py-[0.6em]
                 text-white bg-[#54966D] hover:bg-[#5ca377]
