@@ -1,5 +1,6 @@
 import './App.css'
 import Main from './components/MainPage.jsx'
+import HomePage from './components/HomePage.jsx'
 import LoginPage from './components/LoginPage.jsx'
 import Auth0Callback from './components/Auth0Callback.jsx'
 import MotionDetails from './components/MotionDetailsPage.jsx'
@@ -25,7 +26,7 @@ export default function App() {
     <>
       <Routes location={background || location}>
         <Route path="/" element={<LoginPage />}></Route>
-        <Route path="/home" element={<Main />}></Route>
+        <Route path="/home" element={<HomePage />}></Route>
         <Route path="/committees" element={<CommitteesPage />}></Route>
         <Route path="/create-committee" element={<CreateCommitteePage />}></Route>
         <Route path="/committee/:id" element={<CommitteeMotionsPage />}></Route>
