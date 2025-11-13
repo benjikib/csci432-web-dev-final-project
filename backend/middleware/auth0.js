@@ -40,20 +40,26 @@ async function syncAuth0User(req, res, next) {
     // Check if user is authenticated via Auth0
     // The JWT middleware puts decoded token in req.auth.payload
     if (!req.auth || !req.auth.payload || !req.auth.payload.sub) {
+      console.log('No Auth0 payload found in request');
       return next();
     }
 
     const auth0Id = req.auth.payload.sub;
+    console.log('Syncing user with auth0Id:', auth0Id);
 
     // Check if user exists in our database
     let user = await User.findByAuth0Id(auth0Id);
 
     if (!user) {
+      console.log('User not found in database for auth0Id:', auth0Id);
       return res.status(401).json({
         success: false,
-        message: 'User not found. Please log in again to sync your profile.'
+        message: 'User not found. Please log out and log in again to sync your profile.',
+        auth0Id: auth0Id
       });
     }
+
+    console.log('User found:', user.email);
 
     // Update existing user's last login
     await User.updateLastLogin(user._id);
@@ -188,6 +194,36 @@ function requirePermission(permission) {
   };
 }
 
+/**
+ * Middleware to check if user is an admin OR has a specific permission
+ * Admins can bypass permission checks
+ */
+function requirePermissionOrAdmin(permission) {
+  return (req, res, next) => {
+    if (!req.user) {
+      return res.status(401).json({
+        success: false,
+        message: 'Authentication required'
+      });
+    }
+
+    // Check if user is admin
+    const isAdmin = req.user.roles && req.user.roles.includes('admin');
+
+    // Check if user has the specific permission
+    const hasPermission = req.user.permissions && req.user.permissions.includes(permission);
+
+    if (!isAdmin && !hasPermission) {
+      return res.status(403).json({
+        success: false,
+        message: `Access denied. Permission '${permission}' or admin role required.`
+      });
+    }
+
+    next();
+  };
+}
+
 module.exports = {
   auth0Config,
   auth0SessionAuth: auth,
@@ -195,5 +231,6 @@ module.exports = {
   syncAuth0User,
   authenticate,
   requireRole,
-  requirePermission
+  requirePermission,
+  requirePermissionOrAdmin
 };

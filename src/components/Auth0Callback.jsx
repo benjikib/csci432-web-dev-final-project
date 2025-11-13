@@ -9,7 +9,7 @@ import { syncAuth0User } from '../services/authService';
  * and syncs the user with the backend database
  */
 export default function Auth0Callback() {
-  const { isAuthenticated, user, isLoading } = useAuth0();
+  const { isAuthenticated, user, isLoading, getAccessTokenSilently } = useAuth0();
   const navigate = useNavigate();
   const [error, setError] = useState(null);
 
@@ -19,6 +19,14 @@ export default function Auth0Callback() {
 
       if (isAuthenticated && user) {
         try {
+          // Get and store the Auth0 access token with explicit audience
+          const token = await getAccessTokenSilently({
+            authorizationParams: {
+              audience: import.meta.env.VITE_AUTH0_AUDIENCE,
+            }
+          });
+          localStorage.setItem('auth0_token', token);
+
           // Sync user with backend
           const syncedUser = await syncAuth0User(user);
 
@@ -35,7 +43,7 @@ export default function Auth0Callback() {
     }
 
     handleCallback();
-  }, [isAuthenticated, user, isLoading, navigate]);
+  }, [isAuthenticated, user, isLoading, navigate, getAccessTokenSilently]);
 
   if (error) {
     return (

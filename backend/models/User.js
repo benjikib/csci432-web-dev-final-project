@@ -27,6 +27,13 @@ class User {
       phoneNumber: userData.phoneNumber || '',
       address: userData.address || '',
 
+      // User Settings
+      settings: {
+        theme: userData.settings?.theme || 'light', // 'light' or 'dark'
+        notifications: userData.settings?.notifications !== undefined ? userData.settings.notifications : true,
+        displayName: userData.settings?.displayName || userData.name
+      },
+
       // Roles and Permissions
       roles: userData.roles || ['member'], // Default role: member. Options: admin, member, guest, chair, etc.
       permissions: userData.permissions || [], // Array of permission strings
@@ -59,6 +66,10 @@ class User {
 
   static async findByAuth0Id(auth0Id) {
     return await this.collection().findOne({ auth0Id });
+  }
+
+  static async findAll() {
+    return await this.collection().find({}).toArray();
   }
 
   static async updateById(id, updates) {
@@ -235,6 +246,42 @@ class User {
     if (!user) return null;
 
     return user.authoredMotions || [];
+  }
+
+  // Settings management methods
+  static async updateSettings(userId, settings) {
+    const updateData = {};
+
+    if (settings.theme !== undefined) {
+      updateData['settings.theme'] = settings.theme;
+    }
+    if (settings.notifications !== undefined) {
+      updateData['settings.notifications'] = settings.notifications;
+    }
+    if (settings.displayName !== undefined) {
+      updateData['settings.displayName'] = settings.displayName;
+    }
+
+    updateData.updatedAt = new Date();
+
+    const result = await this.collection().findOneAndUpdate(
+      { _id: new ObjectId(userId) },
+      { $set: updateData },
+      { returnDocument: 'after' }
+    );
+
+    return result;
+  }
+
+  static async getSettings(userId) {
+    const user = await this.findById(userId);
+    if (!user) return null;
+
+    return user.settings || {
+      theme: 'light',
+      notifications: true,
+      displayName: user.name
+    };
   }
 }
 

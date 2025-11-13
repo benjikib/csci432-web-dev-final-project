@@ -3,15 +3,29 @@ import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 function LoginPage() {
-    const { loginWithRedirect, isAuthenticated, isLoading } = useAuth0();
+    const { loginWithRedirect, isAuthenticated, isLoading, getAccessTokenSilently } = useAuth0();
     const navigate = useNavigate();
 
     // Redirect to committees if already authenticated
     useEffect(() => {
-        if (isAuthenticated) {
-            navigate('/committees');
+        async function handleAuthenticated() {
+            if (isAuthenticated) {
+                try {
+                    // Get and store the Auth0 access token with explicit audience
+                    const token = await getAccessTokenSilently({
+                        authorizationParams: {
+                            audience: import.meta.env.VITE_AUTH0_AUDIENCE,
+                        }
+                    });
+                    localStorage.setItem('auth0_token', token);
+                } catch (err) {
+                    console.error('Error getting access token:', err);
+                }
+                navigate('/committees');
+            }
         }
-    }, [isAuthenticated, navigate]);
+        handleAuthenticated();
+    }, [isAuthenticated, navigate, getAccessTokenSilently]);
 
   return (
     <div className="integrated-landing-page">
@@ -37,7 +51,7 @@ function LoginPage() {
                         </p>
                     </div>
 
-                    <div className="input-row">
+                    <div className="flex justify-center w-full mb-2">
                         <button
                             onClick={() => loginWithRedirect()}
                             disabled={isLoading}
@@ -47,7 +61,6 @@ function LoginPage() {
                                 text-white bg-[#54966D] hover:bg-[#5ca377]
                                 font-medium font-inherit
                                 cursor-pointer
-                                w-full
                                 disabled:opacity-50 disabled:cursor-not-allowed
                                 transition-all
                             "
