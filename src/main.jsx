@@ -6,6 +6,7 @@ import { Auth0Provider } from '@auth0/auth0-react';
 import { BrowserRouter } from 'react-router-dom';
 import { ThemeProvider } from './context/ThemeContext.jsx';
 import { NavigationProvider } from './context/NavigationContext.jsx';
+import './debug-env.js';
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
