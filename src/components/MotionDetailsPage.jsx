@@ -79,9 +79,17 @@ function MotionDetails() {
                 <div className="modal-content">
                     <button className="modal-close" onClick={handleClose}>&times;</button>
                     <div className="details-container">
-                        <div className="details-motion-title">
-                            {error ? `Error: ${error}` : 'Motion Not Found'}
-                        </div>
+                        {error ? (
+                            <>
+                                <div className="details-motion-title">Error Loading Motion</div>
+                                {/* Error Banner */}
+                                <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 px-4 py-3 rounded-lg mt-4">
+                                    Failed to load motion details
+                                </div>
+                            </>
+                        ) : (
+                            <div className="details-motion-title">Motion Not Found</div>
+                        )}
                     </div>
                 </div>
             </div>

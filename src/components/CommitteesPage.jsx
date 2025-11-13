@@ -48,7 +48,9 @@ function CommitteesPage() {
                     {loading ? (
                         <p className="text-gray-600 dark:text-gray-400 mt-4">Loading committees...</p>
                     ) : error ? (
-                        <p className="text-red-600 dark:text-red-400 mt-4">Error: {error}</p>
+                        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 px-4 py-3 rounded-lg mt-4">
+                            Failed to load committees
+                        </div>
                     ) : filteredCommittees.length === 0 ? (
                         <p className="text-gray-600 dark:text-gray-400 mt-4">No committees found.</p>
                     ) : (

@@ -114,8 +114,11 @@ function Profile() {
                 <HeaderNav setSearchedTerm={setSearchedTerm} />
                 <SideBar />
                 <div className="mt-20 ml-[16rem] px-8 min-h-screen bg-[#F8FEF9] dark:bg-gray-900">
-                    <div className="text-red-600 dark:text-red-400">
-                        {error || 'Failed to load profile'}
+                    <div className="max-w-4xl">
+                        <h2 className="section-title dark:text-gray-100">My Profile</h2>
+                        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 px-4 py-3 rounded-lg mt-4">
+                            Failed to load profile
+                        </div>
                     </div>
                 </div>
             </>

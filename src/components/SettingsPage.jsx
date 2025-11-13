@@ -104,17 +104,16 @@ function Settings() {
 
           {loading ? (
             <div className="text-gray-600 dark:text-gray-400">Loading settings...</div>
+          ) : error ? (
+            <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 px-4 py-3 rounded-lg">
+              Failed to load settings
+            </div>
           ) : (
             <div className="space-y-6">
               {/* Success/Error Messages */}
               {successMessage && (
                 <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 text-green-700 dark:text-green-300 px-4 py-3 rounded-lg">
                   {successMessage}
-                </div>
-              )}
-              {error && (
-                <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 px-4 py-3 rounded-lg">
-                  {error}
                 </div>
               )}
 

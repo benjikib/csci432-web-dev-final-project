@@ -1,7 +1,7 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { useNavigationBlock } from '../../context/NavigationContext';
-import { getCurrentUser, isAdmin } from '../../services/userApi';
+import { getCurrentUser, hasRole } from '../../services/userApi';
 
 //   const SideBar = () => {
 export default function SideBar() {
@@ -9,28 +9,28 @@ export default function SideBar() {
       const location = useLocation();
       const navigate = useNavigate();
       const { confirmNavigation } = useNavigationBlock();
-      const [userIsAdmin, setUserIsAdmin] = useState(false);
+      const [userIsChair, setUserIsChair] = useState(false);
 
-      // Check if user is admin
+      // Check if user is a chair
       useEffect(() => {
-          async function checkAdmin() {
+          async function checkChair() {
               try {
                   const response = await getCurrentUser();
                   if (response.success) {
-                      setUserIsAdmin(isAdmin(response.user));
+                      setUserIsChair(hasRole(response.user, 'chair'));
                   }
               } catch (err) {
-                  console.error('Error checking admin status:', err);
+                  console.error('Error checking chair status:', err);
               }
           }
-          checkAdmin();
+          checkChair();
       }, []);
 
       const navItems = [
           { path: '/home', label: 'Home', icon: 'home' },
           { path: '/committees', label: 'Committees', icon: 'groups' },
-          ...(userIsAdmin
-              ? [{ path: '/admin-panel', label: 'Admin Panel', icon: 'admin_panel_settings' }]
+          ...(userIsChair
+              ? [{ path: '/user-control', label: 'Chair Control', icon: 'gavel' }]
               : []
           ),
       ];
@@ -132,6 +132,9 @@ export default function SideBar() {
 
       const navContext = getNavigationContext();
 
+      // Check if there's any content to show in the light green section
+      const hasContent = navContext.backNav || navContext.showSettings || navContext.showCreateCommittee;
+
       // Handle navigation with confirmation
       const handleNavigation = (e, path) => {
           if (!confirmNavigation()) {
@@ -163,7 +166,9 @@ export default function SideBar() {
               </div>
 
               {/* Light green section for back navigation and committee controls */}
-              <div className="w-44 flex-shrink-0 h-screen bg-lighter-green pt-24 px-4 overflow-y-auto">
+              <div className={`flex-shrink-0 h-screen bg-lighter-green pt-24 transition-all duration-300 ease-in-out ${
+                  hasContent ? 'w-44 px-4 opacity-100' : 'w-0 px-0 opacity-0'
+              } ${hasContent ? 'overflow-y-auto' : 'overflow-hidden'}`}>
                   {navContext.backNav && (
                       <Link
                           to={navContext.backNav.path}

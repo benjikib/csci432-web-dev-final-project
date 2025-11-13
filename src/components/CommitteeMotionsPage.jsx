@@ -79,7 +79,10 @@ function CommitteeMotionsPage() {
                     ) : error ? (
                         <>
                             <h2 className="section-title dark:text-gray-100">Error</h2>
-                            <p className="text-red-600 dark:text-red-400 mt-4">Error: {error}</p>
+                            {/* Error Banner */}
+                            <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 px-4 py-3 rounded-lg mt-4">
+                                Failed to load committee data
+                            </div>
                         </>
                     ) : !committee ? (
                         <>
