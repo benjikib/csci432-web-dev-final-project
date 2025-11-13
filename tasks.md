@@ -63,32 +63,32 @@
   - ❌ Role-based authentication - All routes accessible to everyone
   - ❌ Permission enforcement - No restrictions on who can create motions, vote, etc.
   - ❌ Fine-grained authentication control (optional) - Not implemented
-  - ❌ User control panel - Route exists (/user-control) but page not created
+  - ⌛ User control panel - Route exists (/user-control) but page not created
 
   Chair Control Panel 
 
-  - ❌ Control panel UI - No chair-specific interface
-  - ❌ Toggle offline version - No meeting mode switching
-  - ❌ Set discussion requirements - No rules for # of speakers before vote
-  - ❌ Other procedural controls - No Robert's Rules enforcement options
+  - ⌛ Control panel UI - No chair-specific interface
+  - ⌛ Toggle offline version - No meeting mode switching
+  - ⌛ Set discussion requirements - No rules for # of speakers before vote
+  - ⌛ Other procedural controls - No Robert's Rules enforcement options
 
   Motion Creation & Management
 
-  - ❌ Raise motion - No motion creation UI or backend endpoint
-  - ❌ Motion title and description input - No form implemented
-  - ❌ Edit existing motions - No editing capability
-  - ❌ Delete/withdraw motions - No removal functionality
-  - ❌ Motion status tracking (active, voting, passed, failed, postponed)
+  - ⌛ Raise motion - No motion creation UI or backend endpoint
+  - ⌛ Motion title and description input - No form implemented
+  - ⌛ Edit existing motions - No editing capability
+  - ⌛ Delete/withdraw motions - No removal functionality
+  - ⌛ Motion status tracking (active, voting, passed, failed, postponed)
 
   Procedural Motions 
 
-  - ❌ Motions to change procedure - No special motion types
-  - ❌ 2/3 vote requirement enforcement - No voting threshold logic
-  - ❌ Motion type categorization - No distinction between motion types
+  - ⌛ Motions to change procedure - No special motion types
+  - ⌛ 2/3 vote requirement enforcement - No voting threshold logic
+  - ⌛ Motion type categorization - No distinction between motion types
 
   Discussion Features
 
-  - ❌ Option 1: Offline discussion
+  - ⌛ Option 1: Offline discussion
     - Comments/replies on motions
     - Pro/con/neutral selection for each reply
     - Discussion threading
@@ -101,35 +101,35 @@
   - ❌ Vote counting - No tallying of yes/no/abstain
   - ❌ Anonymous vs. recorded voting options - No voting mode selection
   - ❌ Vote results display - No percentage or breakdown shown
-  - ❌ Voting threshold enforcement (majority, 2/3, unanimous)
+  - ⌛ Voting threshold enforcement (majority, 2/3, unanimous)
 
   Decision Recording & History
 
   - ❌ Recording of previous decisions - No history database
-  - ❌ Full discussion recording - No comment/discussion storage
-  - ❌ Chair summary of decisions - No summary writing feature
-  - ❌ Pros/cons recording - No structured decision documentation
+  - ⌛ Full discussion recording - No comment/discussion storage
+  - ⌛ Chair summary of decisions - No summary writing feature
+  - ⌛ Pros/cons recording - No structured decision documentation
   - ❌ Future reference/search - No archived decisions searchable
   - ❌ Motions history page - Route exists (/motions-history) but not implemented
 
   Overturning Decisions
 
-  - ❌ Motion to overturn - No "reconsider" motion type
-  - ❌ Voter verification - No check for "who voted in favor"
-  - ❌ Restriction enforcement - Only original supporters can move to overturn
+  - ⌛ Motion to overturn - No "reconsider" motion type
+  - ⌛ Voter verification - No check for "who voted in favor"
+  - ⌛ Restriction enforcement - Only original supporters can move to overturn
 
   Sub-Motions & Amendments
 
-  - ❌ Revision motions - No amendment system
-  - ❌ Postpone motion - No delay/table functionality
+  - ⌛ Revision motions - No amendment system
+  - ⌛ Postpone motion - No delay/table functionality
   - ❌ Sub-motion hierarchy - No nested motion structure
-  - ❌ Amendment voting - No separate vote on changes before main motion
+  - ⌛ Amendment voting - No separate vote on changes before main motion
 
   Special Motions
 
-  - ❌ Non-debatable motions - No motion type enforcement
-  - ❌ Cannot-be-discussed motions - No procedural motion handling
-  - ❌ Privileged motions - No recess, adjourn, point of order, etc.
+  - ⌛ Non-debatable motions - No motion type enforcement
+  - ⌛ Cannot-be-discussed motions - No procedural motion handling
+  - ⌛ Privileged motions - No recess, adjourn, point of order, etc.
 
   Backend & Database
 
@@ -145,7 +145,7 @@
   - ❌ Search functionality - Search bar is placeholder only
   - ❌ Notification system - Notifications link exists but no implementation
   - ❌ Quorum tracking - No meeting attendance system
-  - ❌ Meeting minutes - No official record generation
+  - ⌛ Meeting minutes - No official record generation
   - ❌ Export/print decisions - No document generation
 
   ---
