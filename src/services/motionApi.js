@@ -1,34 +1,5 @@
 // API service for motion-related endpoints
-// Base URL for the API - adjust this based on your backend server
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001';
-
-/**
- * Helper function to handle API responses
- */
-async function handleResponse(response) {
-    if (!response.ok) {
-        const error = await response.json().catch(() => ({ message: 'An error occurred' }));
-        throw new Error(error.message || `HTTP error! status: ${response.status}`);
-    }
-    return response.json();
-}
-
-/**
- * Helper function to create request headers
- */
-function getHeaders() {
-    const headers = {
-        'Content-Type': 'application/json',
-    };
-
-    // Get Auth0 token from localStorage
-    const token = localStorage.getItem('auth0_token');
-    if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
-    }
-
-    return headers;
-}
+import { API_BASE_URL, handleResponse, getHeaders } from '../config/api';
 
 /**
  * Get all motions in a committee (paginated)
