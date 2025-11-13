@@ -3,6 +3,7 @@ const { body, validationResult } = require('express-validator');
 const { ObjectId } = require('mongodb');
 const Committee = require('../models/Committee');
 const User = require('../models/User');
+const { authenticate, requirePermissionOrAdmin } = require('../middleware/auth0');
 
 const router = express.Router();
 
@@ -128,9 +129,10 @@ router.get('/committee/:id/motion/:motionId', async (req, res) => {
 /**
  * @route   POST /committee/:id/motion/create
  * @desc    Create a new motion (committee by slug or ID)
- * @access  Public
+ * @access  Private (requires authentication)
  */
 router.post('/committee/:id/motion/create',
+  authenticate,
   [
     body('title').notEmpty().withMessage('Title is required'),
     body('description').notEmpty().withMessage('Description is required')
@@ -155,14 +157,30 @@ router.post('/committee/:id/motion/create',
         });
       }
 
-      const { title, description, fullDescription, author } = req.body;
+      const { title, description, fullDescription } = req.body;
 
-      // Create motion as embedded document
+      // Get authenticated user's display name from settings
+      let authorName = 'Anonymous';
+      if (req.user && req.user.userId) {
+        try {
+          const user = await User.findById(req.user.userId);
+          if (user && user.settings && user.settings.displayName) {
+            authorName = user.settings.displayName;
+          } else if (user && user.name) {
+            authorName = user.name;
+          }
+        } catch (err) {
+          console.error('Error fetching user for motion author:', err);
+        }
+      }
+
+      // Create motion as embedded document with author info
       const motion = await Committee.createMotion(committee._id, {
         title,
         description,
         fullDescription: fullDescription || description,
-        author: author || null
+        author: req.user ? req.user.userId : null,
+        authorName: authorName
       });
 
       res.status(201).json({
@@ -183,9 +201,11 @@ router.post('/committee/:id/motion/create',
 /**
  * @route   PUT /committee/:id/motion/:motionId
  * @desc    Update a motion (committee by slug or ID)
- * @access  Public
+ * @access  Private (Admin or edit_any_motion permission required)
  */
 router.put('/committee/:id/motion/:motionId',
+  authenticate,
+  requirePermissionOrAdmin('edit_any_motion'),
   [
     body('title').optional().notEmpty().withMessage('Title cannot be empty'),
     body('description').optional().notEmpty().withMessage('Description cannot be empty')
@@ -245,9 +265,9 @@ router.put('/committee/:id/motion/:motionId',
 /**
  * @route   DELETE /committee/:id/motion/:motionId
  * @desc    Delete a motion (committee by slug or ID)
- * @access  Public
+ * @access  Private (Admin or delete_any_motion permission required)
  */
-router.delete('/committee/:id/motion/:motionId', async (req, res) => {
+router.delete('/committee/:id/motion/:motionId', authenticate, requirePermissionOrAdmin('delete_any_motion'), async (req, res) => {
   try {
     // Verify committee exists
     const committee = await Committee.findByIdOrSlug(req.params.id);

@@ -21,11 +21,11 @@ function getHeaders() {
         'Content-Type': 'application/json',
     };
 
-    // Auth disabled for now
-    // const token = localStorage.getItem('authToken');
-    // if (token) {
-    //     headers['Authorization'] = `Bearer ${token}`;
-    // }
+    // Get Auth0 token from localStorage
+    const token = localStorage.getItem('auth0_token');
+    if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+    }
 
     return headers;
 }

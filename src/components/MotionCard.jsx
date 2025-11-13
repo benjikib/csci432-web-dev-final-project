@@ -21,19 +21,19 @@ function MotionCard({ motion, committeeSlug }) {
                     <span className="text-sm text-gray-600 dark:text-gray-400">
                         Votes: {(motion.votes?.yes || 0) + (motion.votes?.no || 0) + (motion.votes?.abstain || 0)}
                     </span>
-                    {motion.authorInfo && (
+                    {(motion.authorName || motion.authorInfo) && (
                         <div className="flex items-center gap-2">
-                            {motion.authorInfo.picture ? (
+                            {motion.authorInfo?.picture ? (
                                 <img
                                     src={motion.authorInfo.picture}
-                                    alt={motion.authorInfo.email}
+                                    alt={motion.authorName || motion.authorInfo.name}
                                     className="w-6 h-6 rounded-full"
                                 />
                             ) : (
                                 <span className="material-symbols-outlined text-gray-500 dark:text-gray-400 text-xl">account_circle</span>
                             )}
                             <span className="text-sm text-gray-600 dark:text-gray-400">
-                                @{motion.authorInfo.email.split('@')[0]}
+                                {motion.authorName || motion.authorInfo?.name || 'Anonymous'}
                             </span>
                         </div>
                     )}

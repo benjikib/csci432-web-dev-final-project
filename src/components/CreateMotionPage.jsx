@@ -30,7 +30,7 @@ function CreateMotionPage() {
                 setCommittee(committeeData.committee || committeeData);
 
                 // Fetch current user if authenticated
-                const token = localStorage.getItem('token');
+                const token = localStorage.getItem('auth0_token');
                 if (token) {
                     try {
                         const response = await fetch(`${API_BASE_URL}/auth/me`, {
