@@ -19,12 +19,19 @@ export default function Auth0Callback() {
 
       if (isAuthenticated && user) {
         try {
-          // Get and store the Auth0 access token with explicit audience
-          const token = await getAccessTokenSilently({
-            authorizationParams: {
-              audience: import.meta.env.VITE_AUTH0_AUDIENCE,
-            }
-          });
+          // Get and store the Auth0 access token
+          let token;
+          try {
+            token = await getAccessTokenSilently({
+              authorizationParams: {
+                audience: import.meta.env.VITE_AUTH0_AUDIENCE,
+              }
+            });
+          } catch (audienceError) {
+            // If audience fails, try without it
+            console.warn('Failed to get token with audience, trying without:', audienceError);
+            token = await getAccessTokenSilently();
+          }
           localStorage.setItem('auth0_token', token);
 
           // Sync user with backend
