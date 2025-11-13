@@ -1,6 +1,7 @@
 const express = require('express');
 const { body, validationResult } = require('express-validator');
 const Committee = require('../models/Committee');
+const { authenticate, requirePermissionOrAdmin } = require('../middleware/auth0');
 
 const router = express.Router();
 
@@ -106,9 +107,11 @@ router.post('/committee/create',
 /**
  * @route   PUT /committee/:id
  * @desc    Update a committee (by slug or ID)
- * @access  Public
+ * @access  Private (Admin or edit_any_committee permission required)
  */
 router.put('/committee/:id',
+  authenticate,
+  requirePermissionOrAdmin('edit_any_committee'),
   [
     body('title').optional().notEmpty().withMessage('Title cannot be empty'),
     body('description').optional().notEmpty().withMessage('Description cannot be empty')
@@ -159,9 +162,9 @@ router.put('/committee/:id',
 /**
  * @route   DELETE /committee/:id
  * @desc    Delete a committee (by slug or ID)
- * @access  Public
+ * @access  Private (Admin or delete_any_committee permission required)
  */
-router.delete('/committee/:id', async (req, res) => {
+router.delete('/committee/:id', authenticate, requirePermissionOrAdmin('delete_any_committee'), async (req, res) => {
   try {
     const committee = await Committee.findByIdOrSlug(req.params.id);
 
