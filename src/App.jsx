@@ -6,6 +6,7 @@ import Auth0Callback from './components/Auth0Callback.jsx'
 import MotionDetails from './components/MotionDetailsPage.jsx'
 import Settings from './components/SettingsPage.jsx'
 import Profile from './components/ProfilePage.jsx'
+import AdminPanel from './components/AdminPanel.jsx'
 import CommitteesPage from './components/CommitteesPage.jsx'
 import CommitteeMotionsPage from './components/CommitteeMotionsPage.jsx'
 import CommitteeSettingsPage from './components/CommitteeSettingsPage.jsx'
@@ -36,6 +37,7 @@ export default function App() {
         <Route path="/callback" element={<Auth0Callback />}></Route>
         <Route path="/settings" element={<Settings />}></Route>
         <Route path="/profile" element={<Profile />}></Route>
+        <Route path="/admin-panel" element={<AdminPanel />}></Route>
         <Route path="*" element={<NotFoundPage />}></Route>
       </Routes>
 

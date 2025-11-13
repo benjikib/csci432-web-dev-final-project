@@ -1,30 +1,37 @@
 import { createContext, useContext, useState, useEffect } from 'react';
+import { getUserSettings } from '../services/userApi';
 
 const ThemeContext = createContext();
 
 export function ThemeProvider({ children }) {
-    const [theme, setTheme] = useState(() => {
-        // Check localStorage for saved theme preference
-        const savedTheme = localStorage.getItem('theme');
-        return savedTheme || 'light';
-    });
+    const [theme, setTheme] = useState('light');
+    const [isLoading, setIsLoading] = useState(true);
 
-    // Initialize theme on mount
+    // Fetch theme from backend on mount
     useEffect(() => {
-        // Apply theme to document root immediately on mount
-        if (theme === 'dark') {
-            document.documentElement.classList.add('dark');
-            document.body.style.backgroundColor = '#111827';
-        } else {
-            document.documentElement.classList.remove('dark');
-            document.body.style.backgroundColor = '#F8FEF9';
-        }
+        const fetchTheme = async () => {
+            try {
+                // Check if user is authenticated
+                const token = localStorage.getItem('auth0_token');
+                if (token) {
+                    const response = await getUserSettings();
+                    if (response.success && response.settings.theme) {
+                        setTheme(response.settings.theme);
+                    }
+                }
+            } catch (error) {
+                console.error('Error fetching theme from backend:', error);
+                // Fall back to light theme if fetch fails
+                setTheme('light');
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        fetchTheme();
     }, []);
 
     useEffect(() => {
-        // Save theme preference to localStorage
-        localStorage.setItem('theme', theme);
-
         // Apply theme to document root
         if (theme === 'dark') {
             document.documentElement.classList.add('dark');
@@ -40,7 +47,7 @@ export function ThemeProvider({ children }) {
     };
 
     return (
-        <ThemeContext.Provider value={{ theme, setTheme, toggleTheme }}>
+        <ThemeContext.Provider value={{ theme, setTheme, toggleTheme, isLoading }}>
             {children}
         </ThemeContext.Provider>
     );

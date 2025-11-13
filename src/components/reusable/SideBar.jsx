@@ -1,5 +1,7 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
 import { useNavigationBlock } from '../../context/NavigationContext';
+import { getCurrentUser, isAdmin } from '../../services/userApi';
 
 //   const SideBar = () => {
 export default function SideBar() {
@@ -7,11 +9,30 @@ export default function SideBar() {
       const location = useLocation();
       const navigate = useNavigate();
       const { confirmNavigation } = useNavigationBlock();
+      const [userIsAdmin, setUserIsAdmin] = useState(false);
+
+      // Check if user is admin
+      useEffect(() => {
+          async function checkAdmin() {
+              try {
+                  const response = await getCurrentUser();
+                  if (response.success) {
+                      setUserIsAdmin(isAdmin(response.user));
+                  }
+              } catch (err) {
+                  console.error('Error checking admin status:', err);
+              }
+          }
+          checkAdmin();
+      }, []);
 
       const navItems = [
           { path: '/home', label: 'Home', icon: 'home' },
           { path: '/committees', label: 'Committees', icon: 'groups' },
-          { path: '/user-control', label: 'User Control', icon: 'admin_panel_settings' },
+          ...(userIsAdmin
+              ? [{ path: '/admin-panel', label: 'Admin Panel', icon: 'admin_panel_settings' }]
+              : []
+          ),
       ];
 
       // Determine back navigation and committee context based on current path

@@ -20,60 +20,22 @@ function SearchBar( {setSearchedTerm} ) {
 };
 
 
-import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001';
+import { useAuth0 } from '@auth0/auth0-react';
 
 // const HeaderNav = ( {searchedTerm, setSearchedTerm} ) => {
 export default function HeaderNav( {setSearchedTerm} ) {
         const navigate = useNavigate();
-        const [user, setUser] = useState(null);
-        const [isAuthenticated, setIsAuthenticated] = useState(false);
-        const [isLoading, setIsLoading] = useState(true);
-
-        useEffect(() => {
-                const fetchUser = async () => {
-                        const token = localStorage.getItem('token');
-                        if (!token) {
-                                setIsLoading(false);
-                                return;
-                        }
-
-                        try {
-                                const response = await fetch(`${API_BASE_URL}/auth/me`, {
-                                        headers: {
-                                                'Authorization': `Bearer ${token}`
-                                        }
-                                });
-
-                                if (response.ok) {
-                                        const data = await response.json();
-                                        setUser(data.user);
-                                        setIsAuthenticated(true);
-                                } else {
-                                        localStorage.removeItem('token');
-                                }
-                        } catch (err) {
-                                console.error('Error fetching user:', err);
-                                localStorage.removeItem('token');
-                        } finally {
-                                setIsLoading(false);
-                        }
-                };
-
-                fetchUser();
-        }, []);
+        const { user, isAuthenticated, isLoading, logout, loginWithRedirect } = useAuth0();
 
         const handleLogout = () => {
-                localStorage.removeItem('token');
-                setUser(null);
-                setIsAuthenticated(false);
-                navigate('/');
+                // Clear Auth0 token from localStorage
+                localStorage.removeItem('auth0_token');
+                logout({ logoutParams: { returnTo: window.location.origin } });
         };
 
         const handleLogin = () => {
-                navigate('/');
+                loginWithRedirect();
         };
 
         return (
