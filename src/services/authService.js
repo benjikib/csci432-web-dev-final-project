@@ -7,10 +7,12 @@ import { API_BASE_URL } from '../config/api';
  */
 export async function syncAuth0User(auth0User) {
   try {
-    const response = await fetch(`${API_BASE_URL}/auth/auth0/sync`, {
+    const token = localStorage.getItem('auth0_token');
+    const response = await fetch(`${API_BASE_URL}/auth/sync`, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'Authorization': token ? `Bearer ${token}` : ''
       },
       body: JSON.stringify({
         auth0Id: auth0User.sub,
@@ -22,7 +24,7 @@ export async function syncAuth0User(auth0User) {
     });
 
     if (!response.ok) {
-      const errorData = await response.json();
+      const errorData = await response.json().catch(() => ({ message: 'Failed to sync user with backend' }));
       throw new Error(errorData.message || 'Failed to sync user with backend');
     }
 
@@ -39,10 +41,12 @@ export async function syncAuth0User(auth0User) {
  */
 export async function getUserByAuth0Id(auth0Id) {
   try {
-    const response = await fetch(`${API_BASE_URL}/auth/auth0/sync`, {
+    const token = localStorage.getItem('auth0_token');
+    const response = await fetch(`${API_BASE_URL}/auth/sync`, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'Authorization': token ? `Bearer ${token}` : ''
       },
       body: JSON.stringify({
         auth0Id,
