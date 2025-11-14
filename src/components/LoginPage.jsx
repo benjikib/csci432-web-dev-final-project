@@ -4,11 +4,12 @@ import { useNavigate } from 'react-router-dom';
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001';
 
 function LoginPage() {
-    const [isLogin, setIsLogin] = useState(true);
+    const [isLogin, setIsLogin] = useState(false); // Default to signup
     const [formData, setFormData] = useState({
         email: '',
         password: '',
-        name: '',
+        firstName: '',
+        lastName: '',
         communityCode: ''
     });
     const [error, setError] = useState('');
@@ -43,7 +44,7 @@ function LoginPage() {
                 : {
                     email: formData.email,
                     password: formData.password,
-                    name: formData.name,
+                    name: `${formData.firstName} ${formData.lastName}`.trim(),
                     communityCode: formData.communityCode
                 };
 
@@ -80,7 +81,8 @@ function LoginPage() {
         setFormData({
             email: '',
             password: '',
-            name: '',
+            firstName: '',
+            lastName: '',
             communityCode: ''
         });
     };
@@ -102,15 +104,23 @@ function LoginPage() {
                 <div className="login-container">
                     <div className="login-card">
                         <h3 className="login-title">
-                            {isLogin ? 'Welcome Back' : 'Join YOUR Community'}
+                            Join YOUR Community
                         </h3>
 
-                        <div className="input-row">
-                            <p className="text-gray-600 dark:text-gray-400 text-center mb-4">
-                                {isLogin
-                                    ? 'Sign in to your account'
-                                    : 'Create an account to get started'}
-                            </p>
+                        {/* Tabs */}
+                        <div className="input-row" style={{marginBottom: '24px'}}>
+                            <div
+                                onClick={() => setIsLogin(false)}
+                                className={`login-option ${!isLogin ? 'active' : ''}`}
+                            >
+                                Join
+                            </div>
+                            <div
+                                onClick={() => setIsLogin(true)}
+                                className={`login-option ${isLogin ? 'active' : ''}`}
+                            >
+                                Log In
+                            </div>
                         </div>
 
                         {error && (
@@ -119,92 +129,82 @@ function LoginPage() {
                             </div>
                         )}
 
-                        <form onSubmit={handleSubmit} className="w-full">
+                        <form onSubmit={handleSubmit} style={{width: '100%'}}>
+                            <input
+                                type="email"
+                                name="email"
+                                placeholder="Email"
+                                value={formData.email}
+                                onChange={handleInputChange}
+                                required
+                                className="login-input"
+                            />
+
                             {!isLogin && (
-                                <div className="input-row mb-4">
+                                <div style={{display: 'flex', gap: '10px', marginBottom: '16px'}}>
                                     <input
                                         type="text"
-                                        name="name"
-                                        placeholder="Full Name"
-                                        value={formData.name}
+                                        name="firstName"
+                                        placeholder="First Name"
+                                        value={formData.firstName}
                                         onChange={handleInputChange}
-                                        required={!isLogin}
-                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#54966D] dark:bg-gray-800 dark:border-gray-600 dark:text-white"
+                                        required
+                                        className="login-input"
+                                        style={{flex: 1}}
+                                    />
+                                    <input
+                                        type="text"
+                                        name="lastName"
+                                        placeholder="Last Name"
+                                        value={formData.lastName}
+                                        onChange={handleInputChange}
+                                        required
+                                        className="login-input"
+                                        style={{flex: 1}}
                                     />
                                 </div>
                             )}
 
-                            <div className="input-row mb-4">
-                                <input
-                                    type="email"
-                                    name="email"
-                                    placeholder="Email"
-                                    value={formData.email}
-                                    onChange={handleInputChange}
-                                    required
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#54966D] dark:bg-gray-800 dark:border-gray-600 dark:text-white"
-                                />
-                            </div>
-
-                            <div className="input-row mb-4">
-                                <input
-                                    type="password"
-                                    name="password"
-                                    placeholder="Password"
-                                    value={formData.password}
-                                    onChange={handleInputChange}
-                                    required
-                                    minLength={6}
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#54966D] dark:bg-gray-800 dark:border-gray-600 dark:text-white"
-                                />
-                            </div>
-
                             {!isLogin && (
-                                <div className="input-row mb-4">
-                                    <input
-                                        type="text"
-                                        name="communityCode"
-                                        placeholder="Community Code (optional)"
-                                        value={formData.communityCode}
-                                        onChange={handleInputChange}
-                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#54966D] dark:bg-gray-800 dark:border-gray-600 dark:text-white"
-                                    />
-                                </div>
+                                <input
+                                    type="text"
+                                    name="communityCode"
+                                    placeholder="Community Code"
+                                    value={formData.communityCode}
+                                    onChange={handleInputChange}
+                                    className="login-input"
+                                />
                             )}
 
-                            <div className="flex justify-center w-full mb-4">
-                                <button
-                                    type="submit"
-                                    disabled={loading}
-                                    className="
-                                        rounded-lg border-[1px] border-transparent
-                                        px-[1.2em] py-[0.6em]
-                                        text-white bg-[#54966D] hover:bg-[#5ca377]
-                                        font-medium font-inherit
-                                        cursor-pointer
-                                        disabled:opacity-50 disabled:cursor-not-allowed
-                                        transition-all
-                                        w-full
-                                    "
-                                >
-                                    {loading ? 'Please wait...' : (isLogin ? 'Sign In' : 'Sign Up')}
-                                </button>
-                            </div>
+                            <input
+                                type="password"
+                                name="password"
+                                placeholder="Password"
+                                value={formData.password}
+                                onChange={handleInputChange}
+                                required
+                                minLength={6}
+                                className="login-input"
+                            />
 
-                            <div className="text-center">
-                                <button
-                                    type="button"
-                                    onClick={toggleMode}
-                                    className="text-[#54966D] hover:text-[#5ca377] underline"
-                                >
-                                    {isLogin
-                                        ? "Don't have an account? Sign up"
-                                        : 'Already have an account? Sign in'}
-                                </button>
-                            </div>
+                            <button
+                                type="submit"
+                                disabled={loading}
+                                style={{
+                                    width: '100%',
+                                    marginTop: '20px',
+                                    padding: '12px',
+                                    fontSize: '16px',
+                                    fontWeight: '600'
+                                }}
+                            >
+                                {loading ? 'Please wait...' : (isLogin ? 'Log In' : 'Sign Up')}
+                            </button>
                         </form>
 
-                        <a className="terms">By signing in, you agree to our Terms of Service and Privacy Policy</a>
+                        <p className="terms">
+                            By signing up, you agree to our Terms of Service and Privacy Policy
+                        </p>
                     </div>
                 </div>
             </div>
