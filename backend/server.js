@@ -18,6 +18,8 @@ const PORT = process.env.PORT || 3001;
 // CORS configuration for Vercel (supports production, preview, and local)
 const corsOptions = {
   origin: function (origin, callback) {
+    console.log('CORS Request from origin:', origin);
+
     // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin) return callback(null, true);
 
@@ -36,10 +38,13 @@ const corsOptions = {
       return callback(null, true);
     }
 
-    // Reject other origins
-    callback(new Error('Not allowed by CORS'));
+    // Log rejected origin for debugging
+    console.warn('CORS rejected origin:', origin);
+    // Reject gracefully instead of throwing error
+    callback(null, false);
   },
-  credentials: true
+  credentials: true,
+  optionsSuccessStatus: 200 // Some legacy browsers choke on 204
 };
 
 app.use(cors(corsOptions));
