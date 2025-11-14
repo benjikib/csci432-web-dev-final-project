@@ -34,8 +34,11 @@ You need to add the following environment variables in your Vercel project setti
 
 #### Application Configuration
 - `NODE_ENV` - Set to `production`
-- `CORS_ORIGIN` - Your Vercel app URL (e.g., `https://your-app.vercel.app`)
-- `PORT` - Server port (optional, defaults to 3001 for local development)
+
+**Note:** CORS is automatically configured to allow:
+- All `localhost` ports (for local development)
+- All `*.vercel.app` domains (for Vercel production and preview deployments)
+- If you have a custom domain, optionally add `CORS_ORIGIN` with your domain URL
 
 ### 3. Deploy via GitHub (Recommended)
 
@@ -78,11 +81,7 @@ vercel --prod
 
 ## Post-Deployment
 
-### 1. Verify CORS Origin
-
-Make sure the `CORS_ORIGIN` environment variable in Vercel matches your deployment URL (e.g., `https://your-app.vercel.app`).
-
-### 2. Test the Deployment
+### 1. Test the Deployment
 
 Visit your Vercel URL and test:
 - Frontend loads correctly
@@ -90,8 +89,9 @@ Visit your Vercel URL and test:
 - User registration and login work correctly
 - JWT authentication is functioning
 - Database operations work properly
+- CORS is working (both production and preview deployments)
 
-### 3. Create First User
+### 2. Create First User
 
 Use the registration endpoint to create your first user:
 ```bash
@@ -169,10 +169,11 @@ All backend API routes are accessible under `/api`:
 - Check password requirements (minimum 6 characters)
 
 ### CORS Errors
-- Verify `CORS_ORIGIN` environment variable matches your frontend URL
-- For local development, use `http://localhost:5173`
-- For production, use your Vercel deployment URL
+- CORS is automatically configured for `localhost` and `*.vercel.app` domains
+- If using a custom domain, set `CORS_ORIGIN` environment variable to your domain
 - Ensure credentials are included in frontend API requests
+- Check browser console for specific CORS error messages
+- Verify the origin is either localhost, ends with `.vercel.app`, or matches `CORS_ORIGIN`
 
 ## Local Development vs Vercel
 
