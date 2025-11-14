@@ -6,7 +6,6 @@ This guide explains how to deploy the Commie application to Vercel with the back
 
 - A Vercel account (sign up at [vercel.com](https://vercel.com))
 - MongoDB Atlas database (or other MongoDB hosting service)
-- Auth0 account configured for your application
 
 ## Architecture
 
@@ -27,28 +26,16 @@ npm install -g vercel
 You need to add the following environment variables in your Vercel project settings:
 
 #### MongoDB Configuration
-- `MONGODB_URI` - Your MongoDB connection string
+- `MONGODB_URI` - Your MongoDB connection string (e.g., from MongoDB Atlas)
 
-#### Frontend Auth0 Configuration
-- `VITE_AUTH0_DOMAIN` - Your Auth0 domain
-- `VITE_AUTH0_CLIENT_ID` - Your Auth0 client ID
-- `VITE_AUTH0_AUDIENCE` - Your Auth0 API audience
+#### JWT Authentication Configuration
+- `JWT_SECRET` - A strong, random secret key for JWT signing (generate with `openssl rand -hex 32`)
+- `JWT_EXPIRES_IN` - JWT expiration time (default: `7d` for 7 days)
 
-#### Backend Auth0 Configuration
-- `AUTH0_DOMAIN` - Your Auth0 domain
-- `AUTH0_CLIENT_ID` - Your Auth0 client ID
-- `AUTH0_CLIENT_SECRET` - Your Auth0 client secret
-- `AUTH0_AUDIENCE` - Your Auth0 API audience
-- `AUTH0_ISSUER_BASE_URL` - Your Auth0 issuer base URL (e.g., `https://your-domain.auth0.com`)
-- `AUTH0_SECRET` - A random secret for Auth0 session encryption
-
-#### JWT Configuration
-- `JWT_SECRET` - A strong secret key for JWT signing
-- `JWT_EXPIRES_IN` - JWT expiration time (e.g., `7d`)
-
-#### Environment
+#### Application Configuration
 - `NODE_ENV` - Set to `production`
 - `CORS_ORIGIN` - Your Vercel app URL (e.g., `https://your-app.vercel.app`)
+- `PORT` - Server port (optional, defaults to 3001 for local development)
 
 ### 3. Deploy via GitHub (Recommended)
 
@@ -91,34 +78,70 @@ vercel --prod
 
 ## Post-Deployment
 
-### 1. Update Auth0 Configuration
+### 1. Verify CORS Origin
 
-Add your Vercel deployment URL to Auth0:
-- **Allowed Callback URLs**: `https://your-app.vercel.app/callback`
-- **Allowed Logout URLs**: `https://your-app.vercel.app`
-- **Allowed Web Origins**: `https://your-app.vercel.app`
+Make sure the `CORS_ORIGIN` environment variable in Vercel matches your deployment URL (e.g., `https://your-app.vercel.app`).
 
-### 2. Update CORS Origin
-
-Make sure the `CORS_ORIGIN` environment variable in Vercel matches your deployment URL.
-
-### 3. Test the Deployment
+### 2. Test the Deployment
 
 Visit your Vercel URL and test:
 - Frontend loads correctly
 - API endpoints are accessible at `/api/*`
-- Authentication works
-- Database operations function properly
+- User registration and login work correctly
+- JWT authentication is functioning
+- Database operations work properly
+
+### 3. Create First User
+
+Use the registration endpoint to create your first user:
+```bash
+curl -X POST https://your-app.vercel.app/api/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "admin@example.com",
+    "password": "securepassword",
+    "name": "Admin User",
+    "communityCode": "YOUR_COMMUNITY_CODE"
+  }'
+```
 
 ## API Routes
 
 All backend API routes are accessible under `/api`:
 
-- Auth: `/api/auth/*`
-- Committees: `/api/committee/*`
-- Motions: `/api/committee/:id/motion/*`
-- Comments: `/api/committee/:id/motion/:motionId/comment/*`
-- Votes: `/api/committee/:id/motion/:motionId/vote/*`
+### Authentication
+- `POST /api/auth/register` - Register a new user
+- `POST /api/auth/login` - Login with email/password
+- `POST /api/auth/logout` - Logout (client should remove JWT token)
+- `GET /api/auth/me` - Get current user info (requires JWT)
+- `GET /api/auth/settings` - Get user settings (requires JWT)
+- `PUT /api/auth/settings` - Update user settings (requires JWT)
+- `PUT /api/auth/profile` - Update user profile (requires JWT)
+
+### Committees
+- `GET /api/committees/:page` - Get paginated committees
+- `GET /api/committee/:id` - Get committee details
+- `POST /api/committee/create` - Create new committee
+- `PUT /api/committee/:id` - Update committee
+- `DELETE /api/committee/:id` - Delete committee
+
+### Motions
+- `GET /api/committee/:id/motions/:page` - Get paginated motions
+- `GET /api/committee/:id/motion/:motionId` - Get motion details
+- `POST /api/committee/:id/motion/create` - Create new motion
+- `PUT /api/committee/:id/motion/:motionId` - Update motion
+- `DELETE /api/committee/:id/motion/:motionId` - Delete motion
+
+### Comments
+- `GET /api/committee/:id/motion/:motionId/comments/:page` - Get paginated comments
+- `POST /api/committee/:id/motion/:motionId/comment/create` - Create comment
+- `PUT /api/committee/:id/motion/:motionId/comment/:commentId` - Update comment
+- `DELETE /api/committee/:id/motion/:motionId/comment/:commentId` - Delete comment
+
+### Votes
+- `GET /api/committee/:id/motion/:motionId/votes` - Get motion votes
+- `POST /api/committee/:id/motion/:motionId/vote` - Cast vote
+- `DELETE /api/committee/:id/motion/:motionId/vote` - Remove vote
 
 ## Troubleshooting
 
@@ -137,11 +160,19 @@ All backend API routes are accessible under `/api`:
 - Verify `MONGODB_URI` is correct
 - Ensure MongoDB Atlas allows connections from Vercel (0.0.0.0/0 for serverless)
 - Check database user permissions
+- Verify the database name in the connection string
 
-### Auth0 Errors
-- Verify all Auth0 environment variables
-- Check Auth0 application settings match deployment URL
-- Ensure callback URLs are configured correctly
+### Authentication Errors
+- Verify `JWT_SECRET` is set and matches across all environments
+- Check that tokens are being sent in the `Authorization` header as `Bearer <token>`
+- Ensure `JWT_EXPIRES_IN` is set (default: `7d`)
+- Check password requirements (minimum 6 characters)
+
+### CORS Errors
+- Verify `CORS_ORIGIN` environment variable matches your frontend URL
+- For local development, use `http://localhost:5173`
+- For production, use your Vercel deployment URL
+- Ensure credentials are included in frontend API requests
 
 ## Local Development vs Vercel
 
@@ -175,9 +206,33 @@ This means:
 └── .env.example             # Environment variable template
 ```
 
+## Authentication Flow
+
+This application uses JWT (JSON Web Token) authentication:
+
+1. **Registration**: User registers with email, password, and name
+   - Password is hashed using bcrypt before storage
+   - JWT token is generated and returned
+
+2. **Login**: User logs in with email and password
+   - Password is verified against the hashed version
+   - JWT token is generated and returned
+
+3. **Protected Routes**: Authenticated requests include JWT token
+   - Token is sent in `Authorization: Bearer <token>` header
+   - Backend middleware verifies token validity
+   - User information is extracted from token
+
+4. **Token Storage**: Frontend stores JWT token
+   - Stored in localStorage or sessionStorage
+   - Included in all authenticated API requests
+   - Removed on logout
+
 ## Additional Resources
 
 - [Vercel Documentation](https://vercel.com/docs)
 - [Vercel Serverless Functions](https://vercel.com/docs/functions/serverless-functions)
 - [MongoDB Atlas](https://www.mongodb.com/cloud/atlas)
-- [Auth0 Documentation](https://auth0.com/docs)
+- [JWT Introduction](https://jwt.io/introduction)
+- [Express.js Documentation](https://expressjs.com/)
+- [React Router](https://reactrouter.com/)
