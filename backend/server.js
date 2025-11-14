@@ -64,13 +64,20 @@ async function ensureDbConnection() {
 // Middleware to ensure DB connection for each request (serverless)
 app.use(async (req, res, next) => {
   try {
-    await ensureDbConnection();
+    console.log('Ensuring DB connection for request:', req.method, req.url);
+    const timeout = new Promise((_, reject) =>
+      setTimeout(() => reject(new Error('Database connection timeout')), 25000)
+    );
+
+    await Promise.race([ensureDbConnection(), timeout]);
+    console.log('DB connection established');
     next();
   } catch (error) {
-    console.error('Database connection error:', error);
+    console.error('Database connection error:', error.message);
     res.status(500).json({
       success: false,
-      message: 'Database connection failed'
+      message: 'Database connection failed',
+      error: error.message
     });
   }
 });

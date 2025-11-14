@@ -21,6 +21,9 @@ let db;
 
 async function connectDB() {
   try {
+    console.log("Attempting to connect to MongoDB...");
+    console.log("MongoDB URI exists:", !!uri);
+
     // Connect the client to the server
     await client.connect();
     // Send a ping to confirm a successful connection
@@ -32,8 +35,10 @@ async function connectDB() {
 
     return db;
   } catch (error) {
-    console.error("❌ MongoDB connection error:", error);
-    process.exit(1);
+    console.error("❌ MongoDB connection error:", error.message);
+    console.error("Error details:", error);
+    // In serverless, don't exit - throw the error instead
+    throw error;
   }
 }
 
