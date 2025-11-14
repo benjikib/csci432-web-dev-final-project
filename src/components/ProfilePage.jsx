@@ -2,6 +2,7 @@ import { useState, useEffect } from "react"
 import HeaderNav from './reusable/HeaderNav'
 import SideBar from './reusable/SideBar'
 import { getCurrentUser } from '../services/userApi'
+import { API_BASE_URL } from '../config/api.js'
 
 function Profile() {
     const [user, setUser] = useState(null);
@@ -66,7 +67,7 @@ function Profile() {
                 updateData.name = editedValues.fullName;
             }
 
-            const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001'}/auth/profile`, {
+            const response = await fetch(`${API_BASE_URL}/auth/profile`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',

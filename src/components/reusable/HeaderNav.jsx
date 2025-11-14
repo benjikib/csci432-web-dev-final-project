@@ -22,6 +22,7 @@ function SearchBar( {setSearchedTerm} ) {
 
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { API_BASE_URL } from '../../config/api.js';
 
 // const HeaderNav = ( {searchedTerm, setSearchedTerm} ) => {
 export default function HeaderNav( {setSearchedTerm} ) {
@@ -37,7 +38,7 @@ export default function HeaderNav( {setSearchedTerm} ) {
                         if (token) {
                                 try {
                                         // Fetch current user data from API to get latest profile picture
-                                        const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001'}/auth/me`, {
+                                        const response = await fetch(`${API_BASE_URL}/auth/me`, {
                                                 headers: {
                                                         'Authorization': `Bearer ${token}`
                                                 }

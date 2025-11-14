@@ -4,6 +4,7 @@ import SideBar from './reusable/SideBar';
 import HeaderNav from './reusable/HeaderNav';
 import Tabs from './reusable/Tabs';
 import { getCurrentUser, isAdmin } from '../services/userApi';
+import { API_BASE_URL } from '../config/api.js';
 
 function AdminPanel() {
     const navigate = useNavigate();
@@ -33,7 +34,7 @@ function AdminPanel() {
                 setCurrentUser(userResponse.user);
 
                 // Fetch all users
-                const usersResponse = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001'}/auth/users`, {
+                const usersResponse = await fetch(`${API_BASE_URL}/auth/users`, {
                     method: 'GET',
                     headers: {
                         'Authorization': `Bearer ${localStorage.getItem('auth0_token')}`
@@ -48,7 +49,7 @@ function AdminPanel() {
                 setUsers(usersData.users || []);
 
                 // Fetch all committees
-                const committeesResponse = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001'}/committees/1`, {
+                const committeesResponse = await fetch(`${API_BASE_URL}/committees/1`, {
                     method: 'GET',
                     headers: {
                         'Authorization': `Bearer ${localStorage.getItem('auth0_token')}`
@@ -103,7 +104,7 @@ function AdminPanel() {
             setError(null);
             setSuccessMessage("");
 
-            const response = await fetch(`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001'}/auth/users/${editingUser.id}`, {
+            const response = await fetch(`${API_BASE_URL}/auth/users/${editingUser.id}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',

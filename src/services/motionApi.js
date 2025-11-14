@@ -1,6 +1,6 @@
 // API service for motion-related endpoints
 // Base URL for the API - adjust this based on your backend server
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001';
+import { API_BASE_URL } from '../config/api.js';
 
 /**
  * Helper function to handle API responses

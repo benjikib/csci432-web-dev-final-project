@@ -1,5 +1,5 @@
 // API service for user-related endpoints
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001';
+import { API_BASE_URL } from '../config/api.js';
 
 /**
  * Helper function to handle API responses
