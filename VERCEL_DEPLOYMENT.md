@@ -35,9 +35,10 @@ You need to add the following environment variables in your Vercel project setti
 #### Application Configuration
 - `NODE_ENV` - Set to `production`
 
-**Note:** CORS is automatically configured to allow:
-- All `localhost` ports (for local development)
-- All `*.vercel.app` domains (for Vercel production and preview deployments)
+**Note:** Both CORS and API URLs are automatically configured:
+- **CORS**: Allows all `localhost` ports and `*.vercel.app` domains
+- **API URL**: Uses `/api` in production, `http://localhost:3001` in development
+- No additional configuration needed for Vercel deployments
 - If you have a custom domain, optionally add `CORS_ORIGIN` with your domain URL
 
 ### 3. Deploy via GitHub (Recommended)
