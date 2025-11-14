@@ -610,10 +610,17 @@ html.dark .modal-content {
 html.dark .modal-close {
   background: #374151;
   border-color: #4b5563;
-  color: #d1d5db;
+  color: #9ca3af;
 }
 
 .modal-close:hover {
+  background-color: #ef4444;
+  border-color: #ef4444;
+  color: #ffffff;
+  transform: scale(1.1);
+}
+
+html.dark .modal-close:hover {
   background-color: #ef4444;
   border-color: #ef4444;
   color: #ffffff;

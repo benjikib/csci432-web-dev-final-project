@@ -1,18 +1,35 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import SideBar from './reusable/SideBar';
 import HeaderNav from './reusable/HeaderNav';
 import ChairControlPanel from './ChairControlPanel';
-
-// Mock current user data - will be replaced with actual auth
-const mockCurrentUser = {
-    id: "SuperUser",
-    name: "John Doe",
-    role: "chair" // This determines if they see chair controls
-};
+import { getCurrentUser, hasRole } from '../services/userApi';
 
 function UserControlPage() {
     const [searchedTerm, setSearchedTerm] = useState("");
     const [selectedCommitteeId, setSelectedCommitteeId] = useState(null);
+    const [isChair, setIsChair] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState(null);
+
+    // Check if user has chair role
+    useEffect(() => {
+        async function checkChairRole() {
+            try {
+                setError(null);
+                const response = await getCurrentUser();
+                if (response.success) {
+                    setIsChair(hasRole(response.user, 'chair'));
+                }
+            } catch (err) {
+                console.error('Error checking chair role:', err);
+                setError(err.message || 'Failed to verify user permissions');
+                setIsChair(false);
+            } finally {
+                setIsLoading(false);
+            }
+        }
+        checkChairRole();
+    }, []);
 
     // Get committees where user is a chair from CommitteeStorage
     // For now using mock data - will integrate with real backend later
@@ -33,9 +50,25 @@ function UserControlPage() {
         }
     ];
 
-    // Check if user has chair role
-    const isChair = mockCurrentUser.role === "chair";
+    // Show loading state while checking authentication
+    if (isLoading) {
+        return (
+            <>
+                <HeaderNav setSearchedTerm={setSearchedTerm} />
+                <SideBar />
+                <div className="mt-20 ml-[16rem] px-8 min-h-screen bg-[#F8FEF9] dark:bg-gray-900">
+                    <div className="max-w-4xl">
+                        <h2 className="section-title dark:text-gray-100">Chair Control Panel</h2>
+                        <div className="mt-8 p-6 bg-white dark:bg-gray-800 rounded-lg shadow-sm flex items-center justify-center">
+                            <p className="text-gray-600 dark:text-gray-400">Loading...</p>
+                        </div>
+                    </div>
+                </div>
+            </>
+        );
+    }
 
+    // Show access denied if user is not a chair
     if (!isChair) {
         return (
             <>
@@ -43,15 +76,23 @@ function UserControlPage() {
                 <SideBar />
                 <div className="mt-20 ml-[16rem] px-8 min-h-screen bg-[#F8FEF9] dark:bg-gray-900">
                     <div className="max-w-4xl">
-                        <h2 className="section-title dark:text-gray-100">User Control Panel</h2>
-                        <div className="mt-8 p-6 bg-white dark:bg-gray-800 rounded-lg shadow-sm">
-                            <p className="text-gray-600 dark:text-gray-400">
-                                You do not have chair privileges. This panel is only available to committee chairs.
-                            </p>
-                            <p className="text-gray-500 dark:text-gray-500 text-sm mt-4">
-                                If you believe you should have access, please contact your committee administrator.
-                            </p>
-                        </div>
+                        <h2 className="section-title dark:text-gray-100">Chair Control Panel</h2>
+
+                        {/* Error Banner */}
+                        {error ? (
+                            <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 px-4 py-3 rounded-lg mt-4">
+                                Failed to verify user permissions
+                            </div>
+                        ) : (
+                            <div className="mt-8 p-6 bg-white dark:bg-gray-800 rounded-lg shadow-sm">
+                                <p className="text-gray-600 dark:text-gray-400">
+                                    You do not have chair privileges. This panel is only available to committee chairs.
+                                </p>
+                                <p className="text-gray-500 dark:text-gray-500 text-sm mt-4">
+                                    If you believe you should have access, please contact your committee administrator.
+                                </p>
+                            </div>
+                        )}
                     </div>
                 </div>
             </>
