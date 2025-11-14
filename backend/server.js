@@ -80,6 +80,17 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok', message: 'Server is running' });
 });
 
+// Test route to check body parsing
+app.post('/test', (req, res) => {
+  console.log('Test POST - Body:', req.body);
+  console.log('Test POST - Headers:', req.headers);
+  res.json({
+    success: true,
+    received: req.body,
+    headers: req.headers
+  });
+});
+
 // API Routes
 app.use('/auth', authRoutes);
 app.use('/', committeeRoutes);
