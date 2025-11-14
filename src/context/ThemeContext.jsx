@@ -12,7 +12,7 @@ export function ThemeProvider({ children }) {
         const fetchTheme = async () => {
             try {
                 // Check if user is authenticated
-                const token = localStorage.getItem('auth0_token');
+                const token = localStorage.getItem('token');
                 if (token) {
                     const response = await getUserSettings();
                     if (response.success && response.settings.theme) {

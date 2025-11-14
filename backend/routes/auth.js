@@ -44,12 +44,16 @@ router.post('/register',
       const salt = await bcrypt.genSalt(10);
       const hashedPassword = await bcrypt.hash(password, salt);
 
+      // Generate profile picture URL using DiceBear API
+      const profilePictureUrl = `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(name)}&backgroundColor=54966D&textColor=ffffff`;
+
       // Create user
       const user = await User.create({
         email,
         password: hashedPassword,
         name,
-        communityCode
+        communityCode,
+        picture: profilePictureUrl
       });
 
       // Generate JWT token

@@ -2,11 +2,10 @@ import './App.css'
 import Main from './components/MainPage.jsx'
 import HomePage from './components/HomePage.jsx'
 import LoginPage from './components/LoginPage.jsx'
-import Auth0Callback from './components/Auth0Callback.jsx'
 import MotionDetails from './components/MotionDetailsPage.jsx'
 import Settings from './components/SettingsPage.jsx'
 import Profile from './components/ProfilePage.jsx'
-import ChairControlPanel from './components/ChairControlPanel.jsx'
+import ChairControlPage from './components/ChairControlPage.jsx'
 import CommitteesPage from './components/CommitteesPage.jsx'
 import CommitteeMotionsPage from './components/CommitteeMotionsPage.jsx'
 import CommitteeSettingsPage from './components/CommitteeSettingsPage.jsx'
@@ -35,12 +34,11 @@ export default function App() {
         <Route path="/committee/:id/settings" element={<CommitteeSettingsPage />}></Route>
         <Route path="/committee/:id/create-motion" element={<CreateMotionPage />}></Route>
         <Route path="/committee/:committeeId/motion/:motionId" element={<CommitteeMotionsPage />}></Route>
-        <Route path="/callback" element={<Auth0Callback />}></Route>
         <Route path="/user-control" element={<UserControlPage />}></Route>
         <Route path="/login" element={<LoginPage />}></Route>
         <Route path="/settings" element={<Settings />}></Route>
         <Route path="/profile" element={<Profile />}></Route>
-        <Route path="/chair-control" element={<ChairControlPanel />}></Route>
+        <Route path="/chair-control" element={<ChairControlPage />}></Route>
         <Route path="*" element={<NotFoundPage />}></Route>
       </Routes>
 

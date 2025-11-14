@@ -20,8 +20,8 @@ function getHeaders() {
         'Content-Type': 'application/json',
     };
 
-    // Get Auth0 token from localStorage
-    const token = localStorage.getItem('auth0_token');
+    // Get token from localStorage
+    const token = localStorage.getItem('token');
     if (token) {
         headers['Authorization'] = `Bearer ${token}`;
     }

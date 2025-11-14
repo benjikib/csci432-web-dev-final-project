@@ -30,7 +30,7 @@ export default function SideBar() {
           { path: '/home', label: 'Home', icon: 'home' },
           { path: '/committees', label: 'Committees', icon: 'groups' },
           ...(userIsChair
-              ? [{ path: '/user-control', label: 'Chair Control', icon: 'gavel' }]
+              ? [{ path: '/chair-control', label: 'Chair Control', icon: 'gavel' }]
               : []
           ),
       ];

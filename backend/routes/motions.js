@@ -40,7 +40,7 @@ router.get('/committee/:id/motions/:page', async (req, res) => {
               ...motion,
               authorInfo: author ? {
                 id: author._id,
-                name: author.name,
+                name: author.settings?.displayName || author.name,
                 email: author.email,
                 picture: author.picture
               } : null
@@ -103,7 +103,7 @@ router.get('/committee/:id/motion/:motionId', async (req, res) => {
           ...motion,
           authorInfo: author ? {
             id: author._id,
-            name: author.name,
+            name: author.settings?.displayName || author.name,
             email: author.email,
             picture: author.picture
           } : null
@@ -159,34 +159,39 @@ router.post('/committee/:id/motion/create',
 
       const { title, description, fullDescription } = req.body;
 
-      // Get authenticated user's display name from settings
-      let authorName = 'Anonymous';
-      if (req.user && req.user.userId) {
-        try {
-          const user = await User.findById(req.user.userId);
-          if (user && user.settings && user.settings.displayName) {
-            authorName = user.settings.displayName;
-          } else if (user && user.name) {
-            authorName = user.name;
-          }
-        } catch (err) {
-          console.error('Error fetching user for motion author:', err);
-        }
-      }
-
-      // Create motion as embedded document with author info
+      // Create motion with userId reference
       const motion = await Committee.createMotion(committee._id, {
         title,
         description,
         fullDescription: fullDescription || description,
-        author: req.user ? req.user.userId : null,
-        authorName: authorName
+        author: req.user ? req.user.userId : null
       });
+
+      // Populate author information for response
+      let motionWithAuthor = motion;
+      if (motion.author) {
+        try {
+          const author = await User.findById(motion.author);
+          if (author) {
+            motionWithAuthor = {
+              ...motion,
+              authorInfo: {
+                id: author._id,
+                name: author.settings?.displayName || author.name,
+                email: author.email,
+                picture: author.picture
+              }
+            };
+          }
+        } catch (err) {
+          console.error('Error fetching author for new motion:', err);
+        }
+      }
 
       res.status(201).json({
         success: true,
         message: 'Motion created successfully',
-        motion
+        motion: motionWithAuthor
       });
     } catch (error) {
       console.error('Create motion error:', error);

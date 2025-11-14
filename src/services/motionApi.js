@@ -22,7 +22,7 @@ function getHeaders() {
     };
 
     // Get Auth0 token from localStorage
-    const token = localStorage.getItem('auth0_token');
+    const token = localStorage.getItem('token');
     if (token) {
         headers['Authorization'] = `Bearer ${token}`;
     }

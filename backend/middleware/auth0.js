@@ -85,8 +85,8 @@ async function syncAuth0User(req, res, next) {
 }
 
 /**
- * Combined authentication middleware
- * Supports both Auth0 tokens and custom JWT tokens
+ * Database JWT authentication middleware
+ * Validates JWT tokens issued by the application
  */
 async function authenticate(req, res, next) {
   try {
@@ -100,44 +100,34 @@ async function authenticate(req, res, next) {
     }
 
     const token = authHeader.substring(7);
+    const jwt = require('jsonwebtoken');
 
-    // Try Auth0 validation first
     try {
-      await validateAuth0Token(req, res, async () => {
-        // If Auth0 validation succeeds, sync the user
-        await syncAuth0User(req, res, next);
-      });
-      return;
-    } catch (auth0Error) {
-      // If Auth0 validation fails, try custom JWT
-      const jwt = require('jsonwebtoken');
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      const user = await User.findById(decoded.userId);
 
-      try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        const user = await User.findById(decoded.userId);
-
-        if (!user) {
-          return res.status(401).json({
-            success: false,
-            message: 'User not found. Invalid token.'
-          });
-        }
-
-        req.user = {
-          userId: user._id.toString(),
-          email: user.email,
-          name: user.name,
-          roles: user.roles,
-          permissions: user.permissions
-        };
-
-        return next();
-      } catch (jwtError) {
+      if (!user) {
         return res.status(401).json({
           success: false,
-          message: 'Invalid token.'
+          message: 'User not found. Invalid token.'
         });
       }
+
+      req.user = {
+        userId: user._id.toString(),
+        email: user.email,
+        name: user.name,
+        roles: user.roles || ['member'],
+        permissions: user.permissions || []
+      };
+
+      return next();
+    } catch (jwtError) {
+      console.error('JWT verification error:', jwtError);
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid or expired token.'
+      });
     }
   } catch (error) {
     console.error('Authentication error:', error);

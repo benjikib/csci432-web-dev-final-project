@@ -1,14 +1,13 @@
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import SideBar from './reusable/SideBar';
 import HeaderNav from './reusable/HeaderNav';
 import { useTheme } from '../context/ThemeContext';
-import { useAuth0 } from '@auth0/auth0-react';
 import { getUserSettings, updateUserSettings } from '../services/userApi';
 
 function Settings() {
   const { theme, toggleTheme, setTheme } = useTheme();
-  const { logout } = useAuth0();
+  const navigate = useNavigate();
 
   const [data, setData] = useState({
     notifications: true,
@@ -195,8 +194,9 @@ function Settings() {
                 </div>
                 <button
                   onClick={() => {
-                    localStorage.removeItem('auth0_token');
-                    logout({ logoutParams: { returnTo: window.location.origin } });
+                    localStorage.removeItem('token');
+                    localStorage.removeItem('user');
+                    navigate('/');
                   }}
                   className="px-6 py-2 !bg-red-500 !text-white rounded-lg font-semibold hover:!bg-red-600 transition-all hover:scale-105 !border-none"
                 >
