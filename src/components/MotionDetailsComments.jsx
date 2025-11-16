@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef } from "react";
-import { useAuth0 } from "@auth0/auth0-react";
 
 export default function MotionDetailsComments() {
   const [comments, setComments] = useState([
@@ -11,7 +10,6 @@ export default function MotionDetailsComments() {
   ]);
   const [newComment, setNewComment] = useState("");
   const chatEndRef = useRef(null);
-  const { user, isAuthenticated } = useAuth0();
 
   const handleSubmit = (e) => {
     e.preventDefault();

@@ -8,12 +8,10 @@ class User {
 
   static async create(userData) {
     const user = {
-      // Auth0 integration fields
-      auth0Id: userData.auth0Id || null, // Auth0 user ID (sub claim)
       email: userData.email,
       emailVerified: userData.emailVerified || false,
 
-      // Authentication (for local auth, will be null if using Auth0)
+      // Authentication
       password: userData.password || null, // Should be hashed before passing here
 
       // Basic profile
@@ -62,10 +60,6 @@ class User {
 
   static async findById(id) {
     return await this.collection().findOne({ _id: new ObjectId(id) });
-  }
-
-  static async findByAuth0Id(auth0Id) {
-    return await this.collection().findOne({ auth0Id });
   }
 
   static async findAll() {

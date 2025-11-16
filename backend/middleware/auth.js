@@ -91,4 +91,52 @@ async function optionalAuth(req, res, next) {
   }
 }
 
-module.exports = { authenticate, optionalAuth };
+/**
+ * Middleware to check if user has a specific permission or is an admin
+ */
+function requirePermissionOrAdmin(permission) {
+  return async (req, res, next) => {
+    try {
+      // User must be authenticated first
+      if (!req.user || !req.user.userId) {
+        return res.status(401).json({
+          success: false,
+          message: 'Authentication required'
+        });
+      }
+
+      // Get full user data including roles and permissions
+      const user = await User.findById(req.user.userId);
+
+      if (!user) {
+        return res.status(401).json({
+          success: false,
+          message: 'User not found'
+        });
+      }
+
+      // Check if user is admin
+      const isAdmin = user.roles && user.roles.includes('admin');
+
+      // Check if user has the specific permission
+      const hasPermission = user.permissions && user.permissions.includes(permission);
+
+      if (isAdmin || hasPermission) {
+        next();
+      } else {
+        return res.status(403).json({
+          success: false,
+          message: 'You do not have permission to perform this action'
+        });
+      }
+    } catch (error) {
+      console.error('Permission check error:', error);
+      return res.status(500).json({
+        success: false,
+        message: 'Error checking permissions'
+      });
+    }
+  };
+}
+
+module.exports = { authenticate, optionalAuth, requirePermissionOrAdmin };

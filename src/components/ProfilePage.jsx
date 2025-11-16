@@ -262,7 +262,7 @@ function Profile() {
                         <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
                             <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">Email</p>
                             <p className="text-gray-800 dark:text-gray-100 font-medium">{user.email}</p>
-                            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Email is managed by Auth0 and cannot be changed here.</p>
+                            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Email cannot be changed.</p>
                         </div>
 
                         {user.phoneNumber && (

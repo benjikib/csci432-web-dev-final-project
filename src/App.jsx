@@ -1,5 +1,4 @@
 import './App.css'
-import Main from './components/MainPage.jsx'
 import HomePage from './components/HomePage.jsx'
 import LoginPage from './components/LoginPage.jsx'
 import MotionDetails from './components/MotionDetailsPage.jsx'

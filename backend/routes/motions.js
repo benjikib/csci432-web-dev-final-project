@@ -3,7 +3,7 @@ const { body, validationResult } = require('express-validator');
 const { ObjectId } = require('mongodb');
 const Committee = require('../models/Committee');
 const User = require('../models/User');
-const { authenticate, requirePermissionOrAdmin } = require('../middleware/auth0');
+const { authenticate, requirePermissionOrAdmin } = require('../middleware/auth');
 
 const router = express.Router();
 

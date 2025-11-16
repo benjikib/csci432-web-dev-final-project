@@ -37,7 +37,7 @@ function AdminPanel() {
                 const usersResponse = await fetch(`${API_BASE_URL}/auth/users`, {
                     method: 'GET',
                     headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('auth0_token')}`
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
                     }
                 });
 
@@ -52,7 +52,7 @@ function AdminPanel() {
                 const committeesResponse = await fetch(`${API_BASE_URL}/committees/1`, {
                     method: 'GET',
                     headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('auth0_token')}`
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
                     }
                 });
 
@@ -108,7 +108,7 @@ function AdminPanel() {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${localStorage.getItem('auth0_token')}`
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
                 },
                 body: JSON.stringify({
                     roles: editingUser.roles,
