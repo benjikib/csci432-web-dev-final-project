@@ -139,4 +139,49 @@ function requirePermissionOrAdmin(permission) {
   };
 }
 
-module.exports = { authenticate, optionalAuth, requirePermissionOrAdmin };
+/**
+ * Middleware to check if user has a specific role
+ */
+function requireRole(role) {
+  return async (req, res, next) => {
+    try {
+      // User must be authenticated first
+      if (!req.user || !req.user.userId) {
+        return res.status(401).json({
+          success: false,
+          message: 'Authentication required'
+        });
+      }
+
+      // Get full user data including roles
+      const user = await User.findById(req.user.userId);
+
+      if (!user) {
+        return res.status(401).json({
+          success: false,
+          message: 'User not found'
+        });
+      }
+
+      // Check if user has the required role
+      const hasRole = user.roles && user.roles.includes(role);
+
+      if (hasRole) {
+        next();
+      } else {
+        return res.status(403).json({
+          success: false,
+          message: `This action requires ${role} role`
+        });
+      }
+    } catch (error) {
+      console.error('Role check error:', error);
+      return res.status(500).json({
+        success: false,
+        message: 'Error checking role'
+      });
+    }
+  };
+}
+
+module.exports = { authenticate, optionalAuth, requirePermissionOrAdmin, requireRole };
