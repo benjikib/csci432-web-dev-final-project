@@ -7,28 +7,46 @@ export function ThemeProvider({ children }) {
     const [theme, setTheme] = useState('light');
     const [isLoading, setIsLoading] = useState(true);
 
-    // Fetch theme from backend on mount
-    useEffect(() => {
-        const fetchTheme = async () => {
-            try {
-                // Check if user is authenticated
-                const token = localStorage.getItem('token');
-                if (token) {
-                    const response = await getUserSettings();
-                    if (response.success && response.settings.theme) {
-                        setTheme(response.settings.theme);
+    // Function to fetch and apply theme from backend
+    const fetchTheme = async (isInitialLoad = false) => {
+        try {
+            // Check if user is authenticated
+            const token = localStorage.getItem('token');
+            if (token) {
+                const response = await getUserSettings();
+                if (response.success && response.settings.theme) {
+                    const newTheme = response.settings.theme;
+                    setTheme(newTheme);
+
+                    // Apply theme immediately to DOM (for faster feedback)
+                    if (newTheme === 'dark') {
+                        document.documentElement.classList.add('dark');
+                        document.body.style.backgroundColor = '#111827';
+                    } else {
+                        document.documentElement.classList.remove('dark');
+                        document.body.style.backgroundColor = '#F8FEF9';
                     }
                 }
-            } catch (error) {
-                console.error('Error fetching theme from backend:', error);
-                // Fall back to light theme if fetch fails
+            } else if (isInitialLoad) {
+                // Only set default on initial load if no token
                 setTheme('light');
-            } finally {
+            }
+        } catch (error) {
+            console.error('Error fetching theme from backend:', error);
+            // Only fall back to light theme on initial load
+            if (isInitialLoad) {
+                setTheme('light');
+            }
+        } finally {
+            if (isInitialLoad) {
                 setIsLoading(false);
             }
-        };
+        }
+    };
 
-        fetchTheme();
+    // Fetch theme from backend on mount
+    useEffect(() => {
+        fetchTheme(true);
     }, []);
 
     useEffect(() => {
@@ -47,7 +65,7 @@ export function ThemeProvider({ children }) {
     };
 
     return (
-        <ThemeContext.Provider value={{ theme, setTheme, toggleTheme, isLoading }}>
+        <ThemeContext.Provider value={{ theme, setTheme, toggleTheme, isLoading, refetchSettings: fetchTheme }}>
             {children}
         </ThemeContext.Provider>
     );

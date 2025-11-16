@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { API_BASE_URL } from '../config/api.js';
+import { useTheme } from '../context/ThemeContext';
 
 function LoginPage() {
     const [isLogin, setIsLogin] = useState(false); // Default to signup
@@ -14,6 +15,7 @@ function LoginPage() {
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
+    const { refetchSettings } = useTheme();
 
     // Check if user is already logged in
     useEffect(() => {
@@ -64,6 +66,9 @@ function LoginPage() {
             // Store token and user info
             localStorage.setItem('token', data.token);
             localStorage.setItem('user', JSON.stringify(data.user));
+
+            // Fetch user settings (including theme) after login
+            await refetchSettings();
 
             // Navigate to committees
             navigate('/committees');
