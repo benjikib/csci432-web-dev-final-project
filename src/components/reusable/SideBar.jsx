@@ -1,6 +1,7 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { getCommitteeById } from '../CommitteeStorage';
+import { useState, useEffect } from 'react';
 import { useNavigationBlock } from '../../context/NavigationContext';
+import { getCurrentUser, hasRole } from '../../services/userApi';
 
 //   const SideBar = () => {
 export default function SideBar() {
@@ -8,11 +9,30 @@ export default function SideBar() {
       const location = useLocation();
       const navigate = useNavigate();
       const { confirmNavigation } = useNavigationBlock();
+      const [userIsChair, setUserIsChair] = useState(false);
+
+      // Check if user is a chair
+      useEffect(() => {
+          async function checkChair() {
+              try {
+                  const response = await getCurrentUser();
+                  if (response.success) {
+                      setUserIsChair(hasRole(response.user, 'chair'));
+                  }
+              } catch (err) {
+                  console.error('Error checking chair status:', err);
+              }
+          }
+          checkChair();
+      }, []);
 
       const navItems = [
           { path: '/home', label: 'Home', icon: 'home' },
           { path: '/committees', label: 'Committees', icon: 'groups' },
-          { path: '/user-control', label: 'User Control', icon: 'admin_panel_settings' },
+          ...(userIsChair
+              ? [{ path: '/chair-control', label: 'Chair Control', icon: 'gavel' }]
+              : []
+          ),
       ];
 
       // Determine back navigation and committee context based on current path
@@ -20,13 +40,12 @@ export default function SideBar() {
           const path = location.pathname;
 
           // Check if we're on a motion details page: /committee/:id/motion/:motionId
-          const motionMatch = path.match(/^\/committee\/(\d+)\/motion\/\d+$/);
+          const motionMatch = path.match(/^\/committee\/([^\/]+)\/motion\/[^\/]+$/);
           if (motionMatch) {
               const committeeId = motionMatch[1];
-              const committee = getCommitteeById(committeeId);
               return {
                   backNav: {
-                      label: committee?.title || 'Committee',
+                      label: 'Back to Committee',
                       path: `/committee/${committeeId}`
                   },
                   committeeId: committeeId,
@@ -36,13 +55,12 @@ export default function SideBar() {
           }
 
           // Check if we're on a committee settings page: /committee/:id/settings
-          const settingsMatch = path.match(/^\/committee\/(\d+)\/settings$/);
+          const settingsMatch = path.match(/^\/committee\/([^\/]+)\/settings$/);
           if (settingsMatch) {
               const committeeId = settingsMatch[1];
-              const committee = getCommitteeById(committeeId);
               return {
                   backNav: {
-                      label: committee?.title || 'Committee',
+                      label: 'Back to Committee',
                       path: `/committee/${committeeId}`
                   },
                   committeeId: committeeId,
@@ -52,13 +70,12 @@ export default function SideBar() {
           }
 
           // Check if we're on a create motion page: /committee/:id/create-motion
-          const createMotionMatch = path.match(/^\/committee\/(\d+)\/create-motion$/);
+          const createMotionMatch = path.match(/^\/committee\/([^\/]+)\/create-motion$/);
           if (createMotionMatch) {
               const committeeId = createMotionMatch[1];
-              const committee = getCommitteeById(committeeId);
               return {
                   backNav: {
-                      label: committee?.title || 'Committee',
+                      label: 'Back to Committee',
                       path: `/committee/${committeeId}`
                   },
                   committeeId: committeeId,
@@ -80,8 +97,8 @@ export default function SideBar() {
               };
           }
 
-          // Check if we're on a committee page: /committee/:id
-          const committeeMatch = path.match(/^\/committee\/(\d+)$/);
+          // Check if we're on a committee page: /committee/:id (slug or ID)
+          const committeeMatch = path.match(/^\/committee\/([^\/]+)$/);
           if (committeeMatch) {
               const committeeId = committeeMatch[1];
               return {
@@ -115,6 +132,9 @@ export default function SideBar() {
 
       const navContext = getNavigationContext();
 
+      // Check if there's any content to show in the light green section
+      const hasContent = navContext.backNav || navContext.showSettings || navContext.showCreateCommittee;
+
       // Handle navigation with confirmation
       const handleNavigation = (e, path) => {
           if (!confirmNavigation()) {
@@ -146,7 +166,9 @@ export default function SideBar() {
               </div>
 
               {/* Light green section for back navigation and committee controls */}
-              <div className="w-44 flex-shrink-0 h-screen bg-lighter-green pt-24 px-4 overflow-y-auto">
+              <div className={`flex-shrink-0 h-screen bg-lighter-green pt-24 transition-all duration-300 ease-in-out ${
+                  hasContent ? 'w-44 px-4 opacity-100' : 'w-0 px-0 opacity-0'
+              } ${hasContent ? 'overflow-y-auto' : 'overflow-hidden'}`}>
                   {navContext.backNav && (
                       <Link
                           to={navContext.backNav.path}

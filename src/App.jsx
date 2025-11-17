@@ -1,10 +1,10 @@
 import './App.css'
-import Main from './components/MainPage.jsx'
 import HomePage from './components/HomePage.jsx'
 import LoginPage from './components/LoginPage.jsx'
 import MotionDetails from './components/MotionDetailsPage.jsx'
 import Settings from './components/SettingsPage.jsx'
 import Profile from './components/ProfilePage.jsx'
+import ChairControlPage from './components/ChairControlPage.jsx'
 import CommitteesPage from './components/CommitteesPage.jsx'
 import CommitteeMotionsPage from './components/CommitteeMotionsPage.jsx'
 import CommitteeSettingsPage from './components/CommitteeSettingsPage.jsx'
@@ -19,13 +19,13 @@ export default function App() {
   const background = location.state?.background;
 
   // Check if we're on a motion details route without background state (direct navigation)
-  const isMotionDetailsRoute = location.pathname.match(/\/committee\/\d+\/motion\/\d+/);
+  const isMotionDetailsRoute = location.pathname.match(/\/committee\/[^\/]+\/motion\/[^\/]+/);
   const shouldShowModal = background || isMotionDetailsRoute;
 
   return (
     <>
       <Routes location={background || location}>
-        <Route path="/" element={<Main />}></Route>
+        <Route path="/" element={<LoginPage />}></Route>
         <Route path="/home" element={<HomePage />}></Route>
         <Route path="/committees" element={<CommitteesPage />}></Route>
         <Route path="/create-committee" element={<CreateCommitteePage />}></Route>
@@ -37,6 +37,7 @@ export default function App() {
         <Route path="/login" element={<LoginPage />}></Route>
         <Route path="/settings" element={<Settings />}></Route>
         <Route path="/profile" element={<Profile />}></Route>
+        <Route path="/chair-control" element={<ChairControlPage />}></Route>
         <Route path="*" element={<NotFoundPage />}></Route>
       </Routes>
 

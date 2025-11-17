@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import SideBar from './reusable/SideBar';
 import HeaderNav from './reusable/HeaderNav';
-import { addCommittee } from './CommitteeStorage';
+import { createCommittee } from '../services/committeeApi';
 import { useNavigationBlock } from '../context/NavigationContext';
 
 function CreateCommitteePage() {
@@ -65,7 +65,7 @@ function CreateCommitteePage() {
         };
     }, [unblockNavigation]);
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
 
         // Validate form
@@ -74,24 +74,30 @@ function CreateCommitteePage() {
             return;
         }
 
-        // Create new committee
-        const newCommittee = {
-            title: formData.title,
-            description: formData.description,
-            members: formData.members
-        };
+        try {
+            // Create new committee
+            const newCommittee = {
+                title: formData.title,
+                description: formData.description,
+                members: formData.members
+            };
 
-        // Add committee to storage
-        const createdCommittee = addCommittee(newCommittee);
+            // Add committee via API
+            const result = await createCommittee(newCommittee);
+            const createdCommittee = result.committee;
 
-        // Clear unsaved changes and unblock navigation
-        setHasUnsavedChanges(false);
-        unblockNavigation();
+            // Clear unsaved changes and unblock navigation
+            setHasUnsavedChanges(false);
+            unblockNavigation();
 
-        // Navigate to the new committee page
-        setTimeout(() => {
-            navigate(`/committee/${createdCommittee.id}`);
-        }, 0);
+            // Navigate to the new committee page using slug if available
+            setTimeout(() => {
+                navigate(`/committee/${createdCommittee.slug || createdCommittee._id}`);
+            }, 0);
+        } catch (error) {
+            console.error('Error creating committee:', error);
+            alert(`Failed to create committee: ${error.message}`);
+        }
     };
 
     const handleCancel = () => {

@@ -1,12 +1,10 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth0 } from "@auth0/auth0-react";
 import SideBar from './reusable/SideBar';
 import HeaderNav from './reusable/HeaderNav';
 
 export default function HomePage() {
     const navigate = useNavigate();
-    const { user, isAuthenticated } = useAuth0();
     const [searchedTerm, setSearchedTerm] = useState("");
 
     return (
