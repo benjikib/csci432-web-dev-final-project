@@ -124,13 +124,16 @@ const chairCommittees = [
 ```
 
 ### Settings Persistence
-Settings are stored in component state and logged to console. Backend integration pending:
+Settings are now integrated with the backend API:
 
 ```javascript
 const updateSetting = (key, value) => {
     setSettings(prev => ({ ...prev, [key]: value }));
-    // TODO: API call to save
-    console.log(`Updating ${key} to ${value}`);
+    // Settings saved when user clicks "Save All Changes" button
+};
+
+const saveAllSettings = async () => {
+    await updateCommitteeSettings(committeeId, settings);
 };
 ```
 
@@ -180,25 +183,33 @@ const updateSetting = (key, value) => {
 }
 ```
 
-## Backend Integration (TODO)
+## Backend Integration
 
-### API Endpoints Needed
+### ✅ Completed API Endpoints
+- `GET /committees/my-chairs` - Get committees where user is chair (optimized server-side filtering)
 - `GET /committee/:id/settings` - Fetch current settings
-- `PUT /committee/:id/settings` - Save all settings
-- `PATCH /committee/:id/settings/:key` - Update specific setting
-- `GET /user/chair-committees` - Get committees where user is chair
+- `PATCH /committee/:id/settings` - Update settings (partial update)
+- `PUT /committee/:id` - Update full committee including settings
 
-### Database Schema Addition
-Add to Committee model:
+### ✅ Database Schema
+Committee model includes settings field:
 
 ```javascript
 {
-    settings: {
-        meetingMode: { type: String, enum: ['async', 'live'], default: 'async' },
-        minSpeakersBeforeVote: { type: Number, default: 0 },
-        requireProConBalance: { type: Boolean, default: false },
-        // ... all other settings
-    }
+    settings: {} // Stores all procedural settings as flexible object
+}
+```
+
+Motion model now includes Robert's Rules fields:
+
+```javascript
+{
+    motionType: 'main',
+    motionTypeLabel: 'Main Motion',
+    debatable: true,
+    amendable: true,
+    voteRequired: 'majority',
+    amendTargetMotionId: ObjectId // For subsidiary motions
 }
 ```
 
@@ -236,18 +247,25 @@ The control panel implements key Robert's Rules concepts:
 - [x] Summaries reflect current settings
 - [x] Nested settings (enabledMotionTypes) update properly
 - [x] Dark mode works on all controls
-- [ ] Backend API integration (pending)
-- [ ] Settings persist across page refresh (pending)
-- [ ] Real user authentication (pending)
+- [x] Backend API integration complete
+- [x] Settings persist to database
+- [x] Settings load from database on mount
+- [x] Chair committees fetched from backend
+- [x] JWT authentication integrated
+- [ ] Settings validation and enforcement in motion workflow
+- [ ] Quorum checking implementation
+- [ ] Live meeting mode features
 
 ## Next Steps
 
-1. **Backend Integration**:
-   - Create API endpoints for settings CRUD
-   - Add settings field to Committee schema
-   - Implement actual role checking
+1. **✅ Backend Integration** (COMPLETED):
+   - ✅ Created API endpoints for settings CRUD
+   - ✅ Added settings field to Committee schema
+   - ✅ Implemented JWT role checking
+   - ✅ Added motion type metadata to schema
+   - ✅ Created subsidiary motion tracking endpoints
 
-2. **Enforcement**:
+2. **Enforcement** (IN PROGRESS):
    - Apply settings to motion creation workflow
    - Enforce voting rules during vote casting
    - Implement quorum checking

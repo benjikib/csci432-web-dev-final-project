@@ -57,16 +57,21 @@ The server will start on port 3001 by default.
 - `GET /auth/me` - Get current user info
 
 ### Committees
+- `GET /committees/my-chairs` - Get committees where current user is chair
 - `GET /committees/:page` - Get all committees (paginated)
 - `GET /committee/:id` - Get specific committee details
+- `GET /committee/:id/settings` - Get committee procedural settings only
+- `PATCH /committee/:id/settings` - Update committee procedural settings
 - `POST /committee/create` - Create a new committee
 - `PUT /committee/:id` - Update a committee
 - `DELETE /committee/:id` - Delete a committee
 
 ### Motions
-- `GET /committee/:id/motions/:page` - Get all motions in committee (paginated)
+- `GET /committee/:id/motions/:page` - Get all motions in committee (paginated, supports filtering)
+  - Query params: `?type=motionType&status=active&targetMotion=motionId`
 - `GET /committee/:id/motion/:motionId` - Get specific motion details
-- `POST /committee/:id/motion/create` - Create a new motion
+- `GET /committee/:id/motion/:motionId/subsidiaries` - Get all subsidiary motions affecting this motion
+- `POST /committee/:id/motion/create` - Create a new motion (includes Robert's Rules metadata)
 - `PUT /committee/:id/motion/:motionId` - Update a motion
 - `DELETE /committee/:id/motion/:motionId` - Delete a motion
 
