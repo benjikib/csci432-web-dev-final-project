@@ -1,19 +1,59 @@
-import { useState } from "react"
-import { useParams } from "react-router-dom"
+import { useState, useEffect } from "react"
+import { useParams, useNavigate } from "react-router-dom"
 import SideBar from './reusable/SideBar'
 import HeaderNav from './reusable/HeaderNav'
-import { getCommitteeById } from "./CommitteeStorage"
+import { getCommitteeById, updateCommittee, deleteCommittee } from "../services/committeeApi"
 
 function CommitteeSettingsPage() {
     const { id } = useParams();
-    const committee = getCommitteeById(id);
+    const navigate = useNavigate();
+    const [committee, setCommittee] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
     const [searchedTerm, setSearchedTerm] = useState("");
 
     // Local state for committee settings
-    const [title, setTitle] = useState(committee?.title || "");
-    const [description, setDescription] = useState(committee?.description || "");
+    const [title, setTitle] = useState("");
+    const [description, setDescription] = useState("");
 
-    if (!committee) {
+    // Fetch committee from API
+    useEffect(() => {
+        async function fetchCommittee() {
+            try {
+                setLoading(true);
+                const data = await getCommitteeById(id);
+                const fetchedCommittee = data.committee || data;
+                setCommittee(fetchedCommittee);
+                setTitle(fetchedCommittee.title || "");
+                setDescription(fetchedCommittee.description || "");
+            } catch (err) {
+                console.error('Error fetching committee:', err);
+                setError(err.message || 'Failed to load committee');
+            } finally {
+                setLoading(false);
+            }
+        }
+
+        if (id) {
+            fetchCommittee();
+        }
+    }, [id]);
+
+    if (loading) {
+        return (
+            <>
+                <HeaderNav setSearchedTerm={setSearchedTerm} />
+                <SideBar />
+                <div className="mt-20 ml-[16rem] px-8 min-h-screen bg-[#F8FEF9] dark:bg-gray-900">
+                    <div className="motions-section">
+                        <h2 className="section-title dark:text-gray-100">Loading...</h2>
+                    </div>
+                </div>
+            </>
+        );
+    }
+
+    if (error || !committee) {
         return (
             <>
                 <HeaderNav setSearchedTerm={setSearchedTerm} />
@@ -21,15 +61,50 @@ function CommitteeSettingsPage() {
                 <div className="mt-20 ml-[16rem] px-8 min-h-screen bg-[#F8FEF9] dark:bg-gray-900">
                     <div className="motions-section">
                         <h2 className="section-title dark:text-gray-100">Committee Not Found</h2>
+                        {/* Error Banner */}
+                        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 px-4 py-3 rounded-lg mt-4">
+                            Failed to load committee settings
+                        </div>
                     </div>
                 </div>
             </>
         );
     }
 
-    const handleSave = () => {
-        // TODO: Implement save functionality when backend is ready
-        alert("Settings saved! (This will connect to the API later)");
+    const handleSave = async () => {
+        try {
+            const updates = {
+                title,
+                description
+            };
+
+            const result = await updateCommittee(id, updates);
+            const updatedCommittee = result.committee;
+
+            alert("Settings saved successfully!");
+
+            // Navigate back to committee page using the NEW slug from the response
+            // Use replace to avoid back button issues
+            navigate(`/committee/${updatedCommittee.slug || updatedCommittee._id}`, { replace: true });
+        } catch (error) {
+            console.error('Error saving settings:', error);
+            alert(`Failed to save settings: ${error.message}`);
+        }
+    };
+
+    const handleDelete = async () => {
+        if (!confirm(`Are you sure you want to delete "${committee.title}"? This action cannot be undone. All motions and history will be permanently deleted.`)) {
+            return;
+        }
+
+        try {
+            await deleteCommittee(id);
+            alert("Committee deleted successfully");
+            navigate('/committees');
+        } catch (error) {
+            console.error('Error deleting committee:', error);
+            alert(`Failed to delete committee: ${error.message}`);
+        }
     };
 
     return (
@@ -124,7 +199,10 @@ function CommitteeSettingsPage() {
                         {/* Danger Zone */}
                         <div className="border-t border-gray-300 dark:border-gray-600 pt-6 mt-8">
                             <h3 className="text-lg font-semibold text-red-600 dark:text-red-400 mb-4">Danger Zone</h3>
-                            <button className="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium">
+                            <button
+                                onClick={handleDelete}
+                                className="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium"
+                            >
                                 Delete Committee
                             </button>
                             <p className="text-sm text-gray-500 dark:text-gray-500 mt-2">

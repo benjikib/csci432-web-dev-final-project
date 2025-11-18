@@ -1,88 +1,219 @@
-import { useState } from 'react'
-import { useNavigate } from "react-router-dom"
-function LoginPage() {
-    const navigate = useNavigate()
-    const [active, setActive] = useState("join");
-    const handleLogin = async () => {
-        try {
-        const res = await fetch('/sample.json');
-        const data = await res.json();
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { API_BASE_URL } from '../config/api.js';
+import { useTheme } from '../context/ThemeContext';
 
-        navigate('/profile', { state: { user: data } });
+function LoginPage() {
+    const [isLogin, setIsLogin] = useState(false); // Default to signup
+    const [formData, setFormData] = useState({
+        email: '',
+        password: '',
+        firstName: '',
+        lastName: '',
+        communityCode: ''
+    });
+    const [error, setError] = useState('');
+    const [loading, setLoading] = useState(false);
+    const navigate = useNavigate();
+    const { refetchSettings } = useTheme();
+
+    // Check if user is already logged in
+    useEffect(() => {
+        const token = localStorage.getItem('token');
+        if (token) {
+            navigate('/committees');
+        }
+    }, [navigate]);
+
+    const handleInputChange = (e) => {
+        setFormData({
+            ...formData,
+            [e.target.name]: e.target.value
+        });
+        setError(''); // Clear error when user types
+    };
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        setError('');
+        setLoading(true);
+
+        try {
+            const endpoint = isLogin ? '/auth/login' : '/auth/register';
+            const payload = isLogin
+                ? { email: formData.email, password: formData.password }
+                : {
+                    email: formData.email,
+                    password: formData.password,
+                    name: `${formData.firstName} ${formData.lastName}`.trim(),
+                    communityCode: formData.communityCode
+                };
+
+            const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.message || 'Authentication failed');
+            }
+
+            // Store token and user info
+            localStorage.setItem('token', data.token);
+            localStorage.setItem('user', JSON.stringify(data.user));
+
+            // Fetch user settings (including theme) after login
+            await refetchSettings();
+
+            // Navigate to committees
+            navigate('/committees');
         } catch (err) {
-        console.error('Failed to fetch users:', err);
+            setError(err.message);
         } finally {
+            setLoading(false);
         }
     };
-  return (
-    <>
-        { active === "join" ? 
-        <div className="login-container">
-            <div className="login-card">
-                <h3 className="login-title">Join YOUR Community</h3>
-            <div className="input-row">
-                <div className={`login-option ${active === "join" ? "active" : ""}`}onClick={() => setActive("join")}>
-                    Join
-                </div>
-                <div className={`login-option ${active === "login" ? "active" : ""}`}onClick={() => setActive("login")}>
-                    Log In
-                </div>
-            </div>
-            <div className="input-row">
-                <input className="login-input" type="email" placeholder='Email' />
-            </div>
-            <div className="input-row">
-                <input className="login-input" type="text" placeholder='First Name' /><input className="login-input" type="text" placeholder='Last Name' />
-            </div>
-            <div className="input-row">
-                <input className="login-input" type="text" placeholder='Community Code' />
-            </div>
-            <div className="input-row">
-                <div className="
-                rounded-lg border-[1px] border-transparent
-                px-[1.2em] py-[0.6em]
-                text-white bg-[#54966D] hover:bg-[#5ca377]
-                font-medium font-inherit
-                cursor-pointer
-                w-50 mx-auto" onClick={() => setActive("login")}>Sign Up</div>
-            </div>
-                <a className="terms">By signing up, you agree to our Terms of Service and Privacy Policy</a>
-            </div>
-        </div> :
-        <div className="login-container">
-            <div className="login-card">
-                <h3 className="login-title">Join YOUR Community</h3>
-            <div className="input-row">
-                <div className={`login-option ${active === "join" ? "active" : ""}`}onClick={() => setActive("join")}>
-                    Join
-                </div>
-                <div className={`login-option ${active === "login" ? "active" : ""}`}onClick={() => setActive("login")}>
-                    Log In
+
+    const toggleMode = () => {
+        setIsLogin(!isLogin);
+        setError('');
+        setFormData({
+            email: '',
+            password: '',
+            firstName: '',
+            lastName: '',
+            communityCode: ''
+        });
+    };
+
+    return (
+        <div className="integrated-landing-page">
+            {/* Left Section - Branding */}
+            <div className="branding-section">
+                <div className="branding-content">
+                    <span className="main-logo-font site-name">Commie</span>
+                    <img src="/logo.png" alt="Logo" className="main-logo"></img>
+                    <p className="tagline">Collaborate and make decisions with ease on a single, simple platform.</p>
+                    <p className="attribution">Based on Robert's Rules of Order (RONR)</p>
                 </div>
             </div>
-            <div className="input-row">
-                <input className="login-input" type="email" placeholder='Email' />
-            </div>
-            <div className="input-row">
-                <input className="login-input" type="password" placeholder='Password' />
-            </div>
-            <div className="input-row">
-                {/* <div className="ml-[15%] bg-[#54966D] rounded-lg cursor-pointer transition: border-color 0.25s h-[35px] w-[200px] text-white text-base font-inherit font-medium"  */}
-                <div className="
-                rounded-lg border-[1px] border-transparent
-                px-[1.2em] py-[0.6em]
-                text-white bg-[#54966D] hover:bg-[#5ca377]
-                font-medium font-inherit
-                cursor-pointer
-                w-50 mx-auto" onClick={() => navigate("/motions")}>Login</div>
-                {/* </div> */}
-            </div>
-                <a className="terms">By signing up, you agree to our Terms of Service and Privacy Policy</a>
+
+            {/* Right Section - Login/Signup Form */}
+            <div className="auth-section">
+                <div className="login-container">
+                    <div className="login-card">
+                        <h3 className="login-title">
+                            Join YOUR Community
+                        </h3>
+
+                        {/* Tabs */}
+                        <div className="input-row" style={{marginBottom: '24px'}}>
+                            <div
+                                onClick={() => setIsLogin(false)}
+                                className={`login-option ${!isLogin ? 'active' : ''}`}
+                            >
+                                Join
+                            </div>
+                            <div
+                                onClick={() => setIsLogin(true)}
+                                className={`login-option ${isLogin ? 'active' : ''}`}
+                            >
+                                Log In
+                            </div>
+                        </div>
+
+                        {error && (
+                            <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+                                {error}
+                            </div>
+                        )}
+
+                        <form onSubmit={handleSubmit} style={{width: '100%'}}>
+                            <input
+                                type="email"
+                                name="email"
+                                placeholder="Email"
+                                value={formData.email}
+                                onChange={handleInputChange}
+                                required
+                                className="login-input"
+                            />
+
+                            {!isLogin && (
+                                <div style={{display: 'flex', gap: '10px', marginBottom: '16px'}}>
+                                    <input
+                                        type="text"
+                                        name="firstName"
+                                        placeholder="First Name"
+                                        value={formData.firstName}
+                                        onChange={handleInputChange}
+                                        required
+                                        className="login-input"
+                                        style={{flex: 1}}
+                                    />
+                                    <input
+                                        type="text"
+                                        name="lastName"
+                                        placeholder="Last Name"
+                                        value={formData.lastName}
+                                        onChange={handleInputChange}
+                                        required
+                                        className="login-input"
+                                        style={{flex: 1}}
+                                    />
+                                </div>
+                            )}
+
+                            {!isLogin && (
+                                <input
+                                    type="text"
+                                    name="communityCode"
+                                    placeholder="Community Code"
+                                    value={formData.communityCode}
+                                    onChange={handleInputChange}
+                                    className="login-input"
+                                />
+                            )}
+
+                            <input
+                                type="password"
+                                name="password"
+                                placeholder="Password"
+                                value={formData.password}
+                                onChange={handleInputChange}
+                                required
+                                minLength={6}
+                                className="login-input"
+                            />
+
+                            <button
+                                type="submit"
+                                disabled={loading}
+                                style={{
+                                    width: '100%',
+                                    marginTop: '20px',
+                                    padding: '12px',
+                                    fontSize: '16px',
+                                    fontWeight: '600'
+                                }}
+                            >
+                                {loading ? 'Please wait...' : (isLogin ? 'Log In' : 'Sign Up')}
+                            </button>
+                        </form>
+
+                        <p className="terms">
+                            By signing up, you agree to our Terms of Service and Privacy Policy
+                        </p>
+                    </div>
+                </div>
             </div>
         </div>
-        }
-    </>
-  )
+    );
 }
 
-export default LoginPage
+export default LoginPage;

@@ -2,17 +2,63 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import SideBar from './reusable/SideBar';
 import HeaderNav from './reusable/HeaderNav';
-import { getCommitteeById, addMotion, getMotionsByCommittee } from './CommitteeStorage';
+import { getCommitteeById } from '../services/committeeApi';
+import { createMotion } from '../services/motionApi';
 import { useNavigationBlock } from '../context/NavigationContext';
+
+import { API_BASE_URL } from '../config/api.js';
 
 function CreateMotionPage() {
     const { id } = useParams();
     const navigate = useNavigate();
     const location = useLocation();
-    const committee = getCommitteeById(id);
+    const [committee, setCommittee] = useState(null);
+    const [currentUser, setCurrentUser] = useState(null);
+    const [loading, setLoading] = useState(true);
     const [searchedTerm, setSearchedTerm] = useState("");
     const { blockNavigation, unblockNavigation, confirmNavigation } = useNavigationBlock();
     const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+
+    // Fetch committee and current user from API
+    useEffect(() => {
+        async function fetchData() {
+            try {
+                setLoading(true);
+
+                // Fetch committee
+                const committeeData = await getCommitteeById(id);
+                setCommittee(committeeData.committee || committeeData);
+
+                // Fetch current user if authenticated
+                const token = localStorage.getItem('token');
+                if (token) {
+                    try {
+                        const response = await fetch(`${API_BASE_URL}/auth/me`, {
+                            headers: {
+                                'Authorization': `Bearer ${token}`
+                            }
+                        });
+
+                        if (response.ok) {
+                            const data = await response.json();
+                            setCurrentUser(data.user);
+                        }
+                    } catch (err) {
+                        console.error('Error fetching user:', err);
+                    }
+                }
+            } catch (err) {
+                console.error('Error fetching data:', err);
+                setCommittee(null);
+            } finally {
+                setLoading(false);
+            }
+        }
+
+        if (id) {
+            fetchData();
+        }
+    }, [id]);
 
     const [formData, setFormData] = useState({
         title: "",
@@ -235,7 +281,7 @@ function CreateMotionPage() {
         };
     }, [unblockNavigation]);
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
 
         // Validate form
@@ -250,13 +296,14 @@ function CreateMotionPage() {
             alert("Please select a target motion");
             return;
         }
-
+        try{
         // Create new motion
         const newMotion = {
             committeeId: parseInt(id),
             title: formData.title,
             description: formData.description,
             fullDescription: formData.fullDescription || formData.description,
+            author: currentUser?.id || null, // Add current user as author
             motionType: formData.motionType,
             motionTypeLabel: selectedMotionType?.label || "Main Motion",
             debatable: selectedMotionType?.debatable ?? true,
@@ -266,18 +313,23 @@ function CreateMotionPage() {
             votes: 0
         };
 
-        // Add motion to storage
-        addMotion(parseInt(id), newMotion);
 
-        // Clear unsaved changes and unblock navigation
-        setHasUnsavedChanges(false);
-        unblockNavigation();
+            // Add motion via API
+            await createMotion(id, newMotion);
 
-        // Navigate back to committee page
-        // Use setTimeout to ensure state update completes before navigation
-        setTimeout(() => {
-            navigate(`/committee/${id}`);
-        }, 0);
+            // Clear unsaved changes and unblock navigation
+            setHasUnsavedChanges(false);
+            unblockNavigation();
+
+            // Navigate back to committee page using slug if available
+            // Use setTimeout to ensure state update completes before navigation
+            setTimeout(() => {
+                navigate(`/committee/${committee.slug || id}`);
+            }, 0);
+        } catch (error) {
+            console.error('Error creating motion:', error);
+            alert(`Failed to create motion: ${error.message}`);
+        }
     };
 
     const handleCancel = () => {
@@ -285,8 +337,22 @@ function CreateMotionPage() {
             return;
         }
         unblockNavigation();
-        navigate(`/committee/${id}`);
+        navigate(`/committee/${committee?.slug || id}`);
     };
+
+    if (loading) {
+        return (
+            <>
+                <HeaderNav setSearchedTerm={setSearchedTerm} />
+                <SideBar />
+                <div className="mt-20 ml-[16rem] px-8 min-h-screen bg-[#F8FEF9] dark:bg-gray-900">
+                    <div className="max-w-4xl">
+                        <h2 className="section-title dark:text-gray-100">Loading...</h2>
+                    </div>
+                </div>
+            </>
+        );
+    }
 
     if (!committee) {
         return (
