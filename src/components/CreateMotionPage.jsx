@@ -5,7 +5,6 @@ import HeaderNav from './reusable/HeaderNav';
 import { getCommitteeById } from '../services/committeeApi';
 import { createMotion } from '../services/motionApi';
 import { useNavigationBlock } from '../context/NavigationContext';
-
 import { API_BASE_URL } from '../config/api.js';
 
 function CreateMotionPage() {
@@ -16,6 +15,7 @@ function CreateMotionPage() {
     const [currentUser, setCurrentUser] = useState(null);
     const [loading, setLoading] = useState(true);
     const [searchedTerm, setSearchedTerm] = useState("");
+    const [existingMotions, setExistingMotions] = useState([]);
     const { blockNavigation, unblockNavigation, confirmNavigation } = useNavigationBlock();
     const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
@@ -27,7 +27,13 @@ function CreateMotionPage() {
 
                 // Fetch committee
                 const committeeData = await getCommitteeById(id);
-                setCommittee(committeeData.committee || committeeData);
+                const fetchedCommittee = committeeData.committee || committeeData;
+                setCommittee(fetchedCommittee);
+                
+                // Get existing motions from the committee
+                if (fetchedCommittee && fetchedCommittee.motions) {
+                    setExistingMotions(fetchedCommittee.motions);
+                }
 
                 // Fetch current user if authenticated
                 const token = localStorage.getItem('token');
@@ -67,9 +73,6 @@ function CreateMotionPage() {
         motionType: "main",
         amendTargetMotionId: null
     });
-
-    // Get existing motions for amendment selection
-    const existingMotions = getMotionsByCommittee(id);
 
     // Motion types based on Robert's Rules of Order
     const motionTypes = [

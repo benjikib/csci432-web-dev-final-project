@@ -139,13 +139,17 @@ async function startServer() {
       console.log(`   Auth:       POST   /auth/login`);
       console.log(`   Auth:       POST   /auth/logout`);
       console.log(`   Auth:       GET    /auth/me`);
+      console.log(`   Committees: GET    /committees/my-chairs`);
       console.log(`   Committees: GET    /committees/:page`);
       console.log(`   Committees: GET    /committee/:id`);
+      console.log(`   Committees: GET    /committee/:id/settings`);
+      console.log(`   Committees: PATCH  /committee/:id/settings`);
       console.log(`   Committees: POST   /committee/create`);
       console.log(`   Committees: PUT    /committee/:id`);
       console.log(`   Committees: DELETE /committee/:id`);
-      console.log(`   Motions:    GET    /committee/:id/motions/:page`);
+      console.log(`   Motions:    GET    /committee/:id/motions/:page?type=&status=&targetMotion=`);
       console.log(`   Motions:    GET    /committee/:id/motion/:motionId`);
+      console.log(`   Motions:    GET    /committee/:id/motion/:motionId/subsidiaries`);
       console.log(`   Motions:    POST   /committee/:id/motion/create`);
       console.log(`   Motions:    PUT    /committee/:id/motion/:motionId`);
       console.log(`   Motions:    DELETE /committee/:id/motion/:motionId`);

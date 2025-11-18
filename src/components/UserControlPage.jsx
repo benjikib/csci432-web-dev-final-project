@@ -3,6 +3,7 @@ import SideBar from './reusable/SideBar';
 import HeaderNav from './reusable/HeaderNav';
 import ChairControlPanel from './ChairControlPanel';
 import { getCurrentUser, hasRole } from '../services/userApi';
+import { getChairCommittees } from '../services/committeeSettingsApi';
 
 function UserControlPage() {
     const [searchedTerm, setSearchedTerm] = useState("");
@@ -10,45 +11,47 @@ function UserControlPage() {
     const [isChair, setIsChair] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [chairCommittees, setChairCommittees] = useState([]);
 
-    // Check if user has chair role
+    // Fetch user role and their chair committees
     useEffect(() => {
-        async function checkChairRole() {
+        async function fetchData() {
             try {
                 setError(null);
-                const response = await getCurrentUser();
-                if (response.success) {
-                    setIsChair(hasRole(response.user, 'chair'));
+                
+                // Check if user has chair role
+                const userResponse = await getCurrentUser();
+                if (userResponse.success) {
+                    const userIsChair = hasRole(userResponse.user, 'chair');
+                    setIsChair(userIsChair);
+                    
+                    // If user is a chair, fetch their committees
+                    if (userIsChair) {
+                        const committeesResponse = await getChairCommittees();
+                        if (committeesResponse.success) {
+                            // Transform committees to match expected format
+                            const transformedCommittees = committeesResponse.committees.map(committee => ({
+                                id: committee._id,
+                                title: committee.title,
+                                description: committee.description,
+                                memberCount: committee.members?.length || 0,
+                                activeMotions: committee.motions?.filter(m => m.status === 'active').length || 0,
+                                slug: committee.slug
+                            }));
+                            setChairCommittees(transformedCommittees);
+                        }
+                    }
                 }
             } catch (err) {
-                console.error('Error checking chair role:', err);
-                setError(err.message || 'Failed to verify user permissions');
+                console.error('Error fetching data:', err);
+                setError(err.message || 'Failed to load data');
                 setIsChair(false);
             } finally {
                 setIsLoading(false);
             }
         }
-        checkChairRole();
+        fetchData();
     }, []);
-
-    // Get committees where user is a chair from CommitteeStorage
-    // For now using mock data - will integrate with real backend later
-    const chairCommittees = [
-        {
-            id: 1,
-            title: "Finance Committee",
-            description: "Oversees budget, financial planning, and expense approvals",
-            memberCount: 12,
-            activeMotions: 3
-        },
-        {
-            id: 3,
-            title: "Safety & Security Committee",
-            description: "Handles community safety measures and security protocols",
-            memberCount: 8,
-            activeMotions: 2
-        }
-    ];
 
     // Show loading state while checking authentication
     if (isLoading) {

@@ -10,12 +10,14 @@ const router = express.Router();
 /**
  * @route   GET /committee/:id/motions/:page
  * @desc    Get all motions in committee (paginated, by slug or ID)
+ * @query   ?type=motionType&status=active&targetMotion=motionId
  * @access  Public
  */
 router.get('/committee/:id/motions/:page', async (req, res) => {
   try {
     const page = parseInt(req.params.page) || 1;
     const limit = 10;
+    const { type, status, targetMotion } = req.query;
 
     // Verify committee exists
     const committee = await Committee.findByIdOrSlug(req.params.id);
@@ -26,7 +28,32 @@ router.get('/committee/:id/motions/:page', async (req, res) => {
       });
     }
 
-    const result = await Committee.findMotions(committee._id, page, limit);
+    let result = await Committee.findMotions(committee._id, page, limit);
+
+    // Apply filters if provided
+    let filteredMotions = result.motions;
+    
+    if (type) {
+      filteredMotions = filteredMotions.filter(m => m.motionType === type);
+    }
+    
+    if (status) {
+      filteredMotions = filteredMotions.filter(m => m.status === status);
+    }
+    
+    if (targetMotion) {
+      filteredMotions = filteredMotions.filter(m => 
+        m.amendTargetMotionId && m.amendTargetMotionId.toString() === targetMotion
+      );
+    }
+
+    // Update result with filtered motions
+    result = {
+      ...result,
+      motions: filteredMotions,
+      total: filteredMotions.length,
+      totalPages: Math.ceil(filteredMotions.length / limit)
+    };
 
     // Populate author information for each motion
     const motionsWithAuthors = await Promise.all(
@@ -57,7 +84,8 @@ router.get('/committee/:id/motions/:page', async (req, res) => {
     res.json({
       success: true,
       ...result,
-      motions: motionsWithAuthors
+      motions: motionsWithAuthors,
+      filters: { type, status, targetMotion } // Include applied filters in response
     });
   } catch (error) {
     console.error('Get motions error:', error);
@@ -303,6 +331,81 @@ router.delete('/committee/:id/motion/:motionId', authenticate, requirePermission
     res.status(500).json({
       success: false,
       message: 'Server error deleting motion'
+    });
+  }
+});
+
+/**
+ * @route   GET /committee/:id/motion/:motionId/subsidiaries
+ * @desc    Get all subsidiary motions affecting a specific motion
+ * @access  Public
+ */
+router.get('/committee/:id/motion/:motionId/subsidiaries', async (req, res) => {
+  try {
+    // Verify committee exists
+    const committee = await Committee.findByIdOrSlug(req.params.id);
+    if (!committee) {
+      return res.status(404).json({
+        success: false,
+        message: 'Committee not found'
+      });
+    }
+
+    // Verify target motion exists
+    const targetMotion = await Committee.findMotionById(committee._id, req.params.motionId);
+    if (!targetMotion) {
+      return res.status(404).json({
+        success: false,
+        message: 'Target motion not found'
+      });
+    }
+
+    // Find all motions where amendTargetMotionId matches this motion
+    const allMotions = await Committee.findMotions(committee._id, 1, 1000); // Get all motions
+    const subsidiaryMotions = allMotions.motions.filter(m => 
+      m.amendTargetMotionId && m.amendTargetMotionId.toString() === req.params.motionId.toString()
+    );
+
+    // Populate author information
+    const motionsWithAuthors = await Promise.all(
+      subsidiaryMotions.map(async (motion) => {
+        if (motion.author) {
+          try {
+            const authorId = typeof motion.author === 'string' ? motion.author : motion.author.toString();
+            const author = await User.findById(authorId);
+
+            return {
+              ...motion,
+              authorInfo: author ? {
+                id: author._id,
+                name: author.settings?.displayName || author.name,
+                email: author.email,
+                picture: author.picture
+              } : null
+            };
+          } catch (err) {
+            console.error('Error fetching author:', err);
+            return motion;
+          }
+        }
+        return motion;
+      })
+    );
+
+    res.json({
+      success: true,
+      targetMotion: {
+        id: targetMotion._id,
+        title: targetMotion.title
+      },
+      subsidiaryMotions: motionsWithAuthors,
+      total: motionsWithAuthors.length
+    });
+  } catch (error) {
+    console.error('Get subsidiary motions error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error fetching subsidiary motions'
     });
   }
 });

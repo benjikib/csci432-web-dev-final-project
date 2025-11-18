@@ -132,6 +132,15 @@ class Committee {
       description: motionData.description,
       fullDescription: motionData.fullDescription || motionData.description,
       author: motionData.author ? (typeof motionData.author === 'string' ? new ObjectId(motionData.author) : motionData.author) : null,
+      
+      // Robert's Rules of Order fields
+      motionType: motionData.motionType || 'main',
+      motionTypeLabel: motionData.motionTypeLabel || 'Main Motion',
+      debatable: motionData.debatable !== undefined ? motionData.debatable : true,
+      amendable: motionData.amendable !== undefined ? motionData.amendable : true,
+      voteRequired: motionData.voteRequired || 'majority',
+      amendTargetMotionId: motionData.amendTargetMotionId ? new ObjectId(motionData.amendTargetMotionId) : null,
+      
       status: motionData.status || 'active',
       votes: {
         yes: 0,

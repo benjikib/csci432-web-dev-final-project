@@ -6,6 +6,34 @@ const { authenticate, requirePermissionOrAdmin } = require('../middleware/auth')
 const router = express.Router();
 
 /**
+ * @route   GET /committees/my-chairs
+ * @desc    Get committees where current user is chair
+ * @access  Private (requires authentication)
+ */
+router.get('/committees/my-chairs', authenticate, async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    
+    // Find all committees where this user is the chair
+    const committees = await Committee.collection()
+      .find({ chair: userId })
+      .toArray();
+
+    res.json({
+      success: true,
+      committees,
+      total: committees.length
+    });
+  } catch (error) {
+    console.error('Get chair committees error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error fetching chair committees'
+    });
+  }
+});
+
+/**
  * @route   GET /committees/:page
  * @desc    Get all committees (paginated)
  * @access  Public
@@ -99,6 +127,73 @@ router.post('/committee/create',
       res.status(500).json({
         success: false,
         message: 'Server error creating committee'
+      });
+    }
+  }
+);
+
+/**
+ * @route   GET /committee/:id/settings
+ * @desc    Get committee settings only (faster than full committee)
+ * @access  Public
+ */
+router.get('/committee/:id/settings', async (req, res) => {
+  try {
+    const committee = await Committee.findByIdOrSlug(req.params.id);
+
+    if (!committee) {
+      return res.status(404).json({
+        success: false,
+        message: 'Committee not found'
+      });
+    }
+
+    res.json({
+      success: true,
+      settings: committee.settings || {}
+    });
+  } catch (error) {
+    console.error('Get committee settings error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error fetching committee settings'
+    });
+  }
+});
+
+/**
+ * @route   PATCH /committee/:id/settings
+ * @desc    Update only committee settings (partial update)
+ * @access  Private (Admin or edit_any_committee permission required)
+ */
+router.patch('/committee/:id/settings',
+  authenticate,
+  requirePermissionOrAdmin('edit_any_committee'),
+  async (req, res) => {
+    try {
+      const committee = await Committee.findByIdOrSlug(req.params.id);
+
+      if (!committee) {
+        return res.status(404).json({
+          success: false,
+          message: 'Committee not found'
+        });
+      }
+
+      const updatedCommittee = await Committee.updateById(committee._id, {
+        settings: req.body
+      });
+
+      res.json({
+        success: true,
+        message: 'Committee settings updated successfully',
+        settings: updatedCommittee.settings
+      });
+    } catch (error) {
+      console.error('Update committee settings error:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Server error updating committee settings'
       });
     }
   }
