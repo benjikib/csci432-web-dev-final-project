@@ -41,7 +41,8 @@ export async function getCurrentUser() {
             headers: getHeaders(),
         }
     );
-    return handleResponse(response);
+    const data = await handleResponse(response);
+    return data.user; // Extract user from response
 }
 
 /**
