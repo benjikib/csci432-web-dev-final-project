@@ -88,7 +88,7 @@ export default function HeaderNav( {setSearchedTerm} ) {
                 <div className="fixed top-0 left-0 right-0 z-50 h-20 w-full flex items-center justify-between border border-gray-400/10 dark:border-gray-700 shadow-md shadow-gray-500/50 dark:shadow-black/50 p-8 bg-white dark:bg-gray-900">
 
                         {/* The site name and the logo are grouped on the left */}
-                        <a href="/committees" className="flex items-center space-x-2">
+                        <a href="/home" className="flex items-center space-x-2">
                                 <span className="text-lighter-green dark:text-white font-extrabold text-2xl site-name">Commie</span>
                                 <img src="/logo.png" alt="Logo" className="w-18 h-18"></img>
                         </a>

@@ -8,12 +8,14 @@ import { getCurrentUser, hasRole, hasPermission } from '../services/userApi';
  * @param {React.ReactNode} props.children - The component to render if authorized
  * @param {string} props.requiredRole - Required role (optional)
  * @param {string} props.requiredPermission - Required permission (optional)
+ * @param {Function} props.customCheck - Custom authorization function (userData) => boolean (optional)
  * @param {string} props.fallbackPath - Path to redirect to if not authorized (default: '/unauthorized')
  */
 export default function ProtectedRoute({
     children,
     requiredRole = null,
     requiredPermission = null,
+    customCheck = null,
     fallbackPath = '/unauthorized'
 }) {
     const [loading, setLoading] = useState(true);
@@ -23,18 +25,31 @@ export default function ProtectedRoute({
         async function checkAuthorization() {
             try {
                 const userData = await getCurrentUser();
+                console.log('ProtectedRoute - User data:', userData);
+                console.log('ProtectedRoute - Required role:', requiredRole);
+                console.log('ProtectedRoute - User roles:', userData?.roles);
 
                 // Check if user meets requirements
                 let isAuthorized = true;
 
-                if (requiredRole) {
-                    isAuthorized = hasRole(userData, requiredRole);
+                // If custom check function is provided, use it
+                if (customCheck) {
+                    isAuthorized = customCheck(userData);
+                    console.log('ProtectedRoute - Custom check result:', isAuthorized);
+                } else {
+                    // Otherwise use role/permission checks
+                    if (requiredRole) {
+                        isAuthorized = hasRole(userData, requiredRole);
+                        console.log('ProtectedRoute - Has required role?', isAuthorized);
+                    }
+
+                    if (requiredPermission && isAuthorized) {
+                        isAuthorized = hasPermission(userData, requiredPermission);
+                        console.log('ProtectedRoute - Has required permission?', isAuthorized);
+                    }
                 }
 
-                if (requiredPermission && isAuthorized) {
-                    isAuthorized = hasPermission(userData, requiredPermission);
-                }
-
+                console.log('ProtectedRoute - Final authorization:', isAuthorized);
                 setAuthorized(isAuthorized);
             } catch (error) {
                 console.error('Authorization check failed:', error);
@@ -45,7 +60,7 @@ export default function ProtectedRoute({
         }
 
         checkAuthorization();
-    }, [requiredRole, requiredPermission]);
+    }, [requiredRole, requiredPermission, customCheck]);
 
     if (loading) {
         return (

@@ -214,6 +214,9 @@ router.get('/me', authenticate, async (req, res) => {
         communityCode: user.communityCode,
         roles: user.roles || ['member'],
         permissions: user.permissions || [],
+        ownedCommittees: user.ownedCommittees || [],
+        chairedCommittees: user.chairedCommittees || [],
+        memberCommittees: user.memberCommittees || [],
         settings: user.settings || {
           theme: 'light',
           notifications: true,

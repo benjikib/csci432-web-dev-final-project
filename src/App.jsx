@@ -11,8 +11,10 @@ import CommitteeSettingsPage from './components/CommitteeSettingsPage.jsx'
 import CreateMotionPage from './components/CreateMotionPage.jsx'
 import CreateCommitteePage from './components/CreateCommitteePage.jsx'
 import UserControlPage from './components/UserControlPage.jsx'
+import AdminPanel from './components/AdminPanel.jsx'
 import NotFoundPage from './components/NotFoundPage.jsx'
 import UnauthorizedPage from './components/UnauthorizedPage.jsx'
+import UnauthorizedCommitteePage from './components/UnauthorizedCommitteePage.jsx'
 import ProtectedRoute from './components/ProtectedRoute.jsx'
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 
@@ -43,18 +45,35 @@ export default function App() {
             </ProtectedRoute>
           }
         ></Route>
+        <Route
+          path="/admin-panel"
+          element={
+            <ProtectedRoute requiredRole="admin">
+              <AdminPanel />
+            </ProtectedRoute>
+          }
+        ></Route>
         <Route path="/login" element={<LoginPage />}></Route>
         <Route path="/settings" element={<Settings />}></Route>
         <Route path="/profile" element={<Profile />}></Route>
         <Route
           path="/chair-control"
           element={
-            <ProtectedRoute requiredRole="chair">
+            <ProtectedRoute
+              customCheck={(user) => {
+                // Allow access if user is admin OR has chair role OR chairs any committees
+                const isAdmin = user?.roles?.includes('admin');
+                const isChair = user?.roles?.includes('chair');
+                const chairsCommittees = user?.chairedCommittees && user.chairedCommittees.length > 0;
+                return isAdmin || isChair || chairsCommittees;
+              }}
+            >
               <ChairControlPage />
             </ProtectedRoute>
           }
         ></Route>
         <Route path="/unauthorized" element={<UnauthorizedPage />}></Route>
+        <Route path="/unauthorized-committee/:id?" element={<UnauthorizedCommitteePage />}></Route>
         <Route path="*" element={<NotFoundPage />}></Route>
       </Routes>
 

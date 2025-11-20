@@ -10,20 +10,26 @@ export default function SideBar() {
       const navigate = useNavigate();
       const { confirmNavigation } = useNavigationBlock();
       const [userIsChair, setUserIsChair] = useState(false);
+      const [userIsAdmin, setUserIsAdmin] = useState(false);
 
-      // Check if user is a chair
+      // Check if user has access to chair control and admin panel
       useEffect(() => {
-          async function checkChair() {
+          async function checkUserAccess() {
               try {
-                  const response = await getCurrentUser();
-                  if (response.success) {
-                      setUserIsChair(hasRole(response.user, 'chair'));
-                  }
+                  const user = await getCurrentUser();
+                  // Check admin access
+                  const isAdmin = user?.roles?.includes('admin');
+                  setUserIsAdmin(isAdmin);
+
+                  // Check chair access - allow if admin OR has chair role OR chairs any committees
+                  const isChair = user?.roles?.includes('chair');
+                  const chairsCommittees = user?.chairedCommittees && user.chairedCommittees.length > 0;
+                  setUserIsChair(isAdmin || isChair || chairsCommittees);
               } catch (err) {
-                  console.error('Error checking chair status:', err);
+                  console.error('Error checking user access:', err);
               }
           }
-          checkChair();
+          checkUserAccess();
       }, []);
 
       const navItems = [
@@ -31,6 +37,10 @@ export default function SideBar() {
           { path: '/committees', label: 'Committees', icon: 'groups' },
           ...(userIsChair
               ? [{ path: '/chair-control', label: 'Chair Control', icon: 'gavel' }]
+              : []
+          ),
+          ...(userIsAdmin
+              ? [{ path: '/admin-panel', label: 'Admin Panel', icon: 'admin_panel_settings' }]
               : []
           ),
       ];

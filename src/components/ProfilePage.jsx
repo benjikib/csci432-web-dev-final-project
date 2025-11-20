@@ -20,14 +20,12 @@ function Profile() {
             try {
                 setLoading(true);
                 setError(null);
-                const response = await getCurrentUser();
-                if (response.success) {
-                    setUser(response.user);
-                    setEditedValues({
-                        displayName: response.user.settings?.displayName || response.user.name || '',
-                        fullName: response.user.name || ''
-                    });
-                }
+                const userData = await getCurrentUser();
+                setUser(userData);
+                setEditedValues({
+                    displayName: userData.settings?.displayName || userData.name || '',
+                    fullName: userData.name || ''
+                });
             } catch (err) {
                 console.error('Error fetching user:', err);
                 setError(err.message || 'Failed to load user data');

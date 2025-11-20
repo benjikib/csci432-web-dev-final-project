@@ -24,14 +24,14 @@ function AdminPanel() {
         async function checkAdminAndFetchData() {
             try {
                 setLoading(true);
-                const userResponse = await getCurrentUser();
+                const userData = await getCurrentUser();
 
-                if (!userResponse.success || !isAdmin(userResponse.user)) {
+                if (!isAdmin(userData)) {
                     navigate('/home');
                     return;
                 }
 
-                setCurrentUser(userResponse.user);
+                setCurrentUser(userData);
 
                 // Fetch all users
                 const usersResponse = await fetch(`${API_BASE_URL}/auth/users`, {
