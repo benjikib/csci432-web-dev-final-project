@@ -12,6 +12,7 @@ import CreateMotionPage from './components/CreateMotionPage.jsx'
 import CreateCommitteePage from './components/CreateCommitteePage.jsx'
 import UserControlPage from './components/UserControlPage.jsx'
 import NotFoundPage from './components/NotFoundPage.jsx'
+import AdminPanel from './components/AdminPanel.jsx'  
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 
 export default function App() {
@@ -38,6 +39,7 @@ export default function App() {
         <Route path="/settings" element={<Settings />}></Route>
         <Route path="/profile" element={<Profile />}></Route>
         <Route path="/chair-control" element={<ChairControlPage />}></Route>
+        <Route path="/admin" element={<AdminPanel />}></Route>
         <Route path="*" element={<NotFoundPage />}></Route>
       </Routes>
 
