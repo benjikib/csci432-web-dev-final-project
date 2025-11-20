@@ -115,7 +115,7 @@ function CommitteeSettingsPage() {
                 <div className="motions-section">
                     <h2 className="section-title dark:text-gray-100">{committee.title} Settings</h2>
 
-                    <div className="max-w-2xl mt-8 space-y-6">
+                    <div className="max-w-2xl mt-8 space-y-6 mx-auto">
                         {/* Committee Title */}
                         <div>
                             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">

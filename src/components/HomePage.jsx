@@ -11,8 +11,8 @@ export default function HomePage() {
         <>
             <HeaderNav setSearchedTerm={setSearchedTerm} />
             <SideBar />
-            <div className="mt-20 ml-[16rem] px-8 min-h-screen bg-[#F8FEF9] dark:bg-gray-900">
-                <div className="max-w-5xl">
+            <div className="mt-20 ml-20 px-8 min-h-screen bg-[#F8FEF9] dark:bg-gray-900">
+                <div className="max-w-5xl mx-auto">
                     <h2 className="section-title dark:text-gray-100">Home</h2>
                     <p className="text-lg text-gray-600 dark:text-gray-300 mb-8">
                         What would you like to do today?

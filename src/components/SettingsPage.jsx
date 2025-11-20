@@ -97,8 +97,8 @@ function Settings() {
     <>
       <HeaderNav setSearchedTerm={setSearchedTerm} />
       <SideBar />
-      <div className="mt-20 ml-[16rem] px-8 min-h-screen bg-[#F8FEF9] dark:bg-gray-900">
-        <div className="max-w-4xl">
+      <div className="mt-20 ml-20 px-8 min-h-screen bg-[#F8FEF9] dark:bg-gray-900">
+        <div className="max-w-4xl mx-auto">
           <h2 className="section-title dark:text-gray-100">Settings</h2>
 
           {loading ? (

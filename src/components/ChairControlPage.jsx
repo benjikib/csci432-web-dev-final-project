@@ -30,7 +30,7 @@ function ChairControlPage() {
         <>
             <HeaderNav setSearchedTerm={setSearchedTerm} />
             <SideBar />
-            <div className="mt-20 ml-[16rem] px-8 min-h-screen bg-[#F8FEF9] dark:bg-gray-900">
+            <div className="mt-20 ml-20 px-8 min-h-screen bg-[#F8FEF9] dark:bg-gray-900">
                 <div className="w-full">
                     <h2 className="section-title dark:text-gray-100">
                         Chair Control Panel

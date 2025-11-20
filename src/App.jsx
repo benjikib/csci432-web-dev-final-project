@@ -12,6 +12,7 @@ import CreateMotionPage from './components/CreateMotionPage.jsx'
 import CreateCommitteePage from './components/CreateCommitteePage.jsx'
 import UserControlPage from './components/UserControlPage.jsx'
 import AdminPanel from './components/AdminPanel.jsx'
+import NotificationsPage from './components/NotificationsPage.jsx'
 import NotFoundPage from './components/NotFoundPage.jsx'
 import UnauthorizedPage from './components/UnauthorizedPage.jsx'
 import UnauthorizedCommitteePage from './components/UnauthorizedCommitteePage.jsx'
@@ -54,6 +55,7 @@ export default function App() {
           }
         ></Route>
         <Route path="/login" element={<LoginPage />}></Route>
+        <Route path="/notifications" element={<NotificationsPage />}></Route>
         <Route path="/settings" element={<Settings />}></Route>
         <Route path="/profile" element={<Profile />}></Route>
         <Route
