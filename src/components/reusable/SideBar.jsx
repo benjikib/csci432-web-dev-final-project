@@ -10,6 +10,7 @@ export default function SideBar() {
       const navigate = useNavigate();
       const { confirmNavigation } = useNavigationBlock();
       const [userIsChair, setUserIsChair] = useState(false);
+      const [userIsAdmin, setUserIsAdmin] = useState(false);
 
       // Check if user is a chair
       useEffect(() => {
@@ -18,11 +19,14 @@ export default function SideBar() {
                   const response = await getCurrentUser();
                   if (response.success) {
                       setUserIsChair(hasRole(response.user, 'chair'));
+                      setUserIsAdmin(hasRole(response.user, 'admin'));
                   }
               } catch (err) {
-                  console.error('Error checking chair status:', err);
+                  console.error('Error checking chair/admin status:', err);
               }
           }
+
+        
           checkChair();
       }, []);
 
@@ -31,6 +35,10 @@ export default function SideBar() {
           { path: '/committees', label: 'Committees', icon: 'groups' },
           ...(userIsChair
               ? [{ path: '/chair-control', label: 'Chair Control', icon: 'gavel' }]
+              : []
+          ),
+          ...(userIsAdmin
+              ? [{ path: '/admin', label: 'Admin Panel', icon: 'admin_panel_settings' }]
               : []
           ),
       ];
