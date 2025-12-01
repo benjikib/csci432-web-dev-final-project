@@ -38,48 +38,57 @@ function CreateMotionPage() {
                     setExistingMotions(fetchedCommittee.motions);
                 }
 
-                // Determine access: fetch current user and committee members
+                // Determine access: fetch current user and use myRole from committee
                 let allowed = false;
                 try {
                     const current = await getCurrentUser();
                     const user = current && current.user ? current.user : null;
                     setCurrentUser(user);
+                    
+                    // Check if user is admin
                     if (user && user.roles && user.roles.includes('admin')) {
                         allowed = true;
                     }
 
-                    // Fetch members and check membership
-                    try {
-                        const membersRes = await getCommitteeMembers(id);
-                        const membersList = (membersRes && membersRes.members) || [];
-                        if (user) {
-                            const uid = String(user.id || user._id || user.id);
-                            if (membersList.some(m => {
-                                if (!m) return false;
-                                const mid = m._id || m.id || m.userId || m;
-                                return String(mid) === uid;
-                            })) {
-                                allowed = true;
+                    // Use myRole from committeeData if available (most reliable method)
+                    if (!allowed && committeeData && committeeData.myRole) {
+                        const myRole = committeeData.myRole;
+                        // Allow access for members, chairs, and owners, but NOT guests
+                        if (myRole === 'member' || myRole === 'chair' || myRole === 'owner') {
+                            allowed = true;
+                        } else if (myRole === 'guest') {
+                            allowed = false;
+                        }
+                    } else if (!allowed) {
+                        // Fallback: check membership the old way if myRole is not available
+                        try {
+                            const membersRes = await getCommitteeMembers(id);
+                            const membersList = (membersRes && membersRes.members) || [];
+                            if (user) {
+                                const uid = String(user.id || user._id || user.id);
+                                if (membersList.some(m => {
+                                    if (!m) return false;
+                                    const mid = m._id || m.id || m.userId || m;
+                                    return String(mid) === uid;
+                                })) {
+                                    allowed = true;
+                                }
+                            }
+                        } catch (e) {
+                            console.warn('Failed to fetch committee members for access check:', e);
+                        }
+
+                        // Check chair/owner fields if still not allowed
+                        if (!allowed && fetchedCommittee) {
+                            const uid = user ? String(user.id || user._id || user.id) : null;
+                            if (uid) {
+                                if (String(fetchedCommittee.chair || '') === uid || String(fetchedCommittee.owner || '') === uid) {
+                                    allowed = true;
+                                }
                             }
                         }
-                    } catch (e) {
-                        console.warn('Failed to fetch committee members for access check:', e);
-                    }
 
-                    if (!allowed && fetchedCommittee) {
-                        const uid = user ? String(user.id || user._id || user.id) : null;
-                        if (uid) {
-                            if (String(fetchedCommittee.chair || '') === uid || String(fetchedCommittee.owner || '') === uid) {
-                                allowed = true;
-                            }
-                        }
-                    }
-
-                    // If fetchedCommittee.myRole is present and indicates guest, disallow creating motions
-                    if (fetchedCommittee && fetchedCommittee.myRole === 'guest') {
-                        allowed = false;
-                    } else {
-                        // fallback to legacy user.guestCommittees check
+                        // Final check: if user is in guestCommittees, deny access
                         if (user && user.guestCommittees) {
                             const committeeIdStr = fetchedCommittee._id ? String(fetchedCommittee._id) : id;
                             if (user.guestCommittees.map(String).includes(committeeIdStr)) {
@@ -88,6 +97,7 @@ function CreateMotionPage() {
                         }
                     }
                 } catch (e) {
+                    console.error('Error determining access:', e);
                     allowed = false;
                 }
 
