@@ -1,18 +1,14 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import Tabs from './reusable/Tabs';
-import MeetingModeControls from './controls/MeetingModeControls';
 import DiscussionRequirements from './controls/DiscussionRequirements';
 import VotingRulesConfig from './controls/VotingRulesConfig';
 import MotionManagementControls from './controls/MotionManagementControls';
-import MemberPrivileges from './controls/MemberPrivileges';
-import ProceduralSettings from './controls/ProceduralSettings';
-import CommitteeSettings from './controls/CommitteeSettings';
+import CommitteeHistory from './controls/CommitteeHistory';
+import { getCommitteeSettings, updateCommitteeSettings } from '../services/committeeSettingsApi';
 
 // Default settings factory function
 const getDefaultSettings = () => ({
-    // Meeting Mode
-    meetingMode: 'async', // 'async' or 'live'
-    
     // Discussion Requirements
     minSpeakersBeforeVote: 0,
     requireProConBalance: false,
@@ -33,21 +29,6 @@ const getDefaultSettings = () => ({
     allowMultipleActiveMotions: true,
     allowAnonymousMotions: false,
     
-    // Member Privileges
-    speakingTimeLimit: 5, // minutes
-    totalSpeakingTimePerMotion: 15, // minutes
-    
-    // Enforcement Level
-    enforcementLevel: 'standard', // 'relaxed', 'standard', 'strict'
-    
-    // Enabled Motion Types
-    enabledMotionTypes: {
-        subsidiary: false,
-        privileged: false,
-        incidental: false,
-        reconsider: false
-    },
-    
     // Committee Settings
     autoArchiveOldMotionsDays: 90,
     requireReasonsForVotes: false,
@@ -55,46 +36,51 @@ const getDefaultSettings = () => ({
     allowGuestObservers: false
 });
 
-// Store settings per committee (simulating backend storage)
-const committeeSettingsCache = {};
-
 function ChairControlPanel({ committeeId, committee }) {
+    const navigate = useNavigate();
     const [activeTab, setActiveTab] = useState("meeting-mode");
-    
-    // Initialize settings from cache or defaults
-    const [settings, setSettings] = useState(() => {
-        if (committeeSettingsCache[committeeId]) {
-            return committeeSettingsCache[committeeId];
-        }
-        return getDefaultSettings();
-    });
+    const [settings, setSettings] = useState(getDefaultSettings());
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState(null);
+    const [isSaving, setIsSaving] = useState(false);
 
-    // Reset settings when committee changes
+    // Fetch settings when committee changes
     useEffect(() => {
-        // Load settings for this committee from cache or use defaults
-        if (committeeSettingsCache[committeeId]) {
-            setSettings(committeeSettingsCache[committeeId]);
-        } else {
-            const defaultSettings = getDefaultSettings();
-            setSettings(defaultSettings);
-            committeeSettingsCache[committeeId] = defaultSettings;
+        async function fetchSettings() {
+            if (!committeeId) return;
+            
+            try {
+                setIsLoading(true);
+                setError(null);
+                
+                const response = await getCommitteeSettings(committeeId);
+                if (response.success) {
+                    // Merge fetched settings with defaults (in case new settings were added)
+                    setSettings({
+                        ...getDefaultSettings(),
+                        ...response.settings
+                    });
+                }
+            } catch (err) {
+                console.error('Error fetching committee settings:', err);
+                setError(err.message || 'Failed to load settings');
+                // Use defaults on error
+                setSettings(getDefaultSettings());
+            } finally {
+                setIsLoading(false);
+            }
         }
         
+        fetchSettings();
         // Reset to first tab when switching committees
-        setActiveTab("meeting-mode");
-        
-        // TODO: In production, fetch settings from backend API here
-        // fetchCommitteeSettings(committeeId).then(setSettings);
+        setActiveTab("discussion");
     }, [committeeId]);
 
     const tabs = [
-        { id: "meeting-mode", label: "Meeting Mode" },
         { id: "discussion", label: "Discussion" },
         { id: "voting", label: "Voting Rules" },
         { id: "motions", label: "Motion Control" },
-        { id: "privileges", label: "Member Privileges" },
-        { id: "procedural", label: "Procedural" },
-        { id: "committee", label: "Committee" }
+        { id: "history", label: "History" }
     ];
 
     const updateSetting = (key, value) => {
@@ -104,11 +90,9 @@ function ChairControlPanel({ committeeId, committee }) {
         };
         setSettings(newSettings);
         
-        // Update cache so settings persist when switching committees
-        committeeSettingsCache[committeeId] = newSettings;
-        
-        // TODO: Save to backend API
-        console.log(`Updating ${key} to ${value} for committee ${committeeId}`);
+        // Auto-save to backend with debouncing (save after user stops making changes)
+        // For now, settings are saved when user clicks "Save All Changes"
+        console.log(`Updated ${key} to ${value} for committee ${committeeId}`);
     };
 
     const updateNestedSetting = (parentKey, childKey, value) => {
@@ -121,17 +105,25 @@ function ChairControlPanel({ committeeId, committee }) {
         };
         setSettings(newSettings);
         
-        // Update cache so settings persist when switching committees
-        committeeSettingsCache[committeeId] = newSettings;
-        
-        // TODO: Save to backend API
-        console.log(`Updating ${parentKey}.${childKey} to ${value} for committee ${committeeId}`);
+        console.log(`Updated ${parentKey}.${childKey} to ${value} for committee ${committeeId}`);
     };
 
-    const saveAllSettings = () => {
-        // TODO: API call to save all settings
-        alert(`Settings saved for ${committee.title}!\n(Backend integration pending)`);
-        console.log('Saving settings:', settings);
+    const saveAllSettings = async () => {
+        try {
+            setIsSaving(true);
+            setError(null);
+            
+            await updateCommitteeSettings(committeeId, settings);
+            
+            // Show success message
+            alert(`Settings saved successfully for ${committee.title}!`);
+        } catch (err) {
+            console.error('Error saving settings:', err);
+            setError(err.message || 'Failed to save settings');
+            alert(`Failed to save settings: ${err.message}`);
+        } finally {
+            setIsSaving(false);
+        }
     };
 
     return (
@@ -147,74 +139,89 @@ function ChairControlPanel({ committeeId, committee }) {
                             Configure procedural settings and controls
                         </p>
                     </div>
-                    <button
-                        onClick={saveAllSettings}
-                        className="px-6 py-2 bg-darker-green text-white rounded-lg hover:bg-opacity-90 transition-all font-medium flex items-center gap-2"
-                    >
-                        <span className="material-symbols-outlined text-xl">save</span>
-                        Save All Changes
-                    </button>
+                    <div className="flex items-center gap-3">
+                        <button
+                            onClick={() => navigate(`/committee/${committeeId}`)}
+                            className="px-6 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-all font-medium flex items-center gap-2"
+                        >
+                            <span className="material-symbols-outlined text-xl">
+                                arrow_forward
+                            </span>
+                            Go To Committee
+                        </button>
+                        <button
+                            onClick={saveAllSettings}
+                            disabled={isSaving}
+                            className="px-6 py-2 bg-darker-green text-white rounded-lg hover:bg-opacity-90 transition-all font-medium flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            <span className="material-symbols-outlined text-xl">
+                                {isSaving ? 'progress_activity' : 'save'}
+                            </span>
+                            {isSaving ? 'Saving...' : 'Save All Changes'}
+                        </button>
+                    </div>
                 </div>
+
+                {/* Error Banner */}
+                {error && (
+                    <div className="mt-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 px-4 py-3 rounded-lg flex items-start gap-2">
+                        <span className="material-symbols-outlined text-xl">error</span>
+                        <div>
+                            <p className="font-semibold">Error</p>
+                            <p className="text-sm">{error}</p>
+                        </div>
+                    </div>
+                )}
             </div>
 
-            {/* Tabs */}
-            <div className="px-6 pt-4">
-                <Tabs tabs={tabs} activeTab={activeTab} onTabChange={setActiveTab} />
-            </div>
+            {/* Loading State */}
+            {isLoading ? (
+                <div className="p-12 flex flex-col items-center justify-center">
+                    <span className="material-symbols-outlined text-6xl text-gray-300 dark:text-gray-700 mb-4 animate-spin">
+                        progress_activity
+                    </span>
+                    <p className="text-gray-500 dark:text-gray-500">Loading settings...</p>
+                </div>
+            ) : (
+                <>
+                    {/* Tabs */}
+                    <div className="px-6 pt-4">
+                        <Tabs tabs={tabs} activeTab={activeTab} onTabChange={setActiveTab} />
+                    </div>
 
-            {/* Tab Content */}
-            <div className="p-6">
-                {activeTab === "meeting-mode" && (
-                    <MeetingModeControls 
-                        settings={settings}
-                        updateSetting={updateSetting}
-                    />
-                )}
-                
-                {activeTab === "discussion" && (
-                    <DiscussionRequirements 
-                        settings={settings}
-                        updateSetting={updateSetting}
-                    />
-                )}
-                
-                {activeTab === "voting" && (
-                    <VotingRulesConfig 
-                        settings={settings}
-                        updateSetting={updateSetting}
-                    />
-                )}
-                
-                {activeTab === "motions" && (
-                    <MotionManagementControls 
-                        settings={settings}
-                        updateSetting={updateSetting}
-                        committeeId={committeeId}
-                    />
-                )}
-                
-                {activeTab === "privileges" && (
-                    <MemberPrivileges 
-                        settings={settings}
-                        updateSetting={updateSetting}
-                    />
-                )}
-                
-                {activeTab === "procedural" && (
-                    <ProceduralSettings 
-                        settings={settings}
-                        updateSetting={updateSetting}
-                        updateNestedSetting={updateNestedSetting}
-                    />
-                )}
-                
-                {activeTab === "committee" && (
-                    <CommitteeSettings 
-                        settings={settings}
-                        updateSetting={updateSetting}
-                    />
-                )}
-            </div>
+                    {/* Tab Content */}
+                    <div className="p-6">
+                        {activeTab === "discussion" && (
+                            <DiscussionRequirements 
+                                settings={settings}
+                                updateSetting={updateSetting}
+                            />
+                        )}
+                        
+                        {activeTab === "voting" && (
+                            <VotingRulesConfig 
+                                settings={settings}
+                                updateSetting={updateSetting}
+                            />
+                        )}
+                        
+                        {activeTab === "motions" && (
+                            <MotionManagementControls 
+                                settings={settings}
+                                updateSetting={updateSetting}
+                                committeeId={committeeId}
+                            />
+                        )}
+                        
+                        {activeTab === "history" && (
+                            <CommitteeHistory 
+                                committeeId={committeeId}
+                                committee={committee}
+                            />
+                        )}
+                    </div>
+                </>
+            )}
         </div>
     );
 }

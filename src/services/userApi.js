@@ -45,6 +45,21 @@ export async function getCurrentUser() {
 }
 
 /**
+ * Get list of users for selection (paginated, searchable)
+ */
+export async function getUsersList(search = '', page = 1, limit = 50) {
+    const params = new URLSearchParams({ search: search || '', page: String(page), limit: String(limit) });
+    const response = await fetch(
+        `${API_BASE_URL}/auth/users/list?${params.toString()}`,
+        {
+            method: 'GET',
+            headers: getHeaders(),
+        }
+    );
+    return handleResponse(response);
+}
+
+/**
  * Get current user's settings
  * @returns {Promise} Response with settings data
  */

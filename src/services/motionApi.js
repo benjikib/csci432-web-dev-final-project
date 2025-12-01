@@ -34,16 +34,25 @@ function getHeaders() {
  * Get all motions in a committee (paginated)
  * @param {string|number} committeeId - The committee ID
  * @param {number} page - Page number (default 1)
+ * @param {Object} filters - Optional filters { type, status, targetMotion }
  * @returns {Promise} Response with motions data
  */
-export async function getMotionsByCommittee(committeeId, page = 1) {
-    const response = await fetch(
-        `${API_BASE_URL}/committee/${committeeId}/motions/${page}`,
-        {
-            method: 'GET',
-            headers: getHeaders(),
-        }
-    );
+export async function getMotionsByCommittee(committeeId, page = 1, filters = {}) {
+    const queryParams = new URLSearchParams();
+    
+    // Add filters to query string if provided
+    if (filters.type) queryParams.append('type', filters.type);
+    if (filters.status) queryParams.append('status', filters.status);
+    if (filters.targetMotion) queryParams.append('targetMotion', filters.targetMotion);
+    if (filters.includeSubsidiaries) queryParams.append('includeSubsidiaries', String(filters.includeSubsidiaries));
+    
+    const queryString = queryParams.toString();
+    const url = `${API_BASE_URL}/committee/${committeeId}/motions/${page}${queryString ? '?' + queryString : ''}`;
+    
+    const response = await fetch(url, {
+        method: 'GET',
+        headers: getHeaders(),
+    });
     return handleResponse(response);
 }
 
@@ -118,10 +127,28 @@ export async function deleteMotion(committeeId, motionId) {
     return handleResponse(response);
 }
 
+/**
+ * Get all subsidiary motions affecting a specific motion
+ * @param {string|number} committeeId - The committee ID
+ * @param {string|number} motionId - The target motion ID
+ * @returns {Promise} Response with subsidiary motions data
+ */
+export async function getSubsidiaryMotions(committeeId, motionId) {
+    const response = await fetch(
+        `${API_BASE_URL}/committee/${committeeId}/motion/${motionId}/subsidiaries`,
+        {
+            method: 'GET',
+            headers: getHeaders(),
+        }
+    );
+    return handleResponse(response);
+}
+
 export default {
     getMotionsByCommittee,
     getMotionById,
     createMotion,
     updateMotion,
     deleteMotion,
+    getSubsidiaryMotions,
 };

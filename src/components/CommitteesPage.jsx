@@ -3,6 +3,7 @@ import { Link } from "react-router-dom"
 import SideBar from './reusable/SideBar'
 import HeaderNav from './reusable/HeaderNav'
 import { getCommittees } from "../services/committeeApi"
+import { getCurrentUser } from '../services/userApi'
 
 function CommitteesPage() {
     const [committees, setCommittees] = useState([])
@@ -16,8 +17,50 @@ function CommitteesPage() {
             try {
                 setLoading(true)
                 setError(null)
+                // Try to get current user to filter visible committees
+                let user = null
+                try {
+                    const current = await getCurrentUser()
+                    user = current && current.user ? current.user : null
+                } catch (e) {
+                    // Not logged in or error fetching user
+                    user = null
+                }
+
                 const data = await getCommittees(1)
-                setCommittees(data.committees || [])
+                const all = data.committees || []
+
+                // If user is admin, show all. Otherwise, only show committees where the user is a member/owner/chair.
+                if (user && user.roles && user.roles.includes('admin')) {
+                    setCommittees(all)
+                } else if (user) {
+                    const uid = String(user.id || user._id || user._id)
+                    const visible = all.filter(c => {
+                        // committee.members may be an array of primitive ids or objects with userId/_id.
+                        if (Array.isArray(c.members) && c.members.length > 0) {
+                            const memberMatch = c.members.some(m => {
+                                if (!m) return false;
+                                if (typeof m === 'string' || typeof m === 'number') return String(m) === uid;
+                                // object: may be { userId } or {_id} or {id}
+                                const memberId = m.userId || m._id || m.id || m;
+                                return String(memberId) === uid;
+                            });
+                            if (memberMatch) return true;
+                        }
+                        // check chair/owner fields
+                        if (String(c.chair || '') === uid) return true
+                        if (String(c.owner || '') === uid) return true
+
+                        // Fallback: for legacy committees that may not have migrated members array, check user's arrays
+                        if (Array.isArray(user.memberCommittees) && user.memberCommittees.map(String).includes(String(c._id || c.id))) return true;
+                        if (Array.isArray(user.guestCommittees) && user.guestCommittees.map(String).includes(String(c._id || c.id))) return true;
+                        return false
+                    })
+                    setCommittees(visible)
+                } else {
+                    // Not signed in — show no committees (privacy)
+                    setCommittees([])
+                }
             } catch (err) {
                 console.error('Error fetching committees:', err)
                 setError(err.message || 'Failed to load committees')

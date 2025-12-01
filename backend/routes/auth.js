@@ -47,13 +47,14 @@ router.post('/register',
       // Generate profile picture URL using DiceBear API
       const profilePictureUrl = `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(name)}&backgroundColor=54966D&textColor=ffffff`;
 
-      // Create user
+      // Create user (assign default role 'guest')
       const user = await User.create({
         email,
         password: hashedPassword,
         name,
         communityCode,
-        picture: profilePictureUrl
+        picture: profilePictureUrl,
+        roles: ['guest']
       });
 
       // Generate JWT token
@@ -212,13 +213,14 @@ router.get('/me', authenticate, async (req, res) => {
         address: user.address,
         picture: user.picture,
         communityCode: user.communityCode,
-        roles: user.roles || ['member'],
+        roles: user.roles || ['guest'],
         permissions: user.permissions || [],
         settings: user.settings || {
           theme: 'light',
           notifications: true,
           displayName: user.name
         },
+        guestCommittees: user.guestCommittees || [],
         createdAt: user.createdAt
       }
     });
@@ -406,7 +408,7 @@ router.get('/users', authenticate, requireRole('admin'), async (req, res) => {
       email: user.email,
       name: user.name,
       picture: user.picture,
-      roles: user.roles || ['member'],
+      roles: user.roles || ['guest'],
       permissions: user.permissions || [],
       settings: user.settings || {
         theme: 'light',
@@ -426,6 +428,50 @@ router.get('/users', authenticate, requireRole('admin'), async (req, res) => {
       success: false,
       message: 'Server error fetching users'
     });
+  }
+});
+
+/**
+ * @route   GET /auth/users/list
+ * @desc    Get list of users for selection (authenticated users)
+ * @access  Private (authenticated)
+ */
+router.get('/users/list', authenticate, requireRole('admin'), async (req, res) => {
+  try {
+    const search = (req.query.search || '').trim();
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 50;
+    const skip = (page - 1) * limit;
+
+    const filter = {};
+    if (search) {
+      const regex = new RegExp(search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
+      filter.$or = [
+        { name: regex },
+        { email: regex },
+        { 'settings.displayName': regex }
+      ];
+    }
+
+    const total = await User.collection().countDocuments(filter);
+    const users = await User.collection()
+      .find(filter)
+      .skip(skip)
+      .limit(limit)
+      .toArray();
+
+    const usersData = users.map(u => ({
+      _id: u._id,
+      email: u.email,
+      name: u.name,
+      picture: u.picture,
+      settings: u.settings
+    }));
+
+    res.json({ success: true, users: usersData, page, limit, total, totalPages: Math.ceil(total / limit) });
+  } catch (error) {
+    console.error('Get users list error:', error);
+    res.status(500).json({ success: false, message: 'Server error fetching users' });
   }
 });
 

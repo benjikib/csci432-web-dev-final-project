@@ -8,7 +8,6 @@ function VotingRulesConfig({ settings, updateSetting }) {
     const voteTypes = [
         { value: 'ballot', label: 'Secret Ballot', description: 'Anonymous voting, results shown after voting closes', icon: 'how_to_vote' },
         { value: 'roll_call', label: 'Roll Call Vote', description: 'Public vote with each member\'s choice recorded', icon: 'fact_check' },
-        { value: 'voice', label: 'Voice Vote', description: 'Quick show of hands for non-controversial motions', icon: 'front_hand' },
         { value: 'unanimous_consent', label: 'Unanimous Consent', description: 'Pass without objection, no formal vote needed', icon: 'done_all' }
     ];
 

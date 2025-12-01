@@ -13,6 +13,8 @@ class Comment {
       author: commentData.author, // User ID
       content: commentData.content,
       stance: commentData.stance || 'neutral', // pro, con, neutral
+      isSystemMessage: commentData.isSystemMessage || false,
+      messageType: commentData.messageType || null, // 'voting-eligible' | 'roll-call-vote' | 'voting-opened' | 'voting-closed'
       createdAt: new Date(),
       updatedAt: new Date()
     };
@@ -25,17 +27,60 @@ class Comment {
     const skip = (page - 1) * limit;
     const comments = await this.collection()
       .find({ motionId: new ObjectId(motionId) })
-      .sort({ createdAt: -1 })
+      .sort({ createdAt: 1 })  // Sort ascending (oldest first) for chat-like display
       .skip(skip)
       .limit(limit)
       .toArray();
+
+    // Populate author information
+    const userCollection = getDB().collection('users');
+    const commentsWithAuthors = await Promise.all(
+      comments.map(async (comment) => {
+        if (comment.author) {
+          // Try both ObjectId and string format for author field
+          let user = null;
+          try {
+            // First try as ObjectId
+            user = await userCollection.findOne(
+              { _id: new ObjectId(comment.author) },
+              { projection: { name: 1, email: 1, picture: 1 } }
+            );
+          } catch (e) {
+            // If that fails, try as string (in case it's stored differently)
+            user = await userCollection.findOne(
+              { _id: comment.author },
+              { projection: { name: 1, email: 1, picture: 1 } }
+            );
+          }
+          
+          // Also try userId field if _id didn't work
+          if (!user) {
+            user = await userCollection.findOne(
+              { userId: comment.author },
+              { projection: { name: 1, email: 1, picture: 1 } }
+            );
+          }
+          
+          return {
+            ...comment,
+            authorName: user?.name || 'Unknown User',
+            authorInfo: user ? { name: user.name, email: user.email, picture: user.picture } : null
+          };
+        }
+        return {
+          ...comment,
+          authorName: 'Unknown User',
+          authorInfo: null
+        };
+      })
+    );
 
     const total = await this.collection().countDocuments({
       motionId: new ObjectId(motionId)
     });
 
     return {
-      comments,
+      comments: commentsWithAuthors,
       page,
       limit,
       totalPages: Math.ceil(total / limit),

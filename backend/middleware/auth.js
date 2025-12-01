@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const Committee = require('../models/Committee');
 
 /**
  * Middleware to verify JWT token and authenticate user
@@ -184,4 +185,53 @@ function requireRole(role) {
   };
 }
 
-module.exports = { authenticate, optionalAuth, requirePermissionOrAdmin, requireRole };
+module.exports = { authenticate, optionalAuth, requirePermissionOrAdmin, requireRole, requireCommitteeChairOrPermission };
+
+/**
+ * Middleware to allow either users with a permission/admin OR the chair of the target committee
+ * Usage: requireCommitteeChairOrPermission('edit_any_committee')
+ */
+function requireCommitteeChairOrPermission(permission) {
+  return async (req, res, next) => {
+    try {
+      if (!req.user || !req.user.userId) {
+        return res.status(401).json({ success: false, message: 'Authentication required' });
+      }
+
+      // Get full user document
+      const user = await User.findById(req.user.userId);
+      if (!user) {
+        return res.status(401).json({ success: false, message: 'User not found' });
+      }
+
+      const isAdmin = user.roles && user.roles.includes('admin');
+      const hasPermission = user.permissions && user.permissions.includes(permission);
+
+      if (isAdmin || hasPermission) {
+        return next();
+      }
+
+      // Determine committee identifier from params or body
+      const committeeIdentifier = req.params.id || req.body.committeeId || req.body.id;
+      if (!committeeIdentifier) {
+        return res.status(400).json({ success: false, message: 'Committee identifier required' });
+      }
+
+      const committee = await Committee.findByIdOrSlug(committeeIdentifier);
+      if (!committee) {
+        return res.status(404).json({ success: false, message: 'Committee not found' });
+      }
+
+      // If the authenticated user is the committee chair (or owner) according to the committee.members list, allow
+      const myRole = await Committee.getMemberRole(committee._id, req.user.userId);
+      if (myRole === 'chair' || myRole === 'owner') {
+        return next();
+      }
+
+      return res.status(403).json({ success: false, message: 'You do not have permission to perform this action' });
+    } catch (error) {
+      console.error('Committee chair/permission check error:', error);
+      return res.status(500).json({ success: false, message: 'Error checking permissions' });
+    }
+  };
+}

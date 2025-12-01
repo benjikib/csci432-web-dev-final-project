@@ -46,13 +46,28 @@ export async function getCommittees(page = 1) {
 }
 
 /**
+ * Get committees where current user is chair
+ * @returns {Promise} Response with committees data
+ */
+export async function getMyChairCommittees() {
+    const response = await fetch(
+        `${API_BASE_URL}/committees/my-chairs`,
+        {
+            method: 'GET',
+            headers: getHeaders(),
+        }
+    );
+    return handleResponse(response);
+}
+
+/**
  * Get specific committee details
  * @param {string} id - The committee ID
  * @returns {Promise} Response with committee data
  */
 export async function getCommitteeById(id) {
     const response = await fetch(
-        `${API_BASE_URL}/committee/${id}`,
+        `${API_BASE_URL}/committee/${encodeURIComponent(id)}`,
         {
             method: 'GET',
             headers: getHeaders(),
@@ -104,6 +119,63 @@ export async function updateCommittee(id, committeeData) {
 export async function deleteCommittee(id) {
     const response = await fetch(
         `${API_BASE_URL}/committee/${id}`,
+        {
+            method: 'DELETE',
+            headers: getHeaders(),
+        }
+    );
+    return handleResponse(response);
+}
+
+/**
+ * Get user objects for members of a committee
+ */
+export async function getCommitteeMembers(id) {
+    const response = await fetch(
+        `${API_BASE_URL}/committee/${encodeURIComponent(id)}/members`,
+        {
+            method: 'GET',
+            headers: getHeaders(),
+        }
+    );
+    return handleResponse(response);
+}
+
+/**
+ * Get potential members (users not currently in the committee)
+ */
+export async function getPotentialMembers(id) {
+    const response = await fetch(
+        `${API_BASE_URL}/committee/${encodeURIComponent(id)}/potential-members?page=1&limit=50`,
+        {
+            method: 'GET',
+            headers: getHeaders(),
+        }
+    );
+    return handleResponse(response);
+}
+
+/**
+ * Add a user to the committee
+ */
+export async function addMember(id, userId, role = 'member') {
+    const response = await fetch(
+        `${API_BASE_URL}/committee/${encodeURIComponent(id)}/member/add`,
+        {
+            method: 'POST',
+            headers: getHeaders(),
+            body: JSON.stringify({ userId, role })
+        }
+    );
+    return handleResponse(response);
+}
+
+/**
+ * Remove a user from the committee
+ */
+export async function removeMember(id, userId) {
+    const response = await fetch(
+        `${API_BASE_URL}/committee/${encodeURIComponent(id)}/member/${encodeURIComponent(userId)}`,
         {
             method: 'DELETE',
             headers: getHeaders(),
