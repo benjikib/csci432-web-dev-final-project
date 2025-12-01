@@ -3,6 +3,9 @@ import { useState, useEffect } from "react"
 import { BsFillFilterSquareFill, BsChatLeftDotsFill, BsCheckCircleFill } from "react-icons/bs"
 import MotionDetailsComments from "./MotionDetailsComments"
 import { getMotionById } from "../services/motionApi"
+import { getCurrentUser } from '../services/userApi'
+import { getCommitteeMembers, getCommitteeById } from '../services/committeeApi'
+import NoAccessPage from './NoAccessPage'
 
 function MotionDetails() {
     const { committeeId, motionId } = useParams()
@@ -12,6 +15,12 @@ function MotionDetails() {
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState(null)
     const [activeTab, setActiveTab] = useState("description")
+    const [hasAccess, setHasAccess] = useState(null)
+    const [currentUserState, setCurrentUserState] = useState(null)
+    const [isGuest, setIsGuest] = useState(false)
+    const [isMember, setIsMember] = useState(false)
+    const [isAdmin, setIsAdmin] = useState(false)
+    const [isChair, setIsChair] = useState(false)
 
     // Fetch motion details from API when component mounts
     useEffect(() => {
@@ -21,6 +30,71 @@ function MotionDetails() {
                 setError(null);
                 const data = await getMotionById(committeeId, motionId);
                 setMotion(data.motion || data);
+                // Access check: ensure current user is allowed to view motions for this committee
+                let allowed = false;
+                try {
+                    const current = await getCurrentUser();
+                    const user = (current && (current.user || current.data)) || current || null;
+                    setCurrentUserState(user);
+                    const userId = user && (String(user.id || user._id || user._id || user._id));
+                    const userRoles = user && user.roles ? user.roles : [];
+                    const adminFlag = userRoles.includes('admin');
+                    setIsAdmin(Boolean(adminFlag));
+                    if (adminFlag) allowed = true;
+
+                    // Prefer committee.myRole if available (faster and more accurate)
+                    try {
+                        const cdata = await getCommitteeById(committeeId);
+                        const myRole = cdata && cdata.myRole ? cdata.myRole : null;
+                        setIsAdmin(Boolean(adminFlag));
+                        setIsChair(Boolean(myRole === 'chair' || myRole === 'owner'));
+                        setIsMember(Boolean(myRole === 'member' || myRole === 'chair' || myRole === 'owner'));
+                        setIsGuest(Boolean(myRole === 'guest'));
+                        // Any confirmed committee role (member/chair/owner/guest) can view motion details.
+                        // Guests are intentionally allowed to view the motion but cannot vote.
+                        if (myRole) allowed = true;
+                    } catch (e) {
+                        // fallback to older approach
+                        try {
+                            const membersRes = await getCommitteeMembers(committeeId);
+                            const membersList = (membersRes && membersRes.members) || [];
+                            let memberFound = userId && membersList.some(m => {
+                                if (!m) return false;
+                                const mid = m._id || m.id || m.userId || m;
+                                return String(mid) === userId;
+                            });
+                            // If no match found in members list, fall back to user.memberCommittees
+                            if (!memberFound && user && Array.isArray(user.memberCommittees)) {
+                                memberFound = user.memberCommittees.map(String).includes(String(committeeId));
+                            }
+                            setIsMember(Boolean(memberFound));
+                            if (memberFound) allowed = true;
+
+                            // determine guest status from user object if present
+                            let guestFlag = false;
+                            if (user && Array.isArray(user.guestCommittees)) {
+                                guestFlag = user.guestCommittees.some(g => String(g) === String(committeeId) || String(g?._id) === String(committeeId));
+                            }
+                            // Also allow guest determination from user.guestCommittees with legacy _id fields
+                            if (!guestFlag && user && Array.isArray(user.guestCommittees)) {
+                                guestFlag = user.guestCommittees.map(String).includes(String(committeeId));
+                            }
+                            // Also set isChair from user.ownedCommittees if available
+                            if (user && Array.isArray(user.ownedCommittees)) {
+                                setIsChair(user.ownedCommittees.map(String).includes(String(committeeId)));
+                            }
+                            setIsGuest(Boolean(guestFlag));
+                            // If the user is a declared guest in the user doc, they should still be allowed to view
+                            if (guestFlag) allowed = true;
+                        } catch (e) {
+                            console.warn('Failed to fetch committee members for access check:', e);
+                        }
+                    }
+                } catch (e) {
+                    allowed = false;
+                }
+
+                setHasAccess(Boolean(allowed));
             } catch (err) {
                 console.error('Error fetching motion:', err);
                 setError(err.message || 'Failed to load motion');
@@ -33,6 +107,14 @@ function MotionDetails() {
             fetchMotion();
         }
     }, [committeeId, motionId])
+
+    const canVote = !isGuest && (isAdmin || isMember)
+
+    useEffect(() => {
+        if (!canVote && activeTab === 'voting') {
+            setActiveTab('description')
+        }
+    }, [canVote, activeTab])
 
     const handleClose = () => {
         // If there's a background state, go back; otherwise, navigate to committee page
@@ -96,6 +178,19 @@ function MotionDetails() {
         )
     }
 
+    if (hasAccess === false) {
+        return (
+            <div className="modal-backdrop" onClick={handleBackdropClick}>
+                <div className="modal-content">
+                    <button className="modal-close" onClick={handleClose}>&times;</button>
+                    <div className="details-container">
+                        <NoAccessPage committeeId={committeeId} committeeTitle={null} />
+                    </div>
+                </div>
+            </div>
+        )
+    }
+
     return (
         <div className="modal-backdrop" onClick={handleBackdropClick}>
             <div className="modal-content modal-content-tabbed">
@@ -143,13 +238,15 @@ function MotionDetails() {
                         >
                             <BsChatLeftDotsFill />
                         </button>
-                        <button
-                            className={`tab-button ${activeTab === "voting" ? "active" : ""}`}
-                            onClick={() => setActiveTab("voting")}
-                            title="Voting"
-                        >
-                            <BsCheckCircleFill />
-                        </button>
+                        {canVote && (
+                            <button
+                                className={`tab-button ${activeTab === "voting" ? "active" : ""}`}
+                                onClick={() => setActiveTab("voting")}
+                                title="Voting"
+                            >
+                                <BsCheckCircleFill />
+                            </button>
+                        )}
                     </div>
 
                     <div className="modal-main-content">
@@ -163,7 +260,7 @@ function MotionDetails() {
                         {activeTab === "comments" && (
                             <div className="tab-content">
 
-                                <MotionDetailsComments />
+                                <MotionDetailsComments committeeId={committeeId} motionId={motionId} />
                                 
                             </div>
                         )}
@@ -184,10 +281,14 @@ function MotionDetails() {
                                     <div className="vote-buttons">
                                         <button
                                             className="vote-button vote-yes"
-                                            onClick = { handleYesVote }
-                                            >Vote Yes</button>
-                                        <button className="vote-button vote-no">Vote No</button>
+                                            onClick={handleYesVote}
+                                            disabled={!canVote}
+                                        >Vote Yes</button>
+                                        <button className="vote-button vote-no" disabled={!canVote}>Vote No</button>
                                     </div>
+                                    {!canVote && (
+                                        <div className="mt-3 text-sm text-gray-500">Guests cannot vote on motions.</div>
+                                    )}
                                 </div>
                             </div>
                         )}

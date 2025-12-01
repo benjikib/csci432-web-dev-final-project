@@ -188,6 +188,16 @@ router.post('/committee/:id/motion/create',
       const { title, description, fullDescription } = req.body;
 
       // Create motion with userId reference
+      // Disallow guest users from creating motions in this committee
+      try {
+        const role = await Committee.getMemberRole(committee._id, req.user.userId);
+        if (role === 'guest') {
+          return res.status(403).json({ success: false, message: 'Guest members are not allowed to create motions in this committee' });
+        }
+      } catch (e) {
+        console.warn('Failed to verify member role for user:', e);
+      }
+
       const motion = await Committee.createMotion(committee._id, {
         title,
         description,

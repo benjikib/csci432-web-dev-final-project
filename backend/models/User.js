@@ -33,13 +33,14 @@ class User {
       },
 
       // Roles and Permissions
-      roles: userData.roles || ['member'], // Default role: member. Options: admin, member, guest, chair, etc.
+      roles: userData.roles || ['guest'], // Default role: guest for new signups. Options: admin, member, guest, chair, etc.
       permissions: userData.permissions || [], // Array of permission strings
 
       // Committee relationships
       ownedCommittees: userData.ownedCommittees || [], // Array of committee IDs this user owns
       chairedCommittees: userData.chairedCommittees || [], // Array of committee IDs this user chairs
       memberCommittees: userData.memberCommittees || [], // Array of committee IDs this user is a member of
+      guestCommittees: userData.guestCommittees || [], // Array of committee IDs where the user is a guest
 
       // Motion relationships
       authoredMotions: userData.authoredMotions || [], // Array of motion IDs this user created
@@ -192,6 +193,26 @@ class User {
     );
   }
 
+  static async addGuestCommittee(userId, committeeId) {
+    return await this.collection().updateOne(
+      { _id: new ObjectId(userId) },
+      {
+        $addToSet: { guestCommittees: new ObjectId(committeeId) },
+        $set: { updatedAt: new Date() }
+      }
+    );
+  }
+
+  static async removeGuestCommittee(userId, committeeId) {
+    return await this.collection().updateOne(
+      { _id: new ObjectId(userId) },
+      {
+        $pull: { guestCommittees: new ObjectId(committeeId) },
+        $set: { updatedAt: new Date() }
+      }
+    );
+  }
+
   static async removeMemberCommittee(userId, committeeId) {
     return await this.collection().updateOne(
       { _id: new ObjectId(userId) },
@@ -231,7 +252,8 @@ class User {
     return {
       owned: user.ownedCommittees || [],
       chaired: user.chairedCommittees || [],
-      member: user.memberCommittees || []
+      member: user.memberCommittees || [],
+      guest: user.guestCommittees || []
     };
   }
 

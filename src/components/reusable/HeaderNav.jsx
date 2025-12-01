@@ -20,15 +20,63 @@ function SearchBar( {setSearchedTerm} ) {
 };
 
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { API_BASE_URL } from '../../config/api.js';
+import { getNotifications, handleNotification } from '../../services/notificationApi.js';
 
 // const HeaderNav = ( {searchedTerm, setSearchedTerm} ) => {
 export default function HeaderNav( {setSearchedTerm} ) {
         const navigate = useNavigate();
         const [user, setUser] = useState(null);
         const [isAuthenticated, setIsAuthenticated] = useState(false);
+        const [notifications, setNotifications] = useState([]);
+        const [unreadCount, setUnreadCount] = useState(0);
+        const dropdownRef = useRef(null);
+        const [open, setOpen] = useState(false);
+
+        useEffect(() => {
+                function handleClickOutside(e) {
+                        if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+                                setOpen(false)
+                        }
+                }
+                document.addEventListener('mousedown', handleClickOutside)
+                return () => document.removeEventListener('mousedown', handleClickOutside)
+        }, [])
+
+        async function fetchNotifications() {
+                try {
+                        const data = await getNotifications(1, 20)
+                        const list = data.notifications || data
+                        setNotifications(list)
+                        const pending = list.filter(n => n.status === 'pending').length
+                        setUnreadCount(pending)
+
+                        // Mark non-approval notifications as seen when loaded in the dropdown
+                        try {
+                                const toMark = list.filter(n => n.type !== 'access_request' && !n.seenAt).map(n => n._id)
+                                if (toMark.length > 0) {
+                                        // mark each as seen (fire-and-forget, but await to keep UI consistent)
+                                        await Promise.allSettled(toMark.map(id => handleNotification(id, 'mark_seen')))
+                                }
+                        } catch (e) {
+                                console.warn('Failed to mark notifications seen:', e)
+                        }
+                } catch (err) {
+                        console.error('Failed fetching notifications', err)
+                }
+        }
+
+        async function onHandle(notificationId, action) {
+                try {
+                        await handleNotification(notificationId, action)
+                        await fetchNotifications()
+                } catch (err) {
+                        console.error('Failed handling notification', err)
+                        alert(err.message || 'Failed to handle notification')
+                }
+        }
 
         useEffect(() => {
                 async function fetchUserData() {
@@ -71,6 +119,17 @@ export default function HeaderNav( {setSearchedTerm} ) {
                 fetchUserData();
         }, []);
 
+        // Poll notifications every 5 minutes while a user is signed in.
+        useEffect(() => {
+                if (!user) return;
+                // fetch immediately, then poll
+                fetchNotifications();
+                const intervalId = setInterval(() => {
+                        fetchNotifications();
+                }, 300000); // 300,000 ms = 5 minutes
+                return () => clearInterval(intervalId);
+        }, [user]);
+
         const handleLogout = () => {
                 // Clear token and user from localStorage
                 localStorage.removeItem('token');
@@ -99,9 +158,59 @@ export default function HeaderNav( {setSearchedTerm} ) {
                         <div className="flex items-center gap-6">
                                 {isAuthenticated ? (
                                         <>
-                                                <a href="/notifications" title="Notifications" className="hover:scale-110 transition-all">
-                                                        <span className="material-symbols-outlined text-4xl !text-gray-600 dark:!text-white hover:!text-gray-900 dark:hover:!text-gray-300">notifications</span>
-                                                </a>
+                                                <div className="relative" ref={dropdownRef}>
+                                                        <a
+                                                                className="hover:scale-110 transition-all relative inline-block cursor-pointer"
+                                                                onClick={async () => {
+                                                                        setOpen(o => {
+                                                                                const newVal = !o
+                                                                                if (newVal) {
+                                                                                        fetchNotifications()
+                                                                                }
+                                                                                return newVal
+                                                                        })
+                                                                }}
+                                                                aria-label="Notifications"
+                                                        >
+                                                                <span className="material-symbols-outlined text-4xl !text-gray-600 dark:!text-white hover:!text-gray-900 dark:hover:!text-gray-300">notifications</span>
+                                                                {unreadCount > 0 && (
+                                                                        <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full px-1">{unreadCount}</span>
+                                                                )}
+                                                        </a>
+
+                                                        {/* Dropdown panel */}
+                                                        {open && (
+                                                                <div className="absolute right-0 mt-2 w-80 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100 rounded shadow-lg z-50">
+                                                                        <div className="p-2 border-b border-gray-100 dark:border-gray-700 font-medium">Notifications</div>
+                                                                        <div className="max-h-64 overflow-auto">
+                                                                                {notifications.length === 0 && (
+                                                                                        <div className="p-3 text-sm text-gray-600 dark:text-gray-300">No notifications</div>
+                                                                                )}
+                                                                                {notifications.map(n => (
+                                                                                        <div key={n._id} className="p-3 border-b last:border-b-0 bg-white dark:bg-gray-800">
+                                                                                                <div className="flex justify-between items-start">
+                                                                                                        <div className="text-sm font-medium dark:text-gray-100">{n.committeeTitle || 'Committee'}</div>
+                                                                                                        <div className="text-xs text-gray-500 dark:text-gray-400">{new Date(n.createdAt).toLocaleString()}</div>
+                                                                                                </div>
+                                                                                                <div className="text-sm text-gray-700 dark:text-gray-300 mt-1">{n.requesterName ? `${n.requesterName} — ` : ''}{n.message}</div>
+                                                                                                <div className="mt-2 flex gap-2">
+                                                                                                        {n.status === 'pending' && (user?.roles?.includes('admin') || (user?.chairedCommittees && user.chairedCommittees.map(String).includes(String(n.committeeId)))) && (
+                                                                                                                <>
+                                                                                                                        <button onClick={() => onHandle(n._id, 'approve')} className="px-2 py-1 bg-[#54966D] hover:bg-[#5ca377] text-white text-xs rounded">Approve</button>
+                                                                                                                        <button onClick={() => onHandle(n._id, 'deny')} className="px-2 py-1 bg-red-500 hover:bg-red-600 text-white text-xs rounded">Deny</button>
+                                                                                                                </>
+                                                                                                        )}
+                                                                                                        {n.status !== 'pending' && (
+                                                                                                                <div className="text-xs text-gray-500 dark:text-gray-400">{n.status}</div>
+                                                                                                        )}
+                                                                                                </div>
+                                                                                        </div>
+                                                                                ))}
+                                                                        </div>
+                                                                </div>
+                                                        )}
+                                                </div>
+
                                                 <a href="/settings" title="Settings" className="hover:scale-110 transition-all">
                                                         <span className="material-symbols-outlined text-4xl !text-gray-600 dark:!text-white hover:!text-gray-900 dark:hover:!text-gray-300">settings</span>
                                                 </a>

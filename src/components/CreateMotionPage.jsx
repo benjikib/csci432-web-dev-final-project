@@ -2,10 +2,12 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import SideBar from './reusable/SideBar';
 import HeaderNav from './reusable/HeaderNav';
-import { getCommitteeById } from '../services/committeeApi';
+import { getCommitteeById, getCommitteeMembers } from '../services/committeeApi';
 import { createMotion } from '../services/motionApi';
 import { useNavigationBlock } from '../context/NavigationContext';
 import { API_BASE_URL } from '../config/api.js';
+import { getCurrentUser } from '../services/userApi';
+import NoAccessPage from './NoAccessPage';
 
 function CreateMotionPage() {
     const { id } = useParams();
@@ -14,6 +16,7 @@ function CreateMotionPage() {
     const [committee, setCommittee] = useState(null);
     const [currentUser, setCurrentUser] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [hasAccess, setHasAccess] = useState(null);
     const [searchedTerm, setSearchedTerm] = useState("");
     const [existingMotions, setExistingMotions] = useState([]);
     const { blockNavigation, unblockNavigation, confirmNavigation } = useNavigationBlock();
@@ -35,24 +38,60 @@ function CreateMotionPage() {
                     setExistingMotions(fetchedCommittee.motions);
                 }
 
-                // Fetch current user if authenticated
-                const token = localStorage.getItem('token');
-                if (token) {
-                    try {
-                        const response = await fetch(`${API_BASE_URL}/auth/me`, {
-                            headers: {
-                                'Authorization': `Bearer ${token}`
-                            }
-                        });
-
-                        if (response.ok) {
-                            const data = await response.json();
-                            setCurrentUser(data.user);
-                        }
-                    } catch (err) {
-                        console.error('Error fetching user:', err);
+                // Determine access: fetch current user and committee members
+                let allowed = false;
+                try {
+                    const current = await getCurrentUser();
+                    const user = current && current.user ? current.user : null;
+                    setCurrentUser(user);
+                    if (user && user.roles && user.roles.includes('admin')) {
+                        allowed = true;
                     }
+
+                    // Fetch members and check membership
+                    try {
+                        const membersRes = await getCommitteeMembers(id);
+                        const membersList = (membersRes && membersRes.members) || [];
+                        if (user) {
+                            const uid = String(user.id || user._id || user.id);
+                            if (membersList.some(m => {
+                                if (!m) return false;
+                                const mid = m._id || m.id || m.userId || m;
+                                return String(mid) === uid;
+                            })) {
+                                allowed = true;
+                            }
+                        }
+                    } catch (e) {
+                        console.warn('Failed to fetch committee members for access check:', e);
+                    }
+
+                    if (!allowed && fetchedCommittee) {
+                        const uid = user ? String(user.id || user._id || user.id) : null;
+                        if (uid) {
+                            if (String(fetchedCommittee.chair || '') === uid || String(fetchedCommittee.owner || '') === uid) {
+                                allowed = true;
+                            }
+                        }
+                    }
+
+                    // If fetchedCommittee.myRole is present and indicates guest, disallow creating motions
+                    if (fetchedCommittee && fetchedCommittee.myRole === 'guest') {
+                        allowed = false;
+                    } else {
+                        // fallback to legacy user.guestCommittees check
+                        if (user && user.guestCommittees) {
+                            const committeeIdStr = fetchedCommittee._id ? String(fetchedCommittee._id) : id;
+                            if (user.guestCommittees.map(String).includes(committeeIdStr)) {
+                                allowed = false;
+                            }
+                        }
+                    }
+                } catch (e) {
+                    allowed = false;
                 }
+
+                setHasAccess(Boolean(allowed));
             } catch (err) {
                 console.error('Error fetching data:', err);
                 setCommittee(null);
@@ -365,6 +404,20 @@ function CreateMotionPage() {
                 <div className="mt-20 ml-[16rem] px-8 min-h-screen bg-[#F8FEF9] dark:bg-gray-900">
                     <div className="max-w-4xl">
                         <h2 className="section-title dark:text-gray-100">Committee Not Found</h2>
+                    </div>
+                </div>
+            </>
+        );
+    }
+
+    if (hasAccess === false) {
+        return (
+            <>
+                <HeaderNav setSearchedTerm={setSearchedTerm} />
+                <SideBar />
+                <div className="mt-20 ml-[16rem] px-8 min-h-screen bg-[#F8FEF9] dark:bg-gray-900">
+                    <div className="max-w-4xl">
+                        <NoAccessPage committeeId={id} committeeTitle={committee?.title} />
                     </div>
                 </div>
             </>

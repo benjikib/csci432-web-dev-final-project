@@ -1,102 +1,130 @@
 import { useState, useEffect, useRef } from "react";
+import { createNotification, getNotificationsForTarget } from '../services/notificationApi';
+import { getCurrentUser } from '../services/userApi';
 
-export default function MotionDetailsComments() {
-  const [comments, setComments] = useState([
-    {
-      id: 1,
-      text: "Hello! This is a test message to see how the chat looks.",
-      sender: "JohnDoe"
-    }
-  ]);
-  const [newComment, setNewComment] = useState("");
-  const chatEndRef = useRef(null);
+export default function MotionDetailsComments({ committeeId, motionId }) {
+        const [comments, setComments] = useState([]);
+        const [newComment, setNewComment] = useState("");
+        const [currentUser, setCurrentUser] = useState(null);
+        const chatEndRef = useRef(null);
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (!newComment.trim()) return;
+        // Load current user and existing messages for this motion
+        useEffect(() => {
+                let mounted = true;
+                async function load() {
+                        try {
+                                const cur = await getCurrentUser().catch(() => null);
+                                if (!mounted) return;
+                                setCurrentUser(cur && cur.user ? cur.user : null);
 
-    setComments((prev) => [
-      ...prev,
-      { id: Date.now(), text: newComment, sender: "user" },
-    ]);
+                                if (!motionId) return;
+                                const res = await getNotificationsForTarget('motion', motionId);
+                                if (!mounted) return;
+                                if (res && res.notifications) {
+                                        const mapped = res.notifications.map(n => ({
+                                                id: n._id,
+                                                text: n.message,
+                                                senderName: n.requesterName || (n.requesterId ? String(n.requesterId) : 'User'),
+                                                requesterId: n.requesterId ? String(n.requesterId) : null,
+                                                createdAt: n.createdAt
+                                        }));
+                                        setComments(mapped);
+                                }
+                        } catch (e) {
+                                console.error('Failed to load messages:', e);
+                        }
+                }
+                load();
+                return () => { mounted = false; };
+        }, [motionId]);
 
-    setNewComment("");
-  };
+        // Automatically scroll to the latest message
+        useEffect(() => {
+                chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+        }, [comments]);
 
-  // Automatically scroll to the latest message
-  useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [comments]);
+        const handleSubmit = async (e) => {
+                e.preventDefault();
+                if (!newComment.trim()) return;
 
-  return (
-        <div className="mx-auto bg-superlight-green shadow-md rounded-lg p-4 flex flex-col h-110">
-                <h2 className="text-lg font-semibold mb-3 text-gray-800">Chat</h2>
+                try {
+                        const payload = {
+                                type: 'message',
+                                targetType: 'motion',
+                                targetId: motionId,
+                                committeeId: committeeId,
+                                message: newComment
+                        };
 
-                {/* Chat area */}
-                <div className="flex-grow overflow-y-auto bg-white border border-lighter-green/30 rounded-md p-3 space-y-3">
-                
-                {comments.length === 0 ? (
-                        <p className="text-gray-600 text-sm text-center mt-10">
-                        No messages yet. Say hello!
-                        </p>
-                ) : (
-                        comments.map((comment) => (
-                        <div key={comment.id} className={`flex items-center gap-2 ${comment.sender === "user" ? "justify-end" : "justify-start"}`}>
-                                {comment.sender !== "user" && (
-                                        <div className="w-8 h-8 rounded-full bg-gray-300 flex-shrink-0 overflow-hidden self-start mt-6">
-                                                <div className="w-full h-full flex items-center justify-center text-gray-600">
-                                                        {comment.sender ? comment.sender.charAt(0).toUpperCase() : 'U'}
-                                                </div>
-                                        </div>
+                        const res = await createNotification(payload);
+                        const note = res && res.notification ? res.notification : null;
+                        const added = note ? {
+                                id: note._id,
+                                text: note.message,
+                                senderName: note.requesterName,
+                                requesterId: note.requesterId ? String(note.requesterId) : null,
+                                createdAt: note.createdAt
+                        } : {
+                                id: Date.now(),
+                                text: newComment,
+                                senderName: currentUser ? (currentUser.name || 'You') : 'You',
+                                requesterId: currentUser ? (currentUser.id || currentUser._id) : null,
+                                createdAt: new Date()
+                        };
+
+                        setComments(prev => [...prev, added]);
+                        setNewComment("");
+                } catch (err) {
+                        console.error('Failed to send message:', err);
+                        alert('Failed to send message');
+                }
+        };
+
+        return (
+                <div className="mx-auto bg-superlight-green shadow-md rounded-lg p-4 flex flex-col h-110">
+                        <h2 className="text-lg font-semibold mb-3 text-gray-800">Chat</h2>
+
+                        {/* Chat area */}
+                        <div className="flex-grow overflow-y-auto bg-white border border-lighter-green/30 rounded-md p-3 space-y-3">
+                                {comments.length === 0 ? (
+                                        <p className="text-gray-600 text-sm text-center mt-10">No messages yet. Say hello!</p>
+                                ) : (
+                                        comments.map((comment) => {
+                                                const isMine = currentUser && String(currentUser.id || currentUser._id || currentUser._id) === String(comment.requesterId);
+                                                return (
+                                                        <div key={comment.id} className={`flex items-center gap-2 ${isMine ? 'justify-end' : 'justify-start'}`}>
+                                                                {!isMine && (
+                                                                        <div className="w-8 h-8 rounded-full bg-gray-300 flex-shrink-0 overflow-hidden self-start mt-6">
+                                                                                <div className="w-full h-full flex items-center justify-center text-gray-600">{comment.senderName ? comment.senderName.charAt(0).toUpperCase() : 'U'}</div>
+                                                                        </div>
+                                                                )}
+                                                                <div className="flex flex-col max-w-[85%]">
+                                                                        <span className={`text-xs text-gray-500 mb-1 px-1 ${isMine ? 'text-end' : 'text-start'}`}>{isMine ? (currentUser && (currentUser.name || 'You')) : (comment.senderName || 'User')}</span>
+                                                                        <div className={`px-3 py-2 rounded-xl w-full whitespace-pre-wrap break-words ${isMine ? 'bg-lighter-green text-white rounded-br-none' : 'bg-gray-200 text-gray-800 rounded-bl-none'}`}>
+                                                                                {comment.text}
+                                                                        </div>
+                                                                </div>
+                                                                {isMine && (
+                                                                        <div className="w-8 h-8 rounded-full bg-lighter-green flex-shrink-0 overflow-hidden self-start mt-6">
+                                                                                <div className="w-full h-full flex items-center justify-center text-white text-xs">You</div>
+                                                                        </div>
+                                                                )}
+                                                        </div>
+                                                );
+                                        })
                                 )}
-                                <div className="flex flex-col max-w-[85%]">
-                                        <span className={`text-xs text-gray-500 mb-1 px-1 ${comment.sender === "user" ? "text-end" : "text-start"}`}>
-                                                {comment.sender === "user" 
-                                                        ? (isAuthenticated ? (user.name || 'You') : 'You')
-                                                        : (comment.sender || 'User')
-                                                }
-                                        </span>
-                                        <div
-                                                className={`px-3 py-2 rounded-xl w-full whitespace-pre-wrap break-words ${
-                                                        comment.sender === "user"
-                                                        ? "bg-lighter-green text-white rounded-br-none"
-                                                        : "bg-gray-200 text-gray-800 rounded-bl-none"
-                                                }`}
-                                        >
-                                                {comment.text}
-                                        </div>
-                                </div>
-                                {comment.sender === "user" && (
-                                        <div className="w-8 h-8 rounded-full bg-lighter-green flex-shrink-0 overflow-hidden self-start mt-6">
-                                                <div className="w-full h-full flex items-center justify-center text-white text-xs">
-                                                        You
-                                                </div>
-                                        </div>
-                                )}
+
+                                <div ref={chatEndRef} />
                         </div>
-                        ))
-                )}
 
-                <div ref={chatEndRef} />
+                        {/* Input area */}
+                        <form onSubmit={handleSubmit} className="flex mt-3">
+                                <input type="text" placeholder="Type a message..." value={newComment} onChange={(e) => setNewComment(e.target.value)} className="flex-grow border border-lighter-green rounded-md p-2 focus:outline-none bg-white text-gray-800" autoComplete="off" />
+
+                                <button type="submit" className="ml-2">Send</button>
+                        </form>
                 </div>
-
-                {/* Input area */}
-                <form onSubmit={handleSubmit} className="flex mt-3">
-                        <input
-                                type="text"
-                                placeholder="Type a message..."
-                                value={newComment}
-                                onChange={(e) => setNewComment(e.target.value)}
-                                className="flex-grow border border-lighter-green rounded-md p-2 focus:outline-none bg-white text-gray-800"
-                                autoComplete="off"
-                        />
-
-                        <button type="submit" className="ml-2">
-                                Send
-                        </button>
-                </form>
-        </div>
-  );
+        );
 }
 
 // import { useState, useRef, useEffect } from "react";

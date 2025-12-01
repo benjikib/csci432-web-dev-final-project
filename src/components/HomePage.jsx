@@ -1,11 +1,32 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import SideBar from './reusable/SideBar';
 import HeaderNav from './reusable/HeaderNav';
+import { getCurrentUser, hasRole } from '../services/userApi';
 
 export default function HomePage() {
     const navigate = useNavigate();
     const [searchedTerm, setSearchedTerm] = useState("");
+    const [isAdmin, setIsAdmin] = useState(false);
+
+    useEffect(() => {
+        let mounted = true;
+        async function fetchUser() {
+            try {
+                const res = await getCurrentUser();
+                if (!mounted) return;
+                if (res && res.user) {
+                    setIsAdmin(hasRole(res.user, 'admin'));
+                } else {
+                    setIsAdmin(false);
+                }
+            } catch (e) {
+                setIsAdmin(false);
+            }
+        }
+        fetchUser();
+        return () => { mounted = false; };
+    }, []);
 
     return (
         <>
@@ -36,21 +57,23 @@ export default function HomePage() {
                             </div>
                         </div>
 
-                        {/* Create Committee Card */}
-                        <div
-                            onClick={() => navigate("/create-committee")}
-                            className="bg-white dark:bg-gray-800 rounded-lg shadow-sm hover:shadow-md transition-shadow cursor-pointer p-8 border border-gray-200 dark:border-gray-700 hover:border-lighter-green dark:hover:border-lighter-green"
-                        >
-                            <div className="text-center">
-                                <span className="material-symbols-outlined text-[12rem] mb-4 text-lighter-green">add_circle</span>
-                                <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-                                    Create Committee
-                                </h3>
-                                <p className="text-sm text-gray-600 dark:text-gray-400">
-                                    Start a new committee
-                                </p>
+                        {/* Create Committee Card (admins only) */}
+                        {isAdmin && (
+                            <div
+                                onClick={() => navigate("/create-committee")}
+                                className="bg-white dark:bg-gray-800 rounded-lg shadow-sm hover:shadow-md transition-shadow cursor-pointer p-8 border border-gray-200 dark:border-gray-700 hover:border-lighter-green dark:hover:border-lighter-green"
+                            >
+                                <div className="text-center">
+                                    <span className="material-symbols-outlined text-[12rem] mb-4 text-lighter-green">add_circle</span>
+                                    <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+                                        Create Committee
+                                    </h3>
+                                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                                        Start a new committee
+                                    </p>
+                                </div>
                             </div>
-                        </div>
+                        )}
 
                         {/* Settings Card */}
                         <div

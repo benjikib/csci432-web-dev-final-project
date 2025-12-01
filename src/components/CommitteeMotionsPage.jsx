@@ -4,8 +4,10 @@ import MotionCard from "./MotionCard"
 import SideBar from './reusable/SideBar'
 import HeaderNav from './reusable/HeaderNav'
 import Tabs from './reusable/Tabs'
-import { getCommitteeById } from "../services/committeeApi"
+import { getCommitteeById, getCommitteeMembers } from "../services/committeeApi"
 import { getMotionsByCommittee } from "../services/motionApi"
+import { getCurrentUser } from '../services/userApi'
+import NoAccessPage from './NoAccessPage'
 
 function CommitteeMotionsPage() {
     const { id } = useParams();
@@ -14,6 +16,7 @@ function CommitteeMotionsPage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [searchedTerm, setSearchedTerm] = useState("");
+    const [hasAccess, setHasAccess] = useState(null);
     const [activeTab, setActiveTab] = useState("all");
     const [currentPage, setCurrentPage] = useState(1);
 
@@ -26,11 +29,61 @@ function CommitteeMotionsPage() {
 
                 // Fetch committee details
                 const committeeData = await getCommitteeById(id);
-                setCommittee(committeeData.committee || committeeData);
+                const fetchedCommittee = committeeData.committee || committeeData;
+                setCommittee(fetchedCommittee);
 
-                // Fetch motions
-                const motionsData = await getMotionsByCommittee(id, currentPage);
-                setMotions(motionsData.motions || motionsData || []);
+                // Determine access: fetch current user and committee members
+                let allowed = false;
+                try {
+                    const current = await getCurrentUser();
+                    const user = current && current.user ? current.user : null;
+                    if (user && user.roles && user.roles.includes('admin')) {
+                        allowed = true;
+                    }
+
+                    // Fetch committee members list and check membership
+                    try {
+                        const membersRes = await getCommitteeMembers(id);
+                            const membersList = (membersRes && membersRes.members) || []; 
+                        // current.user.id might be an ObjectId string; members have _id
+                        if (user) {
+                            const uid = String(user.id || user._id || user.id);
+                                if (membersList.some(m => { if (!m) return false; const mid = m._id || m.id || m.userId || m; return String(mid) === uid; })) {
+                                allowed = true;
+                            }
+                            // Fallback: check if the user is a declared guest in their user doc (legacy data)
+                            if (!allowed && Array.isArray(user.guestCommittees) && user.guestCommittees.map(String).includes(String(id))) {
+                                allowed = true;
+                            }
+                        }
+                    } catch (e) {
+                        // If members endpoint fails, fall back to checking chair/owner
+                        console.warn('Failed to fetch committee members for access check:', e);
+                    }
+
+                    // Check chair/owner fields on committee
+                    if (!allowed && fetchedCommittee) {
+                        const uid = user ? String(user.id || user._id || user.id) : null;
+                        if (uid) {
+                            if (String(fetchedCommittee.chair || '') === uid || String(fetchedCommittee.owner || '') === uid) {
+                                allowed = true;
+                            }
+                        }
+                    }
+                } catch (e) {
+                    // Not authenticated or error fetching user — treat as not allowed
+                    allowed = false;
+                }
+
+                setHasAccess(Boolean(allowed));
+
+                // Fetch motions only if allowed
+                if (allowed) {
+                    const motionsData = await getMotionsByCommittee(id, currentPage);
+                    setMotions(motionsData.motions || motionsData || []);
+                } else {
+                    setMotions([]);
+                }
             } catch (err) {
                 console.error('Error fetching data:', err);
                 setError(err.message || 'Failed to load data');
@@ -45,6 +98,7 @@ function CommitteeMotionsPage() {
             fetchData();
         }
     }, [id, currentPage]);
+
 
     const tabs = [
         { id: "all", label: "All" },
@@ -88,6 +142,8 @@ function CommitteeMotionsPage() {
                         <>
                             <h2 className="section-title dark:text-gray-100">Committee Not Found</h2>
                         </>
+                    ) : hasAccess === false ? (
+                        <NoAccessPage committeeId={id} committeeTitle={committee?.title} />
                     ) : (
                         <>
                             <h2 className="section-title dark:text-gray-100">{committee.title} Motions</h2>

@@ -2,6 +2,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { useNavigationBlock } from '../../context/NavigationContext';
 import { getCurrentUser, hasRole } from '../../services/userApi';
+import { getCommitteeById } from '../../services/committeeApi';
 
 //   const SideBar = () => {
 export default function SideBar() {
@@ -11,24 +12,71 @@ export default function SideBar() {
       const { confirmNavigation } = useNavigationBlock();
       const [userIsChair, setUserIsChair] = useState(false);
       const [userIsAdmin, setUserIsAdmin] = useState(false);
+        const [userIsGuest, setUserIsGuest] = useState(false);
+            const [userIsOwner, setUserIsOwner] = useState(false);
+        const [userIsMember, setUserIsMember] = useState(false);
 
       // Check if user is a chair
       useEffect(() => {
-          async function checkChair() {
+          async function checkUserRoles() {
               try {
                   const response = await getCurrentUser();
-                  if (response.success) {
-                      setUserIsChair(hasRole(response.user, 'chair'));
-                      setUserIsAdmin(hasRole(response.user, 'admin'));
+                  if (response && response.success) {
+                      const user = response.user || {};
+                      setUserIsChair(hasRole(user, 'chair'));
+                      setUserIsAdmin(hasRole(user, 'admin'));
+
+                      // determine committee context (may change when location changes)
+                      const committeeId = getNavigationContext().committeeId;
+
+                      // member/guest/owner/chair status: prefer using committee.myRole if available
+                      if (committeeId) {
+                          try {
+                              const committee = await getCommitteeById(committeeId);
+                              const myRole = committee && committee.myRole ? committee.myRole : null;
+                              setUserIsAdmin(hasRole(user, 'admin'));
+                              setUserIsChair(myRole === 'chair' || myRole === 'owner');
+                              setUserIsOwner(myRole === 'owner');
+                              setUserIsMember(myRole === 'member' || myRole === 'chair' || myRole === 'owner');
+                              setUserIsGuest(myRole === 'guest');
+                          } catch (e) {
+                              // fallback to checking user arrays if committee lookup fails
+                              setUserIsMember(committeeId && Array.isArray(user.memberCommittees) ? user.memberCommittees.map(String).includes(String(committeeId)) : false);
+                              setUserIsGuest(committeeId && Array.isArray(user.guestCommittees) ? user.guestCommittees.map(String).includes(String(committeeId)) : false);
+                              setUserIsChair(hasRole(user, 'chair'));
+                              setUserIsOwner(committeeId && Array.isArray(user.ownedCommittees) ? user.ownedCommittees.map(String).includes(String(committeeId)) : false);
+                          }
+                      } else {
+                          setUserIsMember(false);
+                          setUserIsGuest(false);
+                          setUserIsChair(false);
+                          setUserIsOwner(false);
+                      }
+
+                      // owner status
+                      if (committeeId && Array.isArray(user.ownedCommittees)) {
+                          setUserIsOwner(user.ownedCommittees.map(String).includes(String(committeeId)));
+                      } else {
+                          setUserIsOwner(false);
+                      }
+                  } else {
+                      setUserIsChair(false);
+                      setUserIsAdmin(false);
+                      setUserIsGuest(false);
+                      setUserIsMember(false);
                   }
               } catch (err) {
-                  console.error('Error checking chair/admin status:', err);
+                  console.error('Error checking user roles/status:', err);
+                  setUserIsChair(false);
+                  setUserIsAdmin(false);
+                  setUserIsGuest(false);
+                  setUserIsMember(false);
               }
           }
 
-        
-          checkChair();
-      }, []);
+          // Re-run when location changes so committee context updates correctly
+          checkUserRoles();
+      }, [location.pathname]);
 
       const navItems = [
           { path: '/home', label: 'Home', icon: 'home' },
@@ -192,30 +240,34 @@ export default function SideBar() {
 
                   {navContext.showSettings && navContext.committeeId && (
                       <>
-                          <Link
-                              to={`/committee/${navContext.committeeId}/create-motion`}
-                              onClick={(e) => handleNavigation(e, `/committee/${navContext.committeeId}/create-motion`)}
-                              className="flex items-center gap-2 !text-gray-300 hover:!text-white transition-colors group mt-6"
-                          >
-                              <span className="material-symbols-outlined !text-gray-300 group-hover:!text-white text-2xl">
-                                  add_circle
-                              </span>
-                              <span className="text-lg font-medium !text-gray-300 group-hover:!text-white">Create</span>
-                          </Link>
-                          <Link
-                              to={`/committee/${navContext.committeeId}/settings`}
-                              onClick={(e) => handleNavigation(e, `/committee/${navContext.committeeId}/settings`)}
-                              className="flex items-center gap-2 !text-gray-300 hover:!text-white transition-colors group mt-2"
-                          >
-                              <span className="material-symbols-outlined !text-gray-300 group-hover:!text-white text-2xl">
-                                  settings
-                              </span>
-                              <span className="text-lg font-medium !text-gray-300 group-hover:!text-white">Settings</span>
-                          </Link>
+                          {(userIsAdmin || userIsChair || (userIsMember && !userIsGuest)) && (
+                              <Link
+                                  to={`/committee/${navContext.committeeId}/create-motion`}
+                                  onClick={(e) => handleNavigation(e, `/committee/${navContext.committeeId}/create-motion`)}
+                                  className="flex items-center gap-2 !text-gray-300 hover:!text-white transition-colors group mt-6"
+                              >
+                                  <span className="material-symbols-outlined !text-gray-300 group-hover:!text-white text-2xl">
+                                      add_circle
+                                  </span>
+                                  <span className="text-lg font-medium !text-gray-300 group-hover:!text-white">Create</span>
+                              </Link>
+                          )}
+                          {(userIsAdmin || userIsChair || userIsOwner) && (
+                              <Link
+                                  to={`/committee/${navContext.committeeId}/settings`}
+                                  onClick={(e) => handleNavigation(e, `/committee/${navContext.committeeId}/settings`)}
+                                  className="flex items-center gap-2 !text-gray-300 hover:!text-white transition-colors group mt-2"
+                              >
+                                  <span className="material-symbols-outlined !text-gray-300 group-hover:!text-white text-2xl">
+                                      settings
+                                  </span>
+                                  <span className="text-lg font-medium !text-gray-300 group-hover:!text-white">Settings</span>
+                              </Link>
+                          )}
                       </>
                   )}
 
-                  {navContext.showCreateCommittee && (
+                  {navContext.showCreateCommittee && userIsAdmin && (
                       <Link
                           to="/create-committee"
                           onClick={(e) => handleNavigation(e, '/create-committee')}

@@ -7,6 +7,20 @@ class Committee {
     return getDB().collection('committees');
   }
 
+  static normalizeMembers(members) {
+    // members can be array of ids or array of objects, normalize to objects
+    if (!Array.isArray(members)) return [];
+    return members.map(m => {
+      if (!m) return null;
+      if (typeof m === 'string' || ObjectId.isValid(m)) {
+        return { userId: m, role: 'member', joinedAt: new Date() };
+      }
+      // obj may be {_id, id, userId, role }
+      const userId = m.userId || m._id || m.id || m._id;
+      return { userId, role: m.role || 'member', joinedAt: m.joinedAt || new Date() };
+    }).filter(Boolean);
+  }
+
   static async create(committeeData) {
     const slug = committeeData.slug || slugify(committeeData.title);
 
@@ -14,7 +28,7 @@ class Committee {
       title: committeeData.title,
       slug: slug,
       description: committeeData.description,
-      members: committeeData.members || [], // Array of user IDs
+      members: this.normalizeMembers(committeeData.members || []),
       owner: committeeData.owner || null, // User ID of the owner (optional for now)
       chair: committeeData.chair || null, // User ID of the chair
       settings: committeeData.settings || {},
@@ -68,13 +82,16 @@ class Committee {
 
   static async findByMember(userId, page = 1, limit = 10) {
     const skip = (page - 1) * limit;
+    // Support both legacy members array and role-aware object members
+    const uid = ObjectId.isValid(userId) ? new ObjectId(userId) : userId;
+    const query = { $or: [ { members: uid }, { 'members.userId': uid } ] };
     const committees = await this.collection()
-      .find({ members: userId })
+      .find(query)
       .skip(skip)
       .limit(limit)
       .toArray();
 
-    const total = await this.collection().countDocuments({ members: userId });
+    const total = await this.collection().countDocuments({ $or: [ { members: userId }, { 'members.userId': userId } ] });
 
     return {
       committees,
@@ -110,17 +127,80 @@ class Committee {
   }
 
   static async addMember(committeeId, userId) {
+    // legacy compatibility: still add to user-friendly array if callers expect it
+    const uid = ObjectId.isValid(userId) ? new ObjectId(userId) : userId;
+    const newMember = { userId: uid, role: 'member', joinedAt: new Date() };
+    // Remove existing entry for the userId if present, then push new object
+    await this.collection().updateOne(
+      { _id: new ObjectId(committeeId) },
+      { $pull: { members: { userId: uid } } }
+    );
     return await this.collection().updateOne(
       { _id: new ObjectId(committeeId) },
-      { $addToSet: { members: userId } }
+      { $push: { members: newMember } }
     );
   }
 
   static async removeMember(committeeId, userId) {
-    return await this.collection().updateOne(
+    // Remove both legacy primitive entries and object entries
+    const uid = ObjectId.isValid(userId) ? new ObjectId(userId) : userId;
+    await this.collection().updateOne(
       { _id: new ObjectId(committeeId) },
       { $pull: { members: userId } }
     );
+    return await this.collection().updateOne(
+      { _id: new ObjectId(committeeId) },
+      { $pull: { members: { userId: uid } } }
+    );
+  }
+
+  // New helper to add member with a role (member|guest|chair|owner)
+  static async addMemberWithRole(committeeId, userId, role = 'member') {
+    const uid = ObjectId.isValid(userId) ? new ObjectId(userId) : userId;
+    const newMember = { userId: uid, role, joinedAt: new Date() };
+    // remove any existing member entry for userId and push the new one
+    await this.collection().updateOne({ _id: new ObjectId(committeeId) }, { $pull: { members: { userId: uid } } });
+    return await this.collection().updateOne({ _id: new ObjectId(committeeId) }, { $push: { members: newMember } });
+  }
+
+  static async getMemberRole(committeeId, userId) {
+    const committee = await this.findById(committeeId);
+    if (!committee) return null;
+    // check explicit chair/owner fields first
+    if (committee.chair && String(committee.chair) === String(userId)) return 'chair';
+    if (committee.owner && String(committee.owner) === String(userId)) return 'owner';
+    if (!committee.members) return null;
+    for (const m of committee.members) {
+      if (!m) continue;
+      if (typeof m === 'string' || ObjectId.isValid(m)) {
+        if (String(m) === String(userId)) return 'member';
+        continue;
+      }
+      const mid = m.userId || m._id || m.id;
+      if (mid && String(mid) === String(userId)) return m.role || 'member';
+    }
+    return null;
+  }
+
+  static async isGuest(committeeId, userId) {
+    const role = await this.getMemberRole(committeeId, userId);
+    return role === 'guest';
+  }
+
+  static async isMember(committeeId, userId) {
+    const role = await this.getMemberRole(committeeId, userId);
+    return role && role !== 'guest';
+  }
+
+  static async isChair(committeeId, userId) {
+    const role = await this.getMemberRole(committeeId, userId);
+    return role === 'chair' || role === 'owner';
+  }
+
+  static async addChair(committeeId, userId) {
+    await this.updateById(committeeId, { chair: userId });
+    // ensure membership record for chair
+    return this.addMemberWithRole(committeeId, userId, 'chair');
   }
 
   // Motion-related methods (embedded documents)

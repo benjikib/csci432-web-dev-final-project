@@ -11,6 +11,7 @@ const committeeRoutes = require('./routes/committees');
 const motionRoutes = require('./routes/motions');
 const commentRoutes = require('./routes/comments');
 const voteRoutes = require('./routes/votes');
+const notificationsRoutes = require('./routes/notifications');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -105,6 +106,7 @@ app.use('/', committeeRoutes);
 app.use('/', motionRoutes);
 app.use('/', commentRoutes);
 app.use('/', voteRoutes);
+app.use('/', notificationsRoutes);
 
 // 404 handler
 app.use((req, res) => {

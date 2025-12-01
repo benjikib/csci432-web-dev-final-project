@@ -77,12 +77,12 @@ router.post('/committee/:id/motion/:motionId/vote',
         });
       }
 
-      // Verify user is member of committee
-      const committee = await Committee.findById(req.params.id);
-      if (!committee.members.includes(req.user.userId)) {
+      // Verify user's role in committee using role-aware helper to block guests
+      const role = await Committee.getMemberRole(req.params.id, req.user.userId);
+      if (!role || role === 'guest') {
         return res.status(403).json({
           success: false,
-          message: 'You must be a member of this committee to vote'
+          message: 'You must be a member (not a guest) of this committee to vote'
         });
       }
 
@@ -132,6 +132,12 @@ router.delete('/committee/:id/motion/:motionId/vote', authenticate, async (req, 
         success: false,
         message: 'Motion not found'
       });
+    }
+
+    // Verify user is allowed to act on votes (guest users cannot cast or remove votes)
+    const role = await Committee.getMemberRole(req.params.id, req.user.userId);
+    if (!role || role === 'guest') {
+      return res.status(403).json({ success: false, message: 'Guests are not permitted to vote' });
     }
 
     // Delete vote

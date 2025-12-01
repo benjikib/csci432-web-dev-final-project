@@ -92,7 +92,7 @@
   Committee Management
 
   - ✅ Creating a committee - Backend API and frontend form fully functional
-  - ❌ Adding users to a committee - No user management system
+  - ✅ Adding users to a committee - Live user management system
   - ✅ Committee listing/selection - Fully integrated with MongoDB backend
   - ✅ Committee settings page - Fully functional with save and delete operations
   - ✅ Committee deletion/editing - Title and description editing works, navigates using updated slugs
@@ -101,27 +101,27 @@
 
   Role Control
 
-  - ❌ Role assignment - No owner, chair, member, observer roles implemented
-  - ❌ Role-based authentication - All routes accessible to everyone
-  - ❌ Permission enforcement - No restrictions on who can create motions, vote, etc.
-  - ❌ Fine-grained authentication control (optional) - Not implemented
-  - ⚠️ User control panel - UserControlPage.jsx exists but not fully functional
+  - ⚠️ Role assignment - Chair, and member roles implemented, no observer.
+  - ⚠️ Role-based authentication - Most routes accessible to everyone
+  - ⚠️ Permission enforcement - Some restrictions on who can create motions, vote, etc.
+  - ⚠️ Fine-grained authentication control (optional) - Partially implemented
+  - ✅ User control panel - UserControlPage.jsx exists and fully functional
 
   Chair Control Panel
 
   - ⚠️ Control panel UI - ChairControlPage.jsx and ChairControlPanel.jsx exist
-  - ❌ Backend integration - Controls not connected to API
-  - ❌ Toggle offline version - No meeting mode switching
-  - ❌ Set discussion requirements - No rules for # of speakers before vote
-  - ❌ Other procedural controls - No Robert's Rules enforcement options
+  - ⚠️ Backend integration - Controls mostly connected to API
+  - ⚠️ Toggle offline version - Meeting mode switching partially implemented
+  - ⚠️ Set discussion requirements - Some rules for # of speakers before vote
+  - ⚠️ Other procedural controls - Some Robert's Rules enforcement options
   - ⚠️ Current State: UI components exist but need backend integration and functionality
 
   Motion Creation & Management
 
   - ✅ Raise motion - Backend API and frontend form fully functional
   - ✅ Motion title and description input - Form implemented and working
-  - ❌ Edit existing motions - No editing capability
-  - ❌ Delete/withdraw motions - No removal functionality
+  - ⚠️ Edit existing motions - Some editing capability
+  - ⚠️ Delete/withdraw motions - Some removal functionality
   - ⚠️ Motion status tracking - Tabs exist (All, Active, Past, Voided) but no status change workflow
   - ✅ Motion display - Fully integrated with MongoDB, motions embedded in committees
   - ✅ Motion persistence - All motions stored in MongoDB and persist across sessions
@@ -129,9 +129,9 @@
 
   Procedural Motions 
 
-  - ❌ Motions to change procedure - No special motion types
-  - ❌ 2/3 vote requirement enforcement - No voting threshold logic
-  - ❌ Motion type categorization - No distinction between motion types
+  - ⚠️ Motions to change procedure - Some special motion types
+  - ⚠️ 2/3 vote requirement enforcement - Partially implemented voting threshold logic
+  - ⚠️ Motion type categorization - Some distinction between motion types
 
   Discussion Features
 
