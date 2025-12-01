@@ -1,21 +1,18 @@
 # Chair Control Panel - Implementation Guide
 
 ## Overview
-The Chair Control Panel is a comprehensive interface for committee chairs to manage procedural settings, voting rules, and member privileges according to Robert's Rules of Order.
+The Chair Control Panel is a comprehensive interface for committee chairs to manage procedural settings, and voting rules according to Robert's Rules of Order.
 
 ## Features Implemented
 
-### 1. **Meeting Mode Controls** (`/src/components/controls/MeetingModeControls.jsx`)
-- **Async Mode** (Default): Flexible timing, asynchronous discussion
-- **Live Meeting Mode**: Real-time floor queue, synchronized voting, speaker recognition
 
-### 2. **Discussion Requirements** (`/src/components/controls/DiscussionRequirements.jsx`)
+### 1. **Discussion Requirements** (`/src/components/controls/DiscussionRequirements.jsx`)
 - **Require Seconding**: Toggle for motion seconding requirement
 - **Minimum Speakers**: Set number of required speakers before voting (0-10)
 - **Pro/Con Balance**: Require balanced discussion
 - **Discussion Period**: Minimum hours required (0-168 hours/7 days)
 
-### 3. **Voting Rules Configuration** (`/src/components/controls/VotingRulesConfig.jsx`)
+### 2. **Voting Rules Configuration** (`/src/components/controls/VotingRulesConfig.jsx`)
 - **Vote Thresholds**:
   - Simple Majority (50%+1)
   - Two-Thirds Majority (66.67%)
@@ -23,50 +20,33 @@ The Chair Control Panel is a comprehensive interface for committee chairs to man
 - **Vote Types**:
   - Secret Ballot (anonymous)
   - Roll Call (public, recorded)
-  - Voice Vote (quick show of hands)
   - Unanimous Consent (no objection)
 - **Voting Period**: 1-30 days
 - **Quorum**: Toggle with percentage (10-100%)
 - **Abstentions**: Allow/disallow
 
-### 4. **Motion Management Controls** (`/src/components/controls/MotionManagementControls.jsx`)
+### 3. **Motion Management Controls** (`/src/components/controls/MotionManagementControls.jsx`)
 - **Motion Settings**:
   - Allow multiple active motions
   - Allow anonymous motions
 - **Active Motion Controls** (per motion):
-  - Open Voting
-  - Pause
-  - Postpone
-  - Declare Out of Order
-- **Emergency Motions**: Bypass discussion periods
-- **Chair Powers**: Override status, extend/shorten periods, bundle motions
+  - Edit
+  - Void
 
-### 5. **Member Privileges** (`/src/components/controls/MemberPrivileges.jsx`)
-- **Speaking Time Limit**: 1-15 minutes per turn
-- **Total Speaking Time**: 5-30 minutes per motion
-- **Live Meeting Controls**:
-  - Recognize speakers
-  - Grant/revoke floor access
-  - Time enforcement
-  - Eject from meeting
+### 4. **Committee History** (`/src/components/controls/CommitteeHistory.jsx`)
+- **Motion History View**:
+  - Complete motion archive with all statuses
+  - Vote results and percentages
+  - Discussion transcript with pro/con stances
+  - Subsidiary motions display
+  - Meeting duration calculation (from creation to voting closed)
+- **Download Motion Documents**:
+  - Export individual motion records as text files
+  - Includes full description, vote results, timestamps
+  - Contains complete discussion transcript
+  - Shows total meeting time in document
+  - Formatted for archival purposes
 
-### 6. **Procedural Settings** (`/src/components/controls/ProceduralSettings.jsx`)
-- **Enforcement Levels**:
-  - Relaxed: Minimal procedures
-  - Standard: Basic Robert's Rules
-  - Strict: Full parliamentary compliance
-- **Special Motion Types** (toggleable):
-  - **Subsidiary**: Amend, postpone, refer, limit debate
-  - **Privileged**: Recess, adjourn, question of privilege
-  - **Incidental**: Point of order, appeal, suspend rules
-  - **Reconsider**: Overturn previous decisions
-
-### 7. **Committee Settings** (`/src/components/controls/CommitteeSettings.jsx`)
-- **Auto-archive**: 0-365 days (or never)
-- **Require Vote Reasons**: Toggle
-- **Visibility**: Public/Private
-- **Guest Observers**: Allow/disallow (when public)
-- **Data Management**: Export minutes (PDF), data (CSV), archive, history log
 
 ## File Structure
 
@@ -75,11 +55,9 @@ src/components/
 ├── UserControlPage.jsx          # Main control panel page with role check
 ├── ChairControlPanel.jsx        # Tabbed interface container
 └── controls/
-    ├── MeetingModeControls.jsx
     ├── DiscussionRequirements.jsx
     ├── VotingRulesConfig.jsx
     ├── MotionManagementControls.jsx
-    ├── MemberPrivileges.jsx
     ├── ProceduralSettings.jsx
     └── CommitteeSettings.jsx
 ```
@@ -209,7 +187,7 @@ Motion model now includes Robert's Rules fields:
     debatable: true,
     amendable: true,
     voteRequired: 'majority',
-    amendTargetMotionId: ObjectId // For subsidiary motions
+    targetMotionId: ObjectId // For subsidiary motions (canonical); `amendTargetMotionId` is still supported for now
 }
 ```
 
@@ -265,7 +243,7 @@ The control panel implements key Robert's Rules concepts:
    - ✅ Added motion type metadata to schema
    - ✅ Created subsidiary motion tracking endpoints
 
-2. **Enforcement** (IN PROGRESS):
+2. **Enforcement** (COMPLETED):
    - Apply settings to motion creation workflow
    - Enforce voting rules during vote casting
    - Implement quorum checking

@@ -19,6 +19,9 @@ class Motion {
         no: 0,
         abstain: 0
       },
+      // Support both new canonical `targetMotionId` and legacy `amendTargetMotionId`
+      targetMotionId: motionData.targetMotionId ? new ObjectId(motionData.targetMotionId) : (motionData.amendTargetMotionId ? new ObjectId(motionData.amendTargetMotionId) : null),
+      amendTargetMotionId: motionData.amendTargetMotionId ? new ObjectId(motionData.amendTargetMotionId) : null,
       createdAt: new Date(),
       updatedAt: new Date()
     };

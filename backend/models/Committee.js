@@ -142,16 +142,28 @@ class Committee {
   }
 
   static async removeMember(committeeId, userId) {
-    // Remove both legacy primitive entries and object entries
-    const uid = ObjectId.isValid(userId) ? new ObjectId(userId) : userId;
+    // The members array can have userId as either a string OR an ObjectId object
+    // We need to handle both cases with separate pull operations
+    const userIdStr = String(userId);
+    const userIdObj = ObjectId.isValid(userId) ? new ObjectId(userId) : null;
+    
+    const committeeObjId = new ObjectId(committeeId);
+    
+    // Remove entries where userId is a string
     await this.collection().updateOne(
-      { _id: new ObjectId(committeeId) },
-      { $pull: { members: userId } }
+      { _id: committeeObjId },
+      { $pull: { members: { userId: userIdStr } } }
     );
-    return await this.collection().updateOne(
-      { _id: new ObjectId(committeeId) },
-      { $pull: { members: { userId: uid } } }
-    );
+    
+    // Remove entries where userId is an ObjectId (if valid)
+    if (userIdObj) {
+      await this.collection().updateOne(
+        { _id: committeeObjId },
+        { $pull: { members: { userId: userIdObj } } }
+      );
+    }
+    
+    return { success: true };
   }
 
   // New helper to add member with a role (member|guest|chair|owner)
@@ -219,6 +231,8 @@ class Committee {
       debatable: motionData.debatable !== undefined ? motionData.debatable : true,
       amendable: motionData.amendable !== undefined ? motionData.amendable : true,
       voteRequired: motionData.voteRequired || 'majority',
+      // Canonical field: targetMotionId; keep amendTargetMotionId for backward compatibility
+      targetMotionId: motionData.targetMotionId ? new ObjectId(motionData.targetMotionId) : (motionData.amendTargetMotionId ? new ObjectId(motionData.amendTargetMotionId) : null),
       amendTargetMotionId: motionData.amendTargetMotionId ? new ObjectId(motionData.amendTargetMotionId) : null,
       
       status: motionData.status || 'active',
@@ -227,6 +241,14 @@ class Committee {
         no: 0,
         abstain: 0
       },
+      
+      // Chair Control Panel fields
+      isAnonymous: motionData.isAnonymous || false,
+      secondedBy: motionData.secondedBy ? new ObjectId(motionData.secondedBy) : null,
+      votingStatus: motionData.votingStatus || 'not-started', // 'not-started' | 'open' | 'closed'
+      votingOpenedAt: motionData.votingOpenedAt || null,
+      votingClosedAt: motionData.votingClosedAt || null,
+      
       createdAt: new Date(),
       updatedAt: new Date()
     };
@@ -243,7 +265,11 @@ class Committee {
     return motion;
   }
 
-  static async findMotions(committeeId, page = 1, limit = 10) {
+  static async findMotions(committeeId, page = 1, limit = 10, options = {}) {
+    const includeSubsidiaries = !!options.includeSubsidiaries;
+    const typeFilter = options.type || null;
+    const statusFilter = options.status || null;
+    const targetMotion = options.targetMotion || null;
     const committee = await this.findById(committeeId);
 
     if (!committee || !committee.motions) {
@@ -261,16 +287,67 @@ class Committee {
       new Date(b.createdAt) - new Date(a.createdAt)
     );
 
-    // Apply pagination
-    const skip = (page - 1) * limit;
-    const paginatedMotions = sortedMotions.slice(skip, skip + limit);
+    // Build parent/child map so we can optionally attach subsidiaries to parent motions
+    const childMap = {};
+    for (const m of sortedMotions) {
+      try {
+        const parentId = String(m.targetMotionId || m.targetMotionId?._id || m.amendTargetMotionId || m.amendTargetMotionId?._id || '');
+        if (parentId) {
+          childMap[parentId] = childMap[parentId] || [];
+          childMap[parentId].push(m);
+        }
+      } catch (e) { /* ignore */ }
+    }
 
+    // Select the set of motions to paginate over, applying requested filters first
+    // Start from either all motions or top-level motions depending on includeSubsidiaries
+    // Note: Reconsider motions are treated as top-level even though they have a targetMotionId
+    const motionsBase = includeSubsidiaries ? sortedMotions : sortedMotions.filter(m => {
+      const targetId = m.targetMotionId || m.targetMotionId?._id || m.amendTargetMotionId || m.amendTargetMotionId?._id;
+      // Include motions without a target, OR reconsider motions (which should appear standalone)
+      return !targetId || m.motionType === 'reconsider';
+    });
+
+    // Apply filters across the base set
+    let filteredUnpaginated = motionsBase;
+    if (typeFilter) {
+      filteredUnpaginated = filteredUnpaginated.filter(m => m.motionType === typeFilter);
+    }
+    if (statusFilter) {
+      filteredUnpaginated = filteredUnpaginated.filter(m => m.status === statusFilter);
+    }
+    if (targetMotion) {
+      filteredUnpaginated = filteredUnpaginated.filter(m => {
+        const t = m.targetMotionId || m.amendTargetMotionId;
+        return t && String(t) === String(targetMotion);
+      });
+    }
+
+    if (includeSubsidiaries) {
+      // Return full paginated motions (including subsidiaries), but attach subsidiaries to each motion in the page
+      const skip = (page - 1) * limit;
+      const paginatedMotions = filteredUnpaginated.slice(skip, skip + limit);
+      const withSubs = paginatedMotions.map(m => ({ ...m, subsidiaries: childMap[String(m._id || m.id)] || [] }));
+      return {
+        motions: withSubs,
+        page,
+        limit,
+        totalPages: Math.ceil(filteredUnpaginated.length / limit),
+        total: filteredUnpaginated.length
+      };
+    }
+
+    // Exclude subsidiary motions: filter out motions that reference a parent
+    // Apply pagination to filtered top-level motions
+    const skipTop = (page - 1) * limit;
+    const paginatedTopMotions = filteredUnpaginated.slice(skipTop, skipTop + limit);
+    const withSubsTop = paginatedTopMotions.map(m => ({ ...m, subsidiaries: childMap[String(m._id || m.id)] || [] }));
     return {
-      motions: paginatedMotions,
+      motions: withSubsTop,
       page,
       limit,
-      totalPages: Math.ceil(sortedMotions.length / limit),
-      total: sortedMotions.length
+      totalPages: Math.ceil(filteredUnpaginated.length / limit),
+      total: filteredUnpaginated.length
     };
   }
 
@@ -286,7 +363,13 @@ class Committee {
 
   static async updateMotion(committeeId, motionId, updates) {
     const updateFields = {};
-
+    // Convert id-like fields to ObjectId where appropriate
+    if (updates.targetMotionId !== undefined && updates.targetMotionId !== null) {
+      try { updates.targetMotionId = ObjectId.isValid(updates.targetMotionId) ? new ObjectId(updates.targetMotionId) : updates.targetMotionId; } catch(e) {}
+    }
+    if (updates.amendTargetMotionId !== undefined && updates.amendTargetMotionId !== null) {
+      try { updates.amendTargetMotionId = ObjectId.isValid(updates.amendTargetMotionId) ? new ObjectId(updates.amendTargetMotionId) : updates.amendTargetMotionId; } catch(e) {}
+    }
     Object.keys(updates).forEach(key => {
       updateFields[`motions.$.${key}`] = updates[key];
     });

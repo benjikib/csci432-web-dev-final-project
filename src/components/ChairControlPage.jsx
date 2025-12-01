@@ -1,30 +1,40 @@
 import { useState, useEffect } from "react";
+import { useParams } from 'react-router-dom';
 import HeaderNav from './reusable/HeaderNav';
 import SideBar from './reusable/SideBar';
 import ChairControlPanel from './ChairControlPanel';
-import { getCommittees } from '../services/committeeApi';
+import { getMyChairCommittees } from '../services/committeeApi';
 
 function ChairControlPage() {
+    const { committeeId } = useParams();
     const [searchedTerm, setSearchedTerm] = useState("");
     const [committees, setCommittees] = useState([]);
     const [selectedCommittee, setSelectedCommittee] = useState(null);
     const [loading, setLoading] = useState(true);
 
-    // Fetch committees on mount
+    // Fetch committees where user is chair
     useEffect(() => {
         async function fetchCommittees() {
             try {
                 setLoading(true);
-                const data = await getCommittees(1); // Get first page
+                const data = await getMyChairCommittees();
                 setCommittees(data.committees || []);
+                
+                // If committeeId is in URL, auto-select that committee
+                if (committeeId && data.committees) {
+                    const committee = data.committees.find(c => c._id === committeeId || c.slug === committeeId);
+                    if (committee) {
+                        setSelectedCommittee(committee);
+                    }
+                }
             } catch (err) {
-                console.error('Error fetching committees:', err);
+                console.error('Error fetching chair committees:', err);
             } finally {
                 setLoading(false);
             }
         }
         fetchCommittees();
-    }, []);
+    }, [committeeId]);
 
     return (
         <>
@@ -42,7 +52,14 @@ function ChairControlPage() {
                     {loading ? (
                         <p className="text-gray-600 dark:text-gray-400 mt-4">Loading committees...</p>
                     ) : committees.length === 0 ? (
-                        <p className="text-gray-600 dark:text-gray-400 mt-4">No committees found.</p>
+                        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-8 text-center">
+                            <span className="material-symbols-outlined text-6xl text-gray-300 dark:text-gray-700 mb-4">
+                                gavel
+                            </span>
+                            <p className="text-gray-600 dark:text-gray-400">
+                                You are not currently a chair of any committees.
+                            </p>
+                        </div>
                     ) : (
                         <div className="grid grid-cols-12 gap-6">
                             {/* Left side - Committee Selection */}
@@ -58,10 +75,16 @@ function ChairControlPage() {
                                             <button
                                                 key={committee._id}
                                                 onClick={() => setSelectedCommittee(committee)}
-                                                className={`w-full text-left p-4 rounded-lg border-2 transition-all ${
+                                                style={{ 
+                                                    width: '320px', 
+                                                    height: '140px', 
+                                                    padding: '24px',
+                                                    border: '2px solid transparent'
+                                                }}
+                                                className={`text-left rounded-lg transition-all ${
                                                     selectedCommittee?._id === committee._id
-                                                        ? 'border-darker-green bg-white dark:bg-lighter-green shadow-md'
-                                                        : 'border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 hover:border-gray-300 dark:hover:border-gray-600'
+                                                        ? 'bg-white dark:bg-lighter-green shadow-md'
+                                                        : 'bg-gray-50 dark:bg-gray-800'
                                                 }`}
                                             >
                                                 <h4 className="font-semibold text-gray-800 dark:text-white mb-1">

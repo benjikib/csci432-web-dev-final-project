@@ -28,32 +28,12 @@ router.get('/committee/:id/motions/:page', async (req, res) => {
       });
     }
 
-    let result = await Committee.findMotions(committee._id, page, limit);
+    // Define subsidiary motion types (per CreateMotionPage list)
+    const subsidiaryTypes = ['amend', 'refer_to_committee', 'postpone', 'limit_debate', 'previous_question', 'table'];
+    const includeSubsidiaries = req.query.includeSubsidiaries === 'true' || !!targetMotion || (type && subsidiaryTypes.includes(type));
+    let result = await Committee.findMotions(committee._id, page, limit, { includeSubsidiaries, type, status, targetMotion });
 
-    // Apply filters if provided
-    let filteredMotions = result.motions;
-    
-    if (type) {
-      filteredMotions = filteredMotions.filter(m => m.motionType === type);
-    }
-    
-    if (status) {
-      filteredMotions = filteredMotions.filter(m => m.status === status);
-    }
-    
-    if (targetMotion) {
-      filteredMotions = filteredMotions.filter(m => 
-        m.amendTargetMotionId && m.amendTargetMotionId.toString() === targetMotion
-      );
-    }
-
-    // Update result with filtered motions
-    result = {
-      ...result,
-      motions: filteredMotions,
-      total: filteredMotions.length,
-      totalPages: Math.ceil(filteredMotions.length / limit)
-    };
+    // Filters handled in Committee.findMotions; result is already paginated and filtered
 
     // Populate author information for each motion
     const motionsWithAuthors = await Promise.all(
@@ -185,7 +165,7 @@ router.post('/committee/:id/motion/create',
         });
       }
 
-      const { title, description, fullDescription } = req.body;
+      const { title, description, fullDescription, amendTargetMotionId, targetMotionId, motionType, motionTypeLabel, debatable, amendable, voteRequired, isAnonymous } = req.body;
 
       // Create motion with userId reference
       // Disallow guest users from creating motions in this committee
@@ -198,11 +178,50 @@ router.post('/committee/:id/motion/create',
         console.warn('Failed to verify member role for user:', e);
       }
 
+      // Get committee settings
+      const settings = committee.settings || {};
+
+      // Check if multiple active motions are allowed
+      const isMainMotion = (motionType || 'main') === 'main' && !targetMotionId && !amendTargetMotionId;
+      if (isMainMotion && settings.allowMultipleActiveMotions === false) {
+        // Check if there's already an active main motion
+        const existingActiveMotions = committee.motions?.filter(m => 
+          m.status === 'active' && 
+          (m.motionType === 'main' || !m.motionType) &&
+          !m.targetMotionId &&
+          !m.amendTargetMotionId
+        ) || [];
+        
+        if (existingActiveMotions.length > 0) {
+          return res.status(400).json({
+            success: false,
+            message: 'Only one active main motion is allowed at a time. Please wait for the current motion to be resolved.',
+            activeMotion: existingActiveMotions[0]
+          });
+        }
+      }
+
+      // Check if anonymous motions are allowed
+      if (isAnonymous && !settings.allowAnonymousMotions) {
+        return res.status(400).json({
+          success: false,
+          message: 'Anonymous motions are not allowed in this committee'
+        });
+      }
+
       const motion = await Committee.createMotion(committee._id, {
         title,
         description,
         fullDescription: fullDescription || description,
-        author: req.user ? req.user.userId : null
+        author: req.user ? req.user.userId : null,
+        motionType: motionType || 'main',
+        motionTypeLabel: motionTypeLabel || 'Main Motion',
+        debatable: typeof debatable === 'boolean' ? debatable : true,
+        amendable: typeof amendable === 'boolean' ? amendable : true,
+        voteRequired: voteRequired || 'majority',
+        targetMotionId: targetMotionId || amendTargetMotionId || null,
+        amendTargetMotionId: amendTargetMotionId || null,
+        isAnonymous: isAnonymous || false
       });
 
       // Populate author information for response
@@ -248,7 +267,6 @@ router.post('/committee/:id/motion/create',
  */
 router.put('/committee/:id/motion/:motionId',
   authenticate,
-  requirePermissionOrAdmin('edit_any_motion'),
   [
     body('title').optional().notEmpty().withMessage('Title cannot be empty'),
     body('description').optional().notEmpty().withMessage('Description cannot be empty')
@@ -282,11 +300,38 @@ router.put('/committee/:id/motion/:motionId',
         });
       }
 
+      // Authorization: allow admin, chair, users with edit_any_motion permission, or the motion author.
+      let currentUser = null;
+      try {
+        currentUser = await User.findById(req.user.userId);
+      } catch (e) {
+        currentUser = null;
+      }
+
+      const isAdmin = currentUser && currentUser.roles && currentUser.roles.includes('admin');
+      const canEditAny = currentUser && currentUser.permissions && currentUser.permissions.includes('edit_any_motion');
+      const isAuthor = motion.author && String(motion.author) === String(req.user.userId);
+      const isChair = await Committee.isChair(committee._id, req.user.userId);
+
+      if (!isAdmin && !canEditAny && !isAuthor && !isChair) {
+        return res.status(403).json({ success: false, message: 'You are not authorized to edit this motion' });
+      }
+
       const updates = {};
       if (req.body.title) updates.title = req.body.title;
       if (req.body.description) updates.description = req.body.description;
       if (req.body.fullDescription) updates.fullDescription = req.body.fullDescription;
       if (req.body.status) updates.status = req.body.status;
+      if (req.body.votingStatus !== undefined) updates.votingStatus = req.body.votingStatus;
+      if (req.body.votingClosedAt !== undefined) updates.votingClosedAt = req.body.votingClosedAt;
+      if (req.body.motionType) updates.motionType = req.body.motionType;
+      if (req.body.motionTypeLabel) updates.motionTypeLabel = req.body.motionTypeLabel;
+      if (req.body.debatable !== undefined) updates.debatable = req.body.debatable;
+      if (req.body.amendable !== undefined) updates.amendable = req.body.amendable;
+      if (req.body.voteRequired) updates.voteRequired = req.body.voteRequired;
+      // Support new canonical targetMotionId and legacy amendTargetMotionId
+      if (req.body.targetMotionId !== undefined) updates.targetMotionId = req.body.targetMotionId;
+      if (req.body.amendTargetMotionId !== undefined) updates.amendTargetMotionId = req.body.amendTargetMotionId;
 
       const updatedMotion = await Committee.updateMotion(committee._id, req.params.motionId, updates);
 
@@ -310,7 +355,7 @@ router.put('/committee/:id/motion/:motionId',
  * @desc    Delete a motion (committee by slug or ID)
  * @access  Private (Admin or delete_any_motion permission required)
  */
-router.delete('/committee/:id/motion/:motionId', authenticate, requirePermissionOrAdmin('delete_any_motion'), async (req, res) => {
+router.delete('/committee/:id/motion/:motionId', authenticate, async (req, res) => {
   try {
     // Verify committee exists
     const committee = await Committee.findByIdOrSlug(req.params.id);
@@ -328,6 +373,22 @@ router.delete('/committee/:id/motion/:motionId', authenticate, requirePermission
         success: false,
         message: 'Motion not found'
       });
+    }
+
+    // Authorization: allow admin, users with delete_any_motion permission, or the motion author.
+    let currentUser = null;
+    try {
+      currentUser = await User.findById(req.user.userId);
+    } catch (e) {
+      currentUser = null;
+    }
+
+    const isAdmin = currentUser && currentUser.roles && currentUser.roles.includes('admin');
+    const canDeleteAny = currentUser && currentUser.permissions && currentUser.permissions.includes('delete_any_motion');
+    const isAuthor = motion.author && String(motion.author) === String(req.user.userId);
+
+    if (!isAdmin && !canDeleteAny && !isAuthor) {
+      return res.status(403).json({ success: false, message: 'You are not authorized to delete this motion' });
     }
 
     await Committee.deleteMotion(committee._id, req.params.motionId);
@@ -370,11 +431,12 @@ router.get('/committee/:id/motion/:motionId/subsidiaries', async (req, res) => {
       });
     }
 
-    // Find all motions where amendTargetMotionId matches this motion
-    const allMotions = await Committee.findMotions(committee._id, 1, 1000); // Get all motions
-    const subsidiaryMotions = allMotions.motions.filter(m => 
-      m.amendTargetMotionId && m.amendTargetMotionId.toString() === req.params.motionId.toString()
-    );
+    // Find all motions where targetMotionId (or legacy amendTargetMotionId) matches this motion
+    const allMotions = await Committee.findMotions(committee._id, 1, 1000, { includeSubsidiaries: true }); // Get all motions
+    const subsidiaryMotions = allMotions.motions.filter(m => {
+      const targetId = m.targetMotionId || m.amendTargetMotionId;
+      return targetId && targetId.toString && targetId.toString() === req.params.motionId.toString();
+    });
 
     // Populate author information
     const motionsWithAuthors = await Promise.all(

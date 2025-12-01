@@ -78,19 +78,6 @@ export default function SideBar() {
           checkUserRoles();
       }, [location.pathname]);
 
-      const navItems = [
-          { path: '/home', label: 'Home', icon: 'home' },
-          { path: '/committees', label: 'Committees', icon: 'groups' },
-          ...(userIsChair
-              ? [{ path: '/chair-control', label: 'Chair Control', icon: 'gavel' }]
-              : []
-          ),
-          ...(userIsAdmin
-              ? [{ path: '/admin', label: 'Admin Panel', icon: 'admin_panel_settings' }]
-              : []
-          ),
-      ];
-
       // Determine back navigation and committee context based on current path
       const getNavigationContext = () => {
           const path = location.pathname;
@@ -187,6 +174,24 @@ export default function SideBar() {
       };
 
       const navContext = getNavigationContext();
+
+      // Determine chair control path based on context
+      const chairControlPath = navContext.committeeId && userIsChair 
+          ? `/chair-control/${navContext.committeeId}`
+          : '/chair-control';
+
+      const navItems = [
+          { path: '/home', label: 'Home', icon: 'home' },
+          { path: '/committees', label: 'Committees', icon: 'groups' },
+          ...(userIsChair
+              ? [{ path: chairControlPath, label: 'Chair Control', icon: 'gavel' }]
+              : []
+          ),
+          ...(userIsAdmin
+              ? [{ path: '/admin', label: 'Admin Panel', icon: 'admin_panel_settings' }]
+              : []
+          ),
+      ];
 
       // Check if there's any content to show in the light green section
       const hasContent = navContext.backNav || navContext.showSettings || navContext.showCreateCommittee;

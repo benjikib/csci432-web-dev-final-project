@@ -46,6 +46,21 @@ export async function getCommittees(page = 1) {
 }
 
 /**
+ * Get committees where current user is chair
+ * @returns {Promise} Response with committees data
+ */
+export async function getMyChairCommittees() {
+    const response = await fetch(
+        `${API_BASE_URL}/committees/my-chairs`,
+        {
+            method: 'GET',
+            headers: getHeaders(),
+        }
+    );
+    return handleResponse(response);
+}
+
+/**
  * Get specific committee details
  * @param {string} id - The committee ID
  * @returns {Promise} Response with committee data

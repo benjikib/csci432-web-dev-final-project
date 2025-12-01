@@ -214,8 +214,20 @@ class User {
   }
 
   static async removeMemberCommittee(userId, committeeId) {
+    const cid = String(committeeId);
+    const uid = new ObjectId(userId);
+    
+    // Remove both ObjectId and string versions to handle legacy data
+    await this.collection().updateOne(
+      { _id: uid },
+      {
+        $pull: { memberCommittees: cid },
+        $set: { updatedAt: new Date() }
+      }
+    );
+    
     return await this.collection().updateOne(
-      { _id: new ObjectId(userId) },
+      { _id: uid },
       {
         $pull: { memberCommittees: new ObjectId(committeeId) },
         $set: { updatedAt: new Date() }

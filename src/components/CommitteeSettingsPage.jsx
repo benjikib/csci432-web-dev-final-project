@@ -401,28 +401,6 @@ function CommitteeSettingsPage() {
                                 </div>
                             </div>
                         </div>
-
-                        {/* Procedural Settings */}
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                Procedural Settings
-                            </label>
-                            <div className="border border-gray-300 rounded-lg p-4 space-y-3 dark:bg-gray-800 dark:border-gray-600">
-                                <div className="flex items-center justify-between">
-                                    <span className="text-gray-700 dark:text-gray-300">Allow anonymous voting</span>
-                                    <input type="checkbox" className="w-5 h-5 rounded border-gray-300" />
-                                </div>
-                                <div className="flex items-center justify-between">
-                                    <span className="text-gray-700 dark:text-gray-300">Require discussion before voting</span>
-                                    <input type="checkbox" className="w-5 h-5 rounded border-gray-300" />
-                                </div>
-                                <div className="flex items-center justify-between">
-                                    <span className="text-gray-700 dark:text-gray-300">Enable sub-motions</span>
-                                    <input type="checkbox" className="w-5 h-5 rounded border-gray-300" />
-                                </div>
-                            </div>
-                        </div>
-
                         {/* Save Button */}
                         <div className="flex gap-4 pt-4">
                             <button

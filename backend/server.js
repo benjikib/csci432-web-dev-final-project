@@ -12,6 +12,7 @@ const motionRoutes = require('./routes/motions');
 const commentRoutes = require('./routes/comments');
 const voteRoutes = require('./routes/votes');
 const notificationsRoutes = require('./routes/notifications');
+const motionControlRoutes = require('./routes/motionControl');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -20,7 +21,7 @@ const PORT = process.env.PORT || 3001;
 // CORS configuration for Vercel (supports production, preview, and local)
 const corsOptions = {
   origin: function (origin, callback) {
-    console.log('CORS Request from origin:', origin);
+    console.log('🌐 CORS Request from:', origin || 'no-origin');
 
     // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin) return callback(null, true);
@@ -41,7 +42,7 @@ const corsOptions = {
     }
 
     // Log rejected origin for debugging
-    console.warn('CORS rejected origin:', origin);
+    console.warn('⚠️  CORS rejected origin:', origin);
     // Reject gracefully instead of throwing error
     callback(null, false);
   },
@@ -66,16 +67,15 @@ async function ensureDbConnection() {
 // Middleware to ensure DB connection for each request (serverless)
 app.use(async (req, res, next) => {
   try {
-    console.log('Ensuring DB connection for request:', req.method, req.url);
+    console.log(`📥 ${req.method} ${req.url}`);
     const timeout = new Promise((_, reject) =>
       setTimeout(() => reject(new Error('Database connection timeout')), 25000)
     );
 
     await Promise.race([ensureDbConnection(), timeout]);
-    console.log('DB connection established');
     next();
   } catch (error) {
-    console.error('Database connection error:', error.message);
+    console.error('❌ Database connection error:', error.message);
     res.status(500).json({
       success: false,
       message: 'Database connection failed',
@@ -91,8 +91,8 @@ app.get('/health', (req, res) => {
 
 // Test route to check body parsing
 app.post('/test', (req, res) => {
-  console.log('Test POST - Body:', req.body);
-  console.log('Test POST - Headers:', req.headers);
+  console.log('🧪 Test POST - Body:', req.body);
+  console.log('🧪 Test POST - Headers:', req.headers);
   res.json({
     success: true,
     received: req.body,
@@ -107,6 +107,7 @@ app.use('/', motionRoutes);
 app.use('/', commentRoutes);
 app.use('/', voteRoutes);
 app.use('/', notificationsRoutes);
+app.use('/motion-control', motionControlRoutes);
 
 // 404 handler
 app.use((req, res) => {
@@ -118,7 +119,7 @@ app.use((req, res) => {
 
 // Error handling middleware
 app.use((err, req, res, next) => {
-  console.error('Server error:', err);
+  console.error('❌ Server error:', err);
   res.status(500).json({
     success: false,
     message: 'Internal server error',
@@ -164,7 +165,7 @@ async function startServer() {
       console.log(`   Votes:      DELETE /committee/:id/motion/:motionId/vote\n`);
     });
   } catch (error) {
-    console.error('Failed to start server:', error);
+    console.error('❌ Failed to start server:', error);
     process.exit(1);
   }
 }

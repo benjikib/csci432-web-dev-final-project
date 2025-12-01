@@ -37,7 +37,7 @@
 
 | Endpoint | Method | Description | Auth Required |
 | --- | --- | --- | --- |
-| `/committee/:id/motions/:page` | GET | Get all motions in committee (paginated, filterable) | Yes |
+| `/committee/:id/motions/:page` | GET | Get all motions in committee (paginated, filterable). By default, this endpoint returns only top-level motions (non-subsidiary). Subsidiary motions are attached as `subsidiaries` under their parent motion. To include subsidiaries in this list, set `includeSubsidiaries=true` in the query parameters. | Yes |
 | `/committee/:id/motion/:motionId` | GET | Get specific motion details | Yes |
 | `/committee/:id/motion/:motionId/subsidiaries` | GET | Get all subsidiary motions for a motion | Yes |
 | `/committee/:id/motion/create` | POST | Create a new motion | Yes |
@@ -52,7 +52,7 @@ Motions now include Robert's Rules of Order metadata:
 - `debatable` - Whether motion can be debated
 - `amendable` - Whether motion can be amended
 - `voteRequired` - Vote threshold (majority, two-thirds, unanimous, none)
-- `amendTargetMotionId` - Reference to target motion (for subsidiary motions)
+- `targetMotionId` - Reference to target motion (for subsidiary motions). Backwards-compatible `amendTargetMotionId` is also supported.
 
 ## Comments
 

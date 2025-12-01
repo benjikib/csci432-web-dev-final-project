@@ -723,6 +723,21 @@ html.dark .tab-button:hover {
   color: #f3f4f6;
 }
 
+/* Delete (danger) tab button variant */
+.tab-button.delete {
+  color: #ef4444; /* red */
+}
+
+.tab-button.delete:hover {
+  background-color: #fee2e2; /* light red */
+  color: #b91c1c; /* darker red */
+}
+
+html.dark .tab-button.delete:hover {
+  background-color: #7f1d1d; /* dark red */
+  color: #fee2e2; /* light text */
+}
+
 .tab-button.active {
   color: #13562C;
   background-color: #ffffff;

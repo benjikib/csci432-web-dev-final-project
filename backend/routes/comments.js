@@ -17,8 +17,12 @@ router.get('/committee/:id/motion/:motionId/comments/:page', authenticate, async
     const page = parseInt(req.params.page) || 1;
     const limit = 20;
 
-    // Verify motion exists
-    const motion = await Motion.findByIdAndCommittee(req.params.motionId, req.params.id);
+    // Resolve committee and verify motion exists
+    const committee = await Committee.findByIdOrSlug(req.params.id);
+    if (!committee) {
+      return res.status(404).json({ success: false, message: 'Committee not found' });
+    }
+    const motion = await Committee.findMotionById(committee._id, req.params.motionId);
     if (!motion) {
       return res.status(404).json({
         success: false,
@@ -63,8 +67,12 @@ router.post('/committee/:id/motion/:motionId/comment/create',
         });
       }
 
-      // Verify motion exists
-      const motion = await Motion.findByIdAndCommittee(req.params.motionId, req.params.id);
+      // Resolve committee and verify motion exists
+      const committee = await Committee.findByIdOrSlug(req.params.id);
+      if (!committee) {
+        return res.status(404).json({ success: false, message: 'Committee not found' });
+      }
+      const motion = await Committee.findMotionById(committee._id, req.params.motionId);
       if (!motion) {
         return res.status(404).json({
           success: false,
@@ -73,8 +81,9 @@ router.post('/committee/:id/motion/:motionId/comment/create',
       }
 
       // Verify user is member of committee
-      const committee = await Committee.findById(req.params.id);
-      if (!committee.members.includes(req.user.userId)) {
+      // Use getMemberRole for accurate role detection
+      const role = await Committee.getMemberRole(committee._id, req.user.userId);
+      if (!role || role === 'guest') {
         return res.status(403).json({
           success: false,
           message: 'You must be a member of this committee to comment'
@@ -83,10 +92,10 @@ router.post('/committee/:id/motion/:motionId/comment/create',
 
       const { content, stance } = req.body;
 
-      // Create comment
+      // Create comment - use committee._id (already resolved ObjectId) instead of req.params.id (which could be a slug)
       const comment = await Comment.create({
         motionId: req.params.motionId,
-        committeeId: req.params.id,
+        committeeId: committee._id.toString(),
         author: req.user.userId,
         content,
         stance: stance || 'neutral'

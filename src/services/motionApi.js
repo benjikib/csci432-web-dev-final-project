@@ -44,6 +44,7 @@ export async function getMotionsByCommittee(committeeId, page = 1, filters = {})
     if (filters.type) queryParams.append('type', filters.type);
     if (filters.status) queryParams.append('status', filters.status);
     if (filters.targetMotion) queryParams.append('targetMotion', filters.targetMotion);
+    if (filters.includeSubsidiaries) queryParams.append('includeSubsidiaries', String(filters.includeSubsidiaries));
     
     const queryString = queryParams.toString();
     const url = `${API_BASE_URL}/committee/${committeeId}/motions/${page}${queryString ? '?' + queryString : ''}`;

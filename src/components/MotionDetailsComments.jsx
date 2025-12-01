@@ -1,10 +1,11 @@
 import { useState, useEffect, useRef } from "react";
-import { createNotification, getNotificationsForTarget } from '../services/notificationApi';
+import { getCommentsByMotion, createComment } from '../services/commentApi';
 import { getCurrentUser } from '../services/userApi';
 
-export default function MotionDetailsComments({ committeeId, motionId }) {
+export default function MotionDetailsComments({ committeeId, motionId, isDebatable = true }) {
         const [comments, setComments] = useState([]);
         const [newComment, setNewComment] = useState("");
+        const [stance, setStance] = useState("neutral");
         const [currentUser, setCurrentUser] = useState(null);
         const chatEndRef = useRef(null);
 
@@ -18,17 +19,10 @@ export default function MotionDetailsComments({ committeeId, motionId }) {
                                 setCurrentUser(cur && cur.user ? cur.user : null);
 
                                 if (!motionId) return;
-                                const res = await getNotificationsForTarget('motion', motionId);
+                                const res = await getCommentsByMotion(committeeId, motionId, 1);
                                 if (!mounted) return;
-                                if (res && res.notifications) {
-                                        const mapped = res.notifications.map(n => ({
-                                                id: n._id,
-                                                text: n.message,
-                                                senderName: n.requesterName || (n.requesterId ? String(n.requesterId) : 'User'),
-                                                requesterId: n.requesterId ? String(n.requesterId) : null,
-                                                createdAt: n.createdAt
-                                        }));
-                                        setComments(mapped);
+                                if (res && res.comments) {
+                                        setComments(res.comments);
                                 }
                         } catch (e) {
                                 console.error('Failed to load messages:', e);
@@ -36,7 +30,7 @@ export default function MotionDetailsComments({ committeeId, motionId }) {
                 }
                 load();
                 return () => { mounted = false; };
-        }, [motionId]);
+        }, [motionId, committeeId]);
 
         // Automatically scroll to the latest message
         useEffect(() => {
@@ -48,32 +42,18 @@ export default function MotionDetailsComments({ committeeId, motionId }) {
                 if (!newComment.trim()) return;
 
                 try {
-                        const payload = {
-                                type: 'message',
-                                targetType: 'motion',
-                                targetId: motionId,
-                                committeeId: committeeId,
-                                message: newComment
-                        };
+                        await createComment(committeeId, motionId, {
+                                content: newComment,
+                                stance: stance
+                        });
 
-                        const res = await createNotification(payload);
-                        const note = res && res.notification ? res.notification : null;
-                        const added = note ? {
-                                id: note._id,
-                                text: note.message,
-                                senderName: note.requesterName,
-                                requesterId: note.requesterId ? String(note.requesterId) : null,
-                                createdAt: note.createdAt
-                        } : {
-                                id: Date.now(),
-                                text: newComment,
-                                senderName: currentUser ? (currentUser.name || 'You') : 'You',
-                                requesterId: currentUser ? (currentUser.id || currentUser._id) : null,
-                                createdAt: new Date()
-                        };
-
-                        setComments(prev => [...prev, added]);
+                        // Reload comments
+                        const res = await getCommentsByMotion(committeeId, motionId, 1);
+                        if (res && res.comments) {
+                                setComments(res.comments);
+                        }
                         setNewComment("");
+                        setStance("neutral"); // Reset stance to neutral
                 } catch (err) {
                         console.error('Failed to send message:', err);
                         alert('Failed to send message');
@@ -90,18 +70,76 @@ export default function MotionDetailsComments({ committeeId, motionId }) {
                                         <p className="text-gray-600 text-sm text-center mt-10">No messages yet. Say hello!</p>
                                 ) : (
                                         comments.map((comment) => {
-                                                const isMine = currentUser && String(currentUser.id || currentUser._id || currentUser._id) === String(comment.requesterId);
+                                                // System message rendering
+                                                if (comment.isSystemMessage) {
+                                                        const getSystemMessageStyle = (type) => {
+                                                                switch (type) {
+                                                                        case 'voting-eligible':
+                                                                                return 'bg-green-50 border-green-200 text-green-800';
+                                                                        case 'voting-opened':
+                                                                                return 'bg-blue-50 border-blue-200 text-blue-800';
+                                                                        case 'voting-closed':
+                                                                                return 'bg-gray-50 border-gray-200 text-gray-800';
+                                                                        case 'roll-call-vote':
+                                                                                return 'bg-purple-50 border-purple-200 text-purple-800';
+                                                                        default:
+                                                                                return 'bg-yellow-50 border-yellow-200 text-yellow-800';
+                                                                }
+                                                        };
+
+                                                        const getSystemIcon = (type) => {
+                                                                switch (type) {
+                                                                        case 'voting-eligible':
+                                                                                return '✓';
+                                                                        case 'voting-opened':
+                                                                        case 'voting-closed':
+                                                                                return '🗳️';
+                                                                        case 'roll-call-vote':
+                                                                                return '📢';
+                                                                        default:
+                                                                                return 'ℹ️';
+                                                                }
+                                                        };
+
+                                                        return (
+                                                                <div key={comment._id} className="flex justify-center my-2">
+                                                                        <div className={`flex items-center gap-2 px-4 py-2 rounded-lg border ${getSystemMessageStyle(comment.messageType)} max-w-[80%]`}>
+                                                                                <span className="text-base">{getSystemIcon(comment.messageType)}</span>
+                                                                                <p className="text-sm font-medium">{comment.content}</p>
+                                                                                <span className="text-xs opacity-70 ml-2">
+                                                                                        {new Date(comment.createdAt).toLocaleTimeString()}
+                                                                                </span>
+                                                                        </div>
+                                                                </div>
+                                                        );
+                                                }
+
+                                                // Regular user comment rendering
+                                                const senderName = comment.authorName || comment.authorInfo?.name || 'Unknown User';
+                                                const isMine = currentUser && String(currentUser.id || currentUser._id) === String(comment.author);
+                                                
                                                 return (
-                                                        <div key={comment.id} className={`flex items-center gap-2 ${isMine ? 'justify-end' : 'justify-start'}`}>
+                                                        <div key={comment._id} className={`flex items-center gap-2 ${isMine ? 'justify-end' : 'justify-start'}`}>
                                                                 {!isMine && (
                                                                         <div className="w-8 h-8 rounded-full bg-gray-300 flex-shrink-0 overflow-hidden self-start mt-6">
-                                                                                <div className="w-full h-full flex items-center justify-center text-gray-600">{comment.senderName ? comment.senderName.charAt(0).toUpperCase() : 'U'}</div>
+                                                                                <div className="w-full h-full flex items-center justify-center text-gray-600">
+                                                                                        {senderName.charAt(0).toUpperCase()}
+                                                                                </div>
                                                                         </div>
                                                                 )}
                                                                 <div className="flex flex-col max-w-[85%]">
-                                                                        <span className={`text-xs text-gray-500 mb-1 px-1 ${isMine ? 'text-end' : 'text-start'}`}>{isMine ? (currentUser && (currentUser.name || 'You')) : (comment.senderName || 'User')}</span>
+                                                                        <span className={`text-xs text-gray-500 mb-1 px-1 ${isMine ? 'text-end' : 'text-start'}`}>
+                                                                                {isMine ? (currentUser && (currentUser.name || 'You')) : senderName}
+                                                                        </span>
                                                                         <div className={`px-3 py-2 rounded-xl w-full whitespace-pre-wrap break-words ${isMine ? 'bg-lighter-green text-white rounded-br-none' : 'bg-gray-200 text-gray-800 rounded-bl-none'}`}>
-                                                                                {comment.text}
+                                                                                {comment.stance && comment.stance !== 'neutral' && (
+                                                                                        <span className={`text-xs font-semibold uppercase block mb-1 ${
+                                                                                                comment.stance === 'pro' ? 'text-green-700' : 'text-red-700'
+                                                                                        }`}>
+                                                                                                {comment.stance === 'pro' ? '✓ Pro' : '✗ Con'}
+                                                                                        </span>
+                                                                                )}
+                                                                                {comment.content}
                                                                         </div>
                                                                 </div>
                                                                 {isMine && (
@@ -117,12 +155,57 @@ export default function MotionDetailsComments({ committeeId, motionId }) {
                                 <div ref={chatEndRef} />
                         </div>
 
-                        {/* Input area */}
-                        <form onSubmit={handleSubmit} className="flex mt-3">
-                                <input type="text" placeholder="Type a message..." value={newComment} onChange={(e) => setNewComment(e.target.value)} className="flex-grow border border-lighter-green rounded-md p-2 focus:outline-none bg-white text-gray-800" autoComplete="off" />
-
-                                <button type="submit" className="ml-2">Send</button>
+                        {/* Input area - only show if debatable */}
+                        {isDebatable ? (
+                        <form onSubmit={handleSubmit} className="mt-3">
+                                <div className="flex gap-2 mb-2">
+                                        <button
+                                                type="button"
+                                                onClick={() => setStance("pro")}
+                                                className={`px-3 py-1 rounded text-sm font-medium ${
+                                                        stance === "pro" 
+                                                                ? "bg-green-700 text-white" 
+                                                                : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                                                }`}
+                                        >
+                                                ✓ Pro
+                                        </button>
+                                        <button
+                                                type="button"
+                                                onClick={() => setStance("neutral")}
+                                                className={`px-3 py-1 rounded text-sm font-medium ${
+                                                        stance === "neutral" 
+                                                                ? "bg-blue-500 text-white" 
+                                                                : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                                                }`}
+                                        >
+                                                Neutral
+                                        </button>
+                                        <button
+                                                type="button"
+                                                onClick={() => setStance("con")}
+                                                className={`px-3 py-1 rounded text-sm font-medium ${
+                                                        stance === "con" 
+                                                                ? "bg-red-700 text-white" 
+                                                                : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                                                }`}
+                                        >
+                                                ✗ Con
+                                        </button>
+                                </div>
+                                <div className="flex gap-2">
+                                        <input type="text" placeholder="Type a message..." value={newComment} onChange={(e) => setNewComment(e.target.value)} className="flex-grow border border-lighter-green rounded-md p-2 focus:outline-none bg-white text-gray-800" autoComplete="off" />
+                                        <button type="submit" className="ml-2">Send</button>
+                                </div>
                         </form>
+                        ) : (
+                                <div className="mt-3 p-3 bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md">
+                                        <p className="text-sm text-gray-600 dark:text-gray-400 flex items-center gap-2">
+                                                <span className="material-symbols-outlined text-lg">info</span>
+                                                This motion is not debatable. Comments are disabled.
+                                        </p>
+                                </div>
+                        )}
                 </div>
         );
 }

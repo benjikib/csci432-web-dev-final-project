@@ -110,7 +110,9 @@ function CreateMotionPage() {
         description: "I move to ",
         fullDescription: "",
         motionType: "main",
-        amendTargetMotionId: null
+        amendTargetMotionId: null,
+        targetMotionId: null,
+        isAnonymous: false
     });
 
     // Motion types based on Robert's Rules of Order
@@ -287,6 +289,13 @@ function CreateMotionPage() {
             ...formData,
             [name]: value
         };
+        // Keep canonical and legacy fields in sync when selecting a target
+        if (name === 'amendTargetMotionId') {
+            newFormData.targetMotionId = value;
+        }
+        if (name === 'targetMotionId') {
+            newFormData.amendTargetMotionId = value;
+        }
         setFormData(newFormData);
         const isModified = checkIfModified(newFormData);
         setHasUnsavedChanges(isModified);
@@ -332,9 +341,9 @@ function CreateMotionPage() {
             return;
         }
 
-        // Validate target motion for subsidiary motions
-        const subsidiaryMotions = ['amend', 'refer_to_committee', 'postpone', 'limit_debate', 'previous_question', 'table'];
-        if (subsidiaryMotions.includes(formData.motionType) && !formData.amendTargetMotionId) {
+        // Validate target motion for subsidiary motions and reconsider
+        const motionsRequiringTarget = ['amend', 'refer_to_committee', 'postpone', 'limit_debate', 'previous_question', 'table', 'reconsider'];
+        if (motionsRequiringTarget.includes(formData.motionType) && !formData.amendTargetMotionId && !formData.targetMotionId) {
             alert("Please select a target motion");
             return;
         }
@@ -352,6 +361,8 @@ function CreateMotionPage() {
             amendable: selectedMotionType?.amendable ?? true,
             voteRequired: selectedMotionType?.voteRequired || "majority",
             amendTargetMotionId: formData.amendTargetMotionId,
+            targetMotionId: formData.targetMotionId || formData.amendTargetMotionId,
+            isAnonymous: formData.isAnonymous || false,
             votes: 0
         };
 
@@ -538,7 +549,7 @@ function CreateMotionPage() {
                                     Select Target Motion <span className="text-red-500">*</span>
                                 </label>
                                 <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-                                    {formData.motionType === 'amend' && 'Choose which existing motion you want to amend'}
+                                    {formData.motionType === 'amend' && 'Choose which existing motion you want to amend (only amendable motions shown)'}
                                     {formData.motionType === 'refer_to_committee' && 'Choose which motion to refer to committee'}
                                     {formData.motionType === 'postpone' && 'Choose which motion to postpone'}
                                     {formData.motionType === 'limit_debate' && 'Choose which motion to limit or extend debate on'}
@@ -546,31 +557,45 @@ function CreateMotionPage() {
                                     {formData.motionType === 'table' && 'Choose which motion to lay on the table'}
                                 </p>
                                 
-                                {existingMotions.length === 0 ? (
+                                {existingMotions.filter(m => {
+                                    // Only show top-level motions (not subsidiary motions)
+                                    const isTopLevel = !(m.targetMotionId || m.amendTargetMotionId);
+                                    // For amend motion type, only show amendable motions
+                                    const isAmendable = formData.motionType === 'amend' ? (m.amendable !== false) : true;
+                                    return isTopLevel && isAmendable && m.status === 'active';
+                                }).length === 0 ? (
                                     <div className="p-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
                                         <p className="text-gray-500 dark:text-gray-400 text-sm">
-                                            No existing motions available to amend in this committee.
+                                            {formData.motionType === 'amend' 
+                                                ? 'No amendable motions available in this committee.'
+                                                : 'No existing motions available in this committee.'}
                                         </p>
                                     </div>
                                 ) : (
                                     <div className="space-y-3">
-                                        {existingMotions.map((motion) => (
+                                        {existingMotions
+                                            .filter(m => {
+                                                const isTopLevel = !(m.targetMotionId || m.amendTargetMotionId);
+                                                const isAmendable = formData.motionType === 'amend' ? (m.amendable !== false) : true;
+                                                return isTopLevel && isAmendable && m.status === 'active';
+                                            })
+                                            .map((motion) => (
                                             <div
-                                                key={motion.id}
-                                                onClick={() => handleChange({ target: { name: 'amendTargetMotionId', value: motion.id } })}
+                                                key={motion._id || motion.id}
+                                                onClick={() => handleChange({ target: { name: 'amendTargetMotionId', value: String(motion._id || motion.id) } })}
                                                 className={`p-4 rounded-lg border-2 cursor-pointer transition-all ${
-                                                    formData.amendTargetMotionId === motion.id
+                                                    (formData.amendTargetMotionId === String(motion._id || motion.id) || formData.targetMotionId === String(motion._id || motion.id))
                                                         ? 'border-amber-500 dark:border-amber-400 bg-white dark:bg-amber-900/30 shadow-md'
                                                         : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:border-amber-300 dark:hover:border-amber-600'
                                                 }`}
                                             >
                                                 <div className="flex items-start gap-3">
                                                     <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center mt-0.5 flex-shrink-0 ${
-                                                        formData.amendTargetMotionId === motion.id
+                                                        (formData.amendTargetMotionId === String(motion._id || motion.id) || formData.targetMotionId === String(motion._id || motion.id))
                                                             ? 'border-amber-500 bg-amber-500'
                                                             : 'border-gray-300 dark:border-gray-600'
                                                     }`}>
-                                                        {formData.amendTargetMotionId === motion.id && (
+                                                        {(formData.amendTargetMotionId === String(motion._id || motion.id) || formData.targetMotionId === String(motion._id || motion.id)) && (
                                                             <div className="w-2.5 h-2.5 rounded-full bg-white"></div>
                                                         )}
                                                     </div>
@@ -580,7 +605,7 @@ function CreateMotionPage() {
                                                                 {motion.title}
                                                             </h5>
                                                             <span className="text-xs px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 rounded ml-2 flex-shrink-0">
-                                                                Motion #{motion.id}
+                                                                Motion #{String(motion._id || motion.id).slice(0, 6)}
                                                             </span>
                                                         </div>
                                                         <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">
@@ -591,6 +616,72 @@ function CreateMotionPage() {
                                                                 {motion.motionTypeLabel}
                                                             </span>
                                                         )}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                        {/* Reconsider Motion Selection - show passed/failed/voided motions */}
+                        {formData.motionType === 'reconsider' && (
+                            <div className="bg-blue-50 dark:bg-blue-900/20 border-2 border-blue-300 dark:border-blue-700 p-6 rounded-lg shadow-sm">
+                                <label className="block text-sm font-semibold text-gray-800 dark:text-gray-200 mb-2 flex items-center gap-2">
+                                    <span className="material-symbols-outlined text-blue-600 dark:text-blue-400">history</span>
+                                    Select Motion to Reconsider <span className="text-red-500">*</span>
+                                </label>
+                                <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                                    Choose a motion that has been passed, failed, or voided to bring back for reconsideration
+                                </p>
+                                
+                                {existingMotions.filter(m => ['passed', 'failed', 'voided'].includes(m.status)).length === 0 ? (
+                                    <div className="p-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+                                        <p className="text-gray-500 dark:text-gray-400 text-sm">
+                                            No passed, failed, or voided motions available to reconsider.
+                                        </p>
+                                    </div>
+                                ) : (
+                                    <div className="space-y-3">
+                                        {existingMotions
+                                            .filter(m => ['passed', 'failed', 'voided'].includes(m.status))
+                                            .map((motion) => (
+                                            <div
+                                                key={motion._id || motion.id}
+                                                onClick={() => handleChange({ target: { name: 'targetMotionId', value: String(motion._id || motion.id) } })}
+                                                className={`p-4 rounded-lg border-2 cursor-pointer transition-all ${
+                                                    formData.targetMotionId === String(motion._id || motion.id)
+                                                        ? 'border-blue-500 dark:border-blue-400 bg-white dark:bg-blue-900/30 shadow-md'
+                                                        : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:border-blue-300 dark:hover:border-blue-600'
+                                                }`}
+                                            >
+                                                <div className="flex items-start gap-3">
+                                                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center mt-0.5 flex-shrink-0 ${
+                                                        formData.targetMotionId === String(motion._id || motion.id)
+                                                            ? 'border-blue-500 bg-blue-500'
+                                                            : 'border-gray-300 dark:border-gray-600'
+                                                    }`}>
+                                                        {formData.targetMotionId === String(motion._id || motion.id) && (
+                                                            <div className="w-2.5 h-2.5 rounded-full bg-white"></div>
+                                                        )}
+                                                    </div>
+                                                    <div className="flex-1">
+                                                        <div className="flex items-start justify-between mb-2">
+                                                            <h5 className="font-semibold text-gray-800 dark:text-gray-200">
+                                                                {motion.title}
+                                                            </h5>
+                                                            <span className={`text-xs px-2 py-1 rounded ml-2 flex-shrink-0 ${
+                                                                motion.status === 'passed' ? 'bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300' :
+                                                                motion.status === 'failed' ? 'bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300' :
+                                                                'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400'
+                                                            }`}>
+                                                                {motion.status.charAt(0).toUpperCase() + motion.status.slice(1)}
+                                                            </span>
+                                                        </div>
+                                                        <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">
+                                                            {motion.description}
+                                                        </p>
                                                     </div>
                                                 </div>
                                             </div>
@@ -652,6 +743,29 @@ function CreateMotionPage() {
                                 className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-lighter-green focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                             />
                         </div>
+
+                        {/* Anonymous Option (if enabled in committee settings) */}
+                        {committee?.settings?.allowAnonymousMotions && (
+                            <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+                                <label className="flex items-start gap-3 cursor-pointer">
+                                    <input
+                                        type="checkbox"
+                                        name="isAnonymous"
+                                        checked={formData.isAnonymous}
+                                        onChange={(e) => handleChange({ target: { name: 'isAnonymous', value: e.target.checked } })}
+                                        className="mt-1 w-5 h-5 text-darker-green border-gray-300 dark:border-gray-600 rounded focus:ring-lighter-green focus:ring-2"
+                                    />
+                                    <div>
+                                        <span className="block font-semibold text-gray-700 dark:text-gray-200">
+                                            Post Anonymously
+                                        </span>
+                                        <span className="text-sm text-gray-500 dark:text-gray-400">
+                                            Your name will be hidden and the motion will be shown as submitted by "Anonymous"
+                                        </span>
+                                    </div>
+                                </label>
+                            </div>
+                        )}
 
                         {/* Action Buttons */}
                         <div className="flex gap-4 justify-end">

@@ -9,6 +9,7 @@ import CommitteesPage from './components/CommitteesPage.jsx'
 import CommitteeMotionsPage from './components/CommitteeMotionsPage.jsx'
 import CommitteeSettingsPage from './components/CommitteeSettingsPage.jsx'
 import CreateMotionPage from './components/CreateMotionPage.jsx'
+import EditMotionPage from './components/EditMotionPage.jsx'
 import CreateCommitteePage from './components/CreateCommitteePage.jsx'
 import UserControlPage from './components/UserControlPage.jsx'
 import NotFoundPage from './components/NotFoundPage.jsx'
@@ -33,12 +34,14 @@ export default function App() {
         <Route path="/committee/:id" element={<CommitteeMotionsPage />}></Route>
         <Route path="/committee/:id/settings" element={<CommitteeSettingsPage />}></Route>
         <Route path="/committee/:id/create-motion" element={<CreateMotionPage />}></Route>
+        <Route path="/committee/:id/motion/:motionId/edit" element={<EditMotionPage />}></Route>
         <Route path="/committee/:committeeId/motion/:motionId" element={<CommitteeMotionsPage />}></Route>
         <Route path="/user-control" element={<UserControlPage />}></Route>
         <Route path="/login" element={<LoginPage />}></Route>
         <Route path="/settings" element={<Settings />}></Route>
         <Route path="/profile" element={<Profile />}></Route>
         <Route path="/chair-control" element={<ChairControlPage />}></Route>
+        <Route path="/chair-control/:committeeId" element={<ChairControlPage />}></Route>
         <Route path="/admin" element={<AdminPanel />}></Route>
         <Route path="*" element={<NotFoundPage />}></Route>
       </Routes>
