@@ -1016,27 +1016,729 @@ html.dark .auth-section {
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
-/* Mobile responsive for integrated layout */
-@media screen and (max-width: 768px) {
-  .integrated-landing-page {
-    flex-direction: column;
-    height: 100dvh;
+/* Layout sizing variables for the homepage outline */
+.home-outline {
+  --outline-total-height: calc(100vh - 140px);
+  --top-row-height: calc(var(--outline-total-height) / 2);
+  --small-box-height: 80px; /* height for the two small boxes */
+  --inner-gap: 16px; /* gap between right-column boxes */
+  --bottom-box-height: calc(var(--outline-total-height) * 0.42); /* Bottom box takes ~42% of height (slightly bigger) */
+
+  width: calc(100% - 48px);
+  max-width: 1400px;
+  box-sizing: border-box;
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  /* Top row gets fixed half of the available outline height; bottom row gets 1/3 */
+  grid-template-rows: var(--top-row-height) var(--bottom-box-height);
+  gap: 24px;
+  align-items: start;
+  padding: 16px 24px;
+  height: var(--outline-total-height);
+  min-height: 0;
+  margin-right: 24px;
+}
+
+.home-outline .left-column {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  min-height: 0;
+}
+
+.home-outline .right-column {
+  /* switch from flex to grid so rows can be sized precisely: top large + two fixed small rows */
+  display: grid;
+  grid-template-rows: calc(var(--top-row-height) - (2 * var(--small-box-height)) - (2 * var(--inner-gap))) var(--small-box-height) var(--small-box-height);
+  gap: var(--inner-gap);
+  min-height: 0;
+  height: var(--top-row-height);
+  max-height: var(--top-row-height);
+  align-self: start;
+  align-items: stretch;
+  overflow: hidden;
+}
+
+.home-outline .box {
+  background: #ffffff;
+  border: 1px solid #e6eef0;
+  border-radius: 8px;
+  box-shadow: 0 1px 6px rgba(0,0,0,0.04);
+  min-height: 0;
+  height: 100%;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+/* Big left box fills the top-row height and aligns with right column */
+.home-outline .big-box {
+  height: var(--top-row-height);
+  min-height: var(--top-row-height);
+  max-height: var(--top-row-height);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Welcome text styling */
+.home-outline .big-box .welcome-text {
+  margin: 0 0 20px 0;
+  padding: 0;
+  text-align: left;
+  font-size: 36px;
+  font-weight: 400;
+  color: #0f172a;
+  font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+
+html.dark .home-outline .big-box .welcome-text {
+  color: #f3f4f6;
+}
+
+/* Welcome bold styling - only "Welcome" is bold */
+.home-outline .big-box .welcome-text .welcome-bold {
+  font-weight: 700;
+}
+
+/* Active Motions Panel Styling */
+.active-motions-panel {
+  margin-top: 24px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+  max-height: 100%;
+}
+
+.active-motions-title {
+  margin: 0 0 16px 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: #0f172a;
+  font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  text-align: left;
+  flex-shrink: 0;
+}
+
+html.dark .active-motions-title {
+  color: #f3f4f6;
+}
+
+.active-motions-list {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 0;
+  max-height: 100%;
+}
+
+.active-motion-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 16px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  gap: 16px;
+}
+
+html.dark .active-motion-card {
+  background: #1f2937;
+  border-color: #374151;
+}
+
+.active-motion-card:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  transform: translateY(-1px);
+}
+
+html.dark .active-motion-card:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.active-motion-content {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.active-motion-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 4px;
+}
+
+.active-motion-title {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: #0f172a;
+  font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  line-height: 1.4;
+  flex: 1;
+  text-align: left;
+}
+
+html.dark .active-motion-title {
+  color: #f3f4f6;
+}
+
+.active-motion-status-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: 600;
+  border-radius: 12px;
+  font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.active-motion-status-badge.status-voting-open {
+  color: #13562C;
+  background-color: #d1fae5;
+}
+
+html.dark .active-motion-status-badge.status-voting-open {
+  color: #10b981;
+  background-color: #064e3b;
+}
+
+.active-motion-status-badge.status-in-discussion {
+  color: #2563eb;
+  background-color: #dbeafe;
+}
+
+html.dark .active-motion-status-badge.status-in-discussion {
+  color: #60a5fa;
+  background-color: #1e3a8a;
+}
+
+.active-motion-status-badge.status-closed {
+  color: #64748b;
+  background-color: #f1f5f9;
+}
+
+html.dark .active-motion-status-badge.status-closed {
+  color: #9ca3af;
+  background-color: #374151;
+}
+
+.active-motion-committee {
+  font-size: 13px;
+  font-weight: 500;
+  color: #64748b;
+  font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  text-align: left;
+}
+
+html.dark .active-motion-committee {
+  color: #9ca3af;
+}
+
+.active-motion-metadata {
+  font-size: 12px;
+  font-weight: 400;
+  color: #94a3b8;
+  font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  text-align: left;
+}
+
+html.dark .active-motion-metadata {
+  color: #6b7280;
+}
+
+.active-motion-actions {
+  flex-shrink: 0;
+}
+
+.active-motion-button {
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #ffffff;
+  background-color: #13562C;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+html.dark .active-motion-button {
+  background-color: #10b981;
+}
+
+.active-motion-button:hover {
+  background-color: #1a7a3f;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 6px rgba(19, 86, 44, 0.3);
+}
+
+html.dark .active-motion-button:hover {
+  background-color: #059669;
+  box-shadow: 0 2px 6px rgba(16, 185, 129, 0.3);
+}
+
+.active-motions-empty {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+}
+
+.active-motions-empty p {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 400;
+  color: #64748b;
+  font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  text-align: center;
+}
+
+html.dark .active-motions-empty p {
+  color: #9ca3af;
+}
+
+/* Two small boxes have fixed height and do not flex */
+.home-outline .small-box {
+  height: var(--small-box-height);
+  min-height: var(--small-box-height);
+  max-height: var(--small-box-height);
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+/* Home action boxes (Committees, Create Committee) */
+.home-action-box {
+  cursor: pointer;
+  transition: all 0.2s ease;
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+}
+
+.home-action-box:hover {
+  background-color: #f8fafc;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+html.dark .home-action-box:hover {
+  background-color: #1f2937;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+.home-action-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+}
+
+.home-action-icon {
+  font-size: 24px;
+  color: #13562C;
+  flex-shrink: 0;
+}
+
+html.dark .home-action-icon {
+  color: #10b981;
+}
+
+.home-action-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.home-action-title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #0f172a;
+  font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  line-height: 1.2;
+  margin-bottom: 2px;
+}
+
+html.dark .home-action-title {
+  color: #f3f4f6;
+}
+
+.home-action-subtitle {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 400;
+  color: #64748b;
+  font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  line-height: 1.3;
+}
+
+html.dark .home-action-subtitle {
+  color: #9ca3af;
+}
+
+/* Top-right box: fill remaining space in the top row after subtracting the two small boxes and gaps */
+.home-outline .top-right-box {
+  min-height: 0;
+  height: 100%;
+  overflow: hidden;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Upcoming Meetings Panel Styling */
+.upcoming-meetings-panel {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.upcoming-meetings-title {
+  margin: 0 0 16px 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: #0f172a;
+  font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  text-align: left;
+}
+
+html.dark .upcoming-meetings-title {
+  color: #f3f4f6;
+}
+
+.upcoming-meetings-list {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.upcoming-meeting-item {
+  padding: 12px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+html.dark .upcoming-meeting-item {
+  background: #1f2937;
+  border-color: #374151;
+}
+
+.upcoming-meeting-item:hover {
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+  transform: translateY(-1px);
+}
+
+html.dark .upcoming-meeting-item:hover {
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+}
+
+.upcoming-meeting-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 8px;
+  gap: 8px;
+}
+
+.upcoming-meeting-committee {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #0f172a;
+  font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  line-height: 1.3;
+  flex: 1;
+  text-align: left;
+}
+
+html.dark .upcoming-meeting-committee {
+  color: #f3f4f6;
+}
+
+.upcoming-meeting-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  font-size: 10px;
+  font-weight: 600;
+  color: #13562C;
+  background-color: #d1fae5;
+  border-radius: 12px;
+  font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+html.dark .upcoming-meeting-badge {
+  color: #10b981;
+  background-color: #064e3b;
+}
+
+.upcoming-meeting-details {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.upcoming-meeting-datetime {
+  font-size: 12px;
+  font-weight: 400;
+  color: #64748b;
+  font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  text-align: left;
+}
+
+html.dark .upcoming-meeting-datetime {
+  color: #9ca3af;
+}
+
+.upcoming-meeting-location {
+  font-size: 12px;
+  font-weight: 400;
+  color: #64748b;
+  font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  text-align: left;
+}
+
+html.dark .upcoming-meeting-location {
+  color: #9ca3af;
+}
+
+.upcoming-meetings-footer {
+  margin-top: auto;
+  padding-top: 12px;
+  border-top: 1px solid #e2e8f0;
+}
+
+html.dark .upcoming-meetings-footer {
+  border-top-color: #374151;
+}
+
+.upcoming-meetings-view-all {
+  width: 100%;
+  padding: 8px 12px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #13562C;
+  background: transparent;
+  border: 1px solid #13562C;
+  border-radius: 6px;
+  cursor: pointer;
+  font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  transition: all 0.2s ease;
+  text-align: center;
+}
+
+html.dark .upcoming-meetings-view-all {
+  color: #10b981;
+  border-color: #10b981;
+}
+
+.upcoming-meetings-view-all:hover {
+  background-color: #13562C;
+  color: #ffffff;
+}
+
+html.dark .upcoming-meetings-view-all:hover {
+  background-color: #10b981;
+  color: #ffffff;
+}
+
+.home-outline .bottom-box {
+  grid-column: 1 / -1;
+  grid-row: 2;
+  height: var(--bottom-box-height);
+  min-height: 0;
+  max-height: var(--bottom-box-height);
+  overflow: hidden;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Analytics Panel Styling */
+.analytics-panel {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.analytics-title {
+  margin: 0 0 20px 0;
+  font-size: 24px;
+  font-weight: 700;
+  color: #0f172a;
+  font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  text-align: left;
+}
+
+html.dark .analytics-title {
+  color: #f3f4f6;
+}
+
+.analytics-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  flex: 1;
+}
+
+.analytics-stat-card {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  transition: all 0.2s ease;
+}
+
+html.dark .analytics-stat-card {
+  background: #1f2937;
+  border-color: #374151;
+}
+
+.analytics-stat-card:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  transform: translateY(-1px);
+}
+
+html.dark .analytics-stat-card:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.analytics-stat-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: #64748b;
+  font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  margin-bottom: 8px;
+  text-align: left;
+}
+
+html.dark .analytics-stat-label {
+  color: #9ca3af;
+}
+
+.analytics-stat-value {
+  font-size: 32px;
+  font-weight: 700;
+  color: #0f172a;
+  font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  line-height: 1.2;
+  margin-bottom: 4px;
+  text-align: left;
+}
+
+html.dark .analytics-stat-value {
+  color: #f3f4f6;
+}
+
+.analytics-stat-subtitle {
+  font-size: 12px;
+  font-weight: 400;
+  color: #64748b;
+  font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  margin-top: 4px;
+  text-align: left;
+}
+
+html.dark .analytics-stat-subtitle {
+  color: #9ca3af;
+}
+
+/* Responsive: 2 columns on medium screens, 1 column on small */
+@media (max-width: 1200px) {
+  .analytics-grid {
+    grid-template-columns: repeat(2, 1fr);
   }
-  
-  .branding-section,
-  .auth-section {
-    padding: 20px;
+}
+
+@media (max-width: 768px) {
+  .analytics-grid {
+    grid-template-columns: 1fr;
   }
-  
-  .branding-content .main-logo {
+}
+
+/* Ensure boxes keep a few pixels away from the sidebar */
+@media (min-width: 900px) {
+  .home-outline { padding-left: 24px; }
+}
+
+/* Dark theme overrides */
+html.dark .home-outline .box {
+  background: #1f2937;
+  border-color: #374151;
+  box-shadow: 0 1px 6px rgba(0,0,0,0.35);
+}
+
+/* Responsive: collapse to single column on small screens */
+@media (max-width: 900px) {
+  .home-outline {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto auto;
+    height: auto;
+    padding: 12px 16px;
+    width: 100%;
+    max-width: none;
+  }
+  .home-outline .right-column {
+    flex-direction: row;
+  }
+  .home-outline .right-column .small-box {
+    flex: 1 1 0;
+    min-width: 0;
+    height: 140px;
+  }
+  .home-outline .big-box {
+    height: 260px;
+  }
+  .home-outline .bottom-box {
+    height: 180px;
+  }
+  .home-outline .top-right-box {
     height: 160px;
   }
-  
-  .branding-content {
-    transform: translate(0, 0);
-  }
-  
-  .tagline {
-    font-size: 16px;
+}
+
+/* Force the left big box to be visible and align with right column bottom */
+.home-outline > .left-column .big-box {
+  display: block;
+  width: 100%;
+  height: var(--top-row-height);
+  min-height: var(--top-row-height);
+  max-height: var(--top-row-height);
+  box-sizing: border-box;
+}
+
+/* Make sure the top-right box fits within the grid row */
+.home-outline > .right-column > .top-right-box {
+  box-sizing: border-box;
+}
+
+@media (max-width: 900px) {
+  .home-outline > .left-column .big-box,
+  .home-outline > .right-column > .top-right-box {
+    min-height: 260px;
+    max-height: none;
   }
 }

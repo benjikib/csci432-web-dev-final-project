@@ -5,15 +5,15 @@ function SearchBar( {setSearchedTerm} ) {
 
         return (
                 <>
-                        <div className="flex items-center border border-black dark:border-gray-600 bg-[#F8FEF9] dark:bg-gray-800 rounded-sm ml-20 w-100 h-7.5">
+                        <div className="flex items-center border border-black dark:border-gray-600 bg-[#F8FEF9] dark:bg-gray-800 rounded-sm w-100 h-7.5">
                                 <span className="material-symbols-outlined text-black dark:text-gray-300 ml-1">search</span>
                                 <input
-                                        placeholder="Search for motions"
+                                        placeholder="Search"
                                         className="ml-1.5 w-full h-full border-transparent focus:outline-none font-[400] text-xs text-black/60 dark:text-gray-300 bg-transparent placeholder:text-gray-400 dark:placeholder:text-gray-500"
                                         onChange={ (e) => { setSearchedTerm(e.target.value) } }
                                         autoComplete="off"
                                 />
-                        </div>
+                        </div> 
                 </>
         )
 
@@ -146,13 +146,16 @@ export default function HeaderNav( {setSearchedTerm} ) {
         return (
                 <div className="fixed top-0 left-0 right-0 z-50 h-20 w-full flex items-center justify-between border border-gray-400/10 dark:border-gray-700 shadow-md shadow-gray-500/50 dark:shadow-black/50 p-8 bg-white dark:bg-gray-900">
 
-                        {/* The site name and the logo are grouped on the left */}
-                        <a href="/committees" className="flex items-center space-x-2">
-                                <span className="text-lighter-green dark:text-white font-extrabold text-2xl site-name">Commie</span>
-                                <img src="/logo.png" alt="Logo" className="w-18 h-18"></img>
-                        </a>
-
-                        <SearchBar setSearchedTerm = {setSearchedTerm}  />
+                        {/* The site name, logo, and search bar are grouped on the left */}
+                        <div className="flex items-center space-x-4">
+                                <a href="/home" className="flex items-center space-x-2">
+                                        <span className="text-lighter-green dark:text-white font-extrabold text-4xl site-name">Commie</span>
+                                        <img src="/logo.png" alt="Logo" className="w-20 h-20"></img>
+                                </a>
+                                <div className="ml-16">
+                                        <SearchBar setSearchedTerm = {setSearchedTerm}  />
+                                </div>
+                        </div>
 
                         {/* The notifs, setting, and profile are grouped on the right */}
                         <div className="flex items-center gap-6">
@@ -238,7 +241,7 @@ export default function HeaderNav( {setSearchedTerm} ) {
                                         </button>
                                 )}
                         </div>
-
+                
                 </div>
         );
 

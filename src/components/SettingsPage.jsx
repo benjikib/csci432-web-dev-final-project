@@ -204,14 +204,6 @@ function Settings() {
                 </button>
               </div>
             </div>
-
-              {/* Debug Data */}
-              <div className="bg-gray-50 dark:bg-gray-900 p-6 rounded-lg border border-gray-200 dark:border-gray-700">
-                <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-200 mb-3">Current Settings Data</h3>
-                <pre className="text-xs text-gray-600 dark:text-gray-300 overflow-auto">
-                  {JSON.stringify({ ...data, theme }, null, 2)}
-                </pre>
-              </div>
             </div>
           )}
         </div>
