@@ -149,7 +149,7 @@ export default function HeaderNav( {setSearchedTerm} ) {
                         {/* The site name, logo, and search bar are grouped on the left */}
                         <div className="flex items-center space-x-4">
                                 <a href="/home" className="flex items-center space-x-2">
-                                        <span className="text-lighter-green dark:text-white font-extrabold text-4xl site-name">Commie</span>
+                                        <span className="text-lighter-green dark:text-white font-extrabold text-4xl site-name pt-1">Commie</span>
                                         <img src="/logo.png" alt="Logo" className="w-20 h-20"></img>
                                 </a>
                                 <div className="ml-16">
@@ -175,7 +175,7 @@ export default function HeaderNav( {setSearchedTerm} ) {
                                                                 }}
                                                                 aria-label="Notifications"
                                                         >
-                                                                <span className="material-symbols-outlined text-4xl !text-gray-600 dark:!text-white hover:!text-gray-900 dark:hover:!text-gray-300">notifications</span>
+                                                                <span className="material-symbols-outlined !text-gray-600 dark:!text-white hover:!text-gray-900 dark:hover:!text-gray-300" style={{ fontSize: '28px', paddingTop: '4px' }}>notifications</span>
                                                                 {unreadCount > 0 && (
                                                                         <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full px-1">{unreadCount}</span>
                                                                 )}
@@ -215,7 +215,7 @@ export default function HeaderNav( {setSearchedTerm} ) {
                                                 </div>
 
                                                 <a href="/settings" title="Settings" className="hover:scale-110 transition-all">
-                                                        <span className="material-symbols-outlined text-4xl !text-gray-600 dark:!text-white hover:!text-gray-900 dark:hover:!text-gray-300">settings</span>
+                                                        <span className="material-symbols-outlined !text-gray-600 dark:!text-white hover:!text-gray-900 dark:hover:!text-gray-300" style={{ fontSize: '28px', paddingTop: '4px' }}>settings</span>
                                                 </a>
                                                 <a href="/profile" title="Profile" className="hover:scale-110 transition-all">
                                                         {user?.picture ? (
