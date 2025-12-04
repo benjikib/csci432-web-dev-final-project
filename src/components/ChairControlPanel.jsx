@@ -5,6 +5,7 @@ import DiscussionRequirements from './controls/DiscussionRequirements';
 import VotingRulesConfig from './controls/VotingRulesConfig';
 import MotionManagementControls from './controls/MotionManagementControls';
 import CommitteeHistory from './controls/CommitteeHistory';
+import CommitteeManagement from './controls/CommitteeManagement';
 import { getCommitteeSettings, updateCommitteeSettings } from '../services/committeeSettingsApi';
 
 // Default settings factory function
@@ -19,7 +20,7 @@ const getDefaultSettings = () => ({
     defaultVoteThreshold: 'simple_majority', // 'simple_majority', 'two_thirds', 'unanimous'
     allowAbstentions: true,
     votingPeriodDays: 7,
-    voteType: 'ballot', // 'voice', 'roll_call', 'ballot', 'unanimous_consent'
+    voteType: 'ballot', // 'ballot', 'roll_call'
     
     // Quorum
     quorumPercentage: 50,
@@ -80,6 +81,7 @@ function ChairControlPanel({ committeeId, committee }) {
         { id: "discussion", label: "Discussion" },
         { id: "voting", label: "Voting Rules" },
         { id: "motions", label: "Motion Control" },
+        { id: "management", label: "Management" },
         { id: "history", label: "History" }
     ];
 
@@ -92,7 +94,7 @@ function ChairControlPanel({ committeeId, committee }) {
         
         // Auto-save to backend with debouncing (save after user stops making changes)
         // For now, settings are saved when user clicks "Save All Changes"
-        console.log(`Updated ${key} to ${value} for committee ${committeeId}`);
+        // console.log(`Updated ${key} to ${value} for committee ${committeeId}`);
     };
 
     const updateNestedSetting = (parentKey, childKey, value) => {
@@ -105,7 +107,7 @@ function ChairControlPanel({ committeeId, committee }) {
         };
         setSettings(newSettings);
         
-        console.log(`Updated ${parentKey}.${childKey} to ${value} for committee ${committeeId}`);
+        // console.log(`Updated ${parentKey}.${childKey} to ${value} for committee ${committeeId}`);
     };
 
     const saveAllSettings = async () => {
@@ -195,6 +197,8 @@ function ChairControlPanel({ committeeId, committee }) {
                             <DiscussionRequirements 
                                 settings={settings}
                                 updateSetting={updateSetting}
+                                committeeId={committeeId}
+                                committeeTitle={committee.title}
                             />
                         )}
                         
@@ -210,6 +214,13 @@ function ChairControlPanel({ committeeId, committee }) {
                                 settings={settings}
                                 updateSetting={updateSetting}
                                 committeeId={committeeId}
+                            />
+                        )}
+                        
+                        {activeTab === "management" && (
+                            <CommitteeManagement 
+                                committeeId={committeeId}
+                                committee={committee}
                             />
                         )}
                         

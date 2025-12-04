@@ -1,4 +1,16 @@
 function VotingRulesConfig({ settings, updateSetting }) {
+    const formatVotingPeriod = (days) => {
+        if (days < 1/24) {
+            const minutes = Math.round(days * 1440);
+            return `${minutes} minute${minutes !== 1 ? 's' : ''}`;
+        } else if (days < 1) {
+            const hours = Math.round(days * 24);
+            return `${hours} hour${hours !== 1 ? 's' : ''}`;
+        } else {
+            return `${days} day${days !== 1 ? 's' : ''}`;
+        }
+    };
+
     const voteThresholds = [
         { value: 'simple_majority', label: 'Simple Majority', description: 'More than 50% (standard)', percentage: '50%+1' },
         { value: 'two_thirds', label: 'Two-Thirds Majority', description: 'At least 66.67% (procedural motions)', percentage: '66.67%' },
@@ -7,8 +19,7 @@ function VotingRulesConfig({ settings, updateSetting }) {
 
     const voteTypes = [
         { value: 'ballot', label: 'Secret Ballot', description: 'Anonymous voting, results shown after voting closes', icon: 'how_to_vote' },
-        { value: 'roll_call', label: 'Roll Call Vote', description: 'Public vote with each member\'s choice recorded', icon: 'fact_check' },
-        { value: 'unanimous_consent', label: 'Unanimous Consent', description: 'Pass without objection, no formal vote needed', icon: 'done_all' }
+        { value: 'roll_call', label: 'Roll Call Vote', description: 'Public vote with each member\'s choice recorded', icon: 'fact_check' }
     ];
 
     return (
@@ -106,7 +117,7 @@ function VotingRulesConfig({ settings, updateSetting }) {
 
             {/* Voting Period */}
             <div className="p-4 bg-gray-50 dark:bg-gray-900 rounded-lg">
-                <div className="flex items-start justify-between mb-3">
+                <div className="flex items-start justify-between mb-4">
                     <div className="flex-1">
                         <h5 className="font-semibold text-gray-800 dark:text-gray-200 mb-1">
                             Voting Period Duration
@@ -115,48 +126,51 @@ function VotingRulesConfig({ settings, updateSetting }) {
                             How long voting remains open once started
                         </p>
                     </div>
-                </div>
-                <div className="flex items-center gap-4">
-                    <input
-                        type="range"
-                        min="1"
-                        max="30"
-                        value={settings.votingPeriodDays}
-                        onChange={(e) => updateSetting('votingPeriodDays', parseInt(e.target.value))}
-                        className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700 accent-darker-green"
-                    />
-                    <div className="w-20 text-center">
-                        <span className="text-2xl font-bold text-darker-green dark:text-superlight-green">
-                            {settings.votingPeriodDays}
-                        </span>
-                        <p className="text-xs text-gray-500 dark:text-gray-500">days</p>
+                    <div className="text-right">
+                        <div className="text-2xl font-bold text-darker-green dark:text-superlight-green">
+                            {formatVotingPeriod(settings.votingPeriodDays)}
+                        </div>
                     </div>
                 </div>
-                <div className="mt-3 flex gap-2">
-                    <button 
-                        onClick={() => updateSetting('votingPeriodDays', 1)}
-                        className="px-3 py-1 text-xs bg-gray-200 dark:bg-gray-700 rounded hover:bg-gray-300 dark:hover:bg-gray-600"
-                    >
-                        1 day
-                    </button>
-                    <button 
-                        onClick={() => updateSetting('votingPeriodDays', 3)}
-                        className="px-3 py-1 text-xs bg-gray-200 dark:bg-gray-700 rounded hover:bg-gray-300 dark:hover:bg-gray-600"
-                    >
-                        3 days
-                    </button>
-                    <button 
-                        onClick={() => updateSetting('votingPeriodDays', 7)}
-                        className="px-3 py-1 text-xs bg-gray-200 dark:bg-gray-700 rounded hover:bg-gray-300 dark:hover:bg-gray-600"
-                    >
-                        1 week
-                    </button>
-                    <button 
-                        onClick={() => updateSetting('votingPeriodDays', 14)}
-                        className="px-3 py-1 text-xs bg-gray-200 dark:bg-gray-700 rounded hover:bg-gray-300 dark:hover:bg-gray-600"
-                    >
-                        2 weeks
-                    </button>
+                <input
+                    type="range"
+                    min="0"
+                    max="58"
+                    step="1"
+                    value={(() => {
+                        const days = settings.votingPeriodDays;
+                        // Minutes (0-4): 1, 5, 10, 15, 30
+                        if (days === 1/1440) return 0;
+                        if (days === 5/1440) return 1;
+                        if (days === 10/1440) return 2;
+                        if (days === 15/1440) return 3;
+                        if (days === 30/1440) return 4;
+                        // Hours (5-28): 1-24 hours
+                        if (days < 1) return Math.round(days * 24) + 4;
+                        // Days (29-58): 1-30 days
+                        return days + 28;
+                    })()}
+                    onChange={(e) => {
+                        const index = parseInt(e.target.value);
+                        let value;
+                        // Minutes
+                        if (index === 0) value = 1/1440;
+                        else if (index === 1) value = 5/1440;
+                        else if (index === 2) value = 10/1440;
+                        else if (index === 3) value = 15/1440;
+                        else if (index === 4) value = 30/1440;
+                        // Hours (1-24)
+                        else if (index <= 28) value = (index - 4) / 24;
+                        // Days (1-30)
+                        else value = index - 28;
+                        
+                        updateSetting('votingPeriodDays', value);
+                    }}
+                    className="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer accent-darker-green"
+                />
+                <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 mt-2">
+                    <span>1 min</span>
+                    <span>30 days</span>
                 </div>
             </div>
 
@@ -246,7 +260,7 @@ function VotingRulesConfig({ settings, updateSetting }) {
                     <li className="flex items-start gap-2">
                         <span className="material-symbols-outlined text-blue-600 dark:text-blue-400 text-sm mt-0.5">check_circle</span>
                         <span>
-                            Voting period: <strong>{settings.votingPeriodDays} day{settings.votingPeriodDays > 1 ? 's' : ''}</strong>
+                            Voting period: <strong>{formatVotingPeriod(settings.votingPeriodDays)}</strong>
                         </span>
                     </li>
                     <li className="flex items-start gap-2">

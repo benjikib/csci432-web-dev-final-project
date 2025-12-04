@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import HeaderNav from './reusable/HeaderNav';
 import SideBar from './reusable/SideBar';
 import ChairControlPanel from './ChairControlPanel';
@@ -7,6 +7,7 @@ import { getMyChairCommittees } from '../services/committeeApi';
 
 function ChairControlPage() {
     const { committeeId } = useParams();
+    const navigate = useNavigate();
     const [searchedTerm, setSearchedTerm] = useState("");
     const [committees, setCommittees] = useState([]);
     const [selectedCommittee, setSelectedCommittee] = useState(null);
@@ -18,6 +19,10 @@ function ChairControlPage() {
             try {
                 setLoading(true);
                 const data = await getMyChairCommittees();
+                if (!data || !data.success) {
+                    navigate('/login');
+                    return;
+                }
                 setCommittees(data.committees || []);
                 
                 // If committeeId is in URL, auto-select that committee
@@ -29,12 +34,13 @@ function ChairControlPage() {
                 }
             } catch (err) {
                 console.error('Error fetching chair committees:', err);
+                navigate('/login');
             } finally {
                 setLoading(false);
             }
         }
         fetchCommittees();
-    }, [committeeId]);
+    }, [committeeId, navigate]);
 
     return (
         <>
