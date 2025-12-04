@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { getCommentsByMotion, createComment } from '../services/commentApi';
 import { getCurrentUser } from '../services/userApi';
 
-export default function MotionDetailsComments({ committeeId, motionId, isDebatable = true }) {
+export default function MotionDetailsComments({ committeeId, motionId, isDebatable = true, isGuest = false, onCommentsLoad }) {
         const [comments, setComments] = useState([]);
         const [newComment, setNewComment] = useState("");
         const [stance, setStance] = useState("neutral");
@@ -23,6 +23,10 @@ export default function MotionDetailsComments({ committeeId, motionId, isDebatab
                                 if (!mounted) return;
                                 if (res && res.comments) {
                                         setComments(res.comments);
+                                        // Notify parent about comment count
+                                        if (onCommentsLoad) {
+                                                onCommentsLoad(res.comments, false); // false = initial load
+                                        }
                                 }
                         } catch (e) {
                                 console.error('Failed to load messages:', e);
@@ -30,18 +34,46 @@ export default function MotionDetailsComments({ committeeId, motionId, isDebatab
                 }
                 load();
                 return () => { mounted = false; };
-        }, [motionId, committeeId]);
+        }, [motionId, committeeId, onCommentsLoad]);
+        
+        // Poll for new comments every 5 seconds
+        useEffect(() => {
+                if (!motionId || !committeeId) return;
+                
+                const pollComments = async () => {
+                        try {
+                                const res = await getCommentsByMotion(committeeId, motionId, 1);
+                                if (res && res.comments) {
+                                        setComments(res.comments);
+                                        // Notify parent about comment count
+                                        if (onCommentsLoad) {
+                                                onCommentsLoad(res.comments, false);
+                                        }
+                                }
+                        } catch (e) {
+                                console.error('Failed to poll comments:', e);
+                        }
+                };
+                
+                const pollInterval = setInterval(pollComments, 5000);
+                return () => clearInterval(pollInterval);
+        }, [motionId, committeeId, onCommentsLoad]);
 
         // Automatically scroll to the latest message
         useEffect(() => {
                 chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
         }, [comments]);
 
-        const handleSubmit = async (e) => {
-                e.preventDefault();
-                if (!newComment.trim()) return;
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        
+        // Prevent guests from creating comments
+        if (isGuest) {
+            setError('Guest users cannot post comments. Please contact an admin to change your role.');
+            return;
+        }
 
-                try {
+        if (!newComment.trim()) return;                try {
                         await createComment(committeeId, motionId, {
                                 content: newComment,
                                 stance: stance
@@ -51,6 +83,10 @@ export default function MotionDetailsComments({ committeeId, motionId, isDebatab
                         const res = await getCommentsByMotion(committeeId, motionId, 1);
                         if (res && res.comments) {
                                 setComments(res.comments);
+                                // Notify parent about updated comment count (mark as user-posted)
+                                if (onCommentsLoad) {
+                                        onCommentsLoad(res.comments, true); // true = user just posted
+                                }
                         }
                         setNewComment("");
                         setStance("neutral"); // Reset stance to neutral
@@ -194,9 +230,25 @@ export default function MotionDetailsComments({ committeeId, motionId, isDebatab
                                         </button>
                                 </div>
                                 <div className="flex gap-2">
-                                        <input type="text" placeholder="Type a message..." value={newComment} onChange={(e) => setNewComment(e.target.value)} className="flex-grow border border-lighter-green rounded-md p-2 focus:outline-none bg-white text-gray-800" autoComplete="off" />
-                                        <button type="submit" className="ml-2">Send</button>
+                                        <input 
+                                                type="text" 
+                                                placeholder={isGuest ? "Guests cannot post comments" : "Type a message..."} 
+                                                value={newComment} 
+                                                onChange={(e) => setNewComment(e.target.value)} 
+                                                className="flex-grow border border-lighter-green rounded-md p-2 focus:outline-none bg-white text-gray-800" 
+                                                autoComplete="off"
+                                                disabled={isGuest}
+                                        />
+                                        <button type="submit" className="ml-2" disabled={isGuest}>Send</button>
                                 </div>
+                                {isGuest && (
+                                        <div className="mt-2 p-2 bg-amber-50 dark:bg-amber-900/20 border border-amber-300 dark:border-amber-700 rounded-md">
+                                                <p className="text-sm text-amber-700 dark:text-amber-400 flex items-center gap-2">
+                                                        <span className="material-symbols-outlined text-lg">info</span>
+                                                        Guest users cannot post comments. Please contact an admin to change your role.
+                                                </p>
+                                        </div>
+                                )}
                         </form>
                         ) : (
                                 <div className="mt-3 p-3 bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md">

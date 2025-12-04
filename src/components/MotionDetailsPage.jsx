@@ -3,11 +3,12 @@ import { useState, useEffect } from "react"
 import { BsFillFilterSquareFill, BsChatLeftDotsFill, BsCheckCircleFill, BsTrashFill, BsListUl } from "react-icons/bs"
 import MotionDetailsComments from "./MotionDetailsComments"
 import { getMotionById, deleteMotion } from "../services/motionApi"
-import { getCurrentUser } from '../services/userApi'
+import { getCurrentUser, isAdmin } from '../services/userApi';
 import { getCommitteeMembers, getCommitteeById } from '../services/committeeApi'
 import { getVotes, castVote, removeVote } from '../services/voteApi'
 import { getSubsidiaryMotions } from '../services/motionApi'
 import { checkVotingEligibility, secondMotion } from '../services/motionControlApi'
+import { getCommentsByMotion } from '../services/commentApi'
 import NoAccessPage from './NoAccessPage'
 
 function MotionDetails() {
@@ -23,7 +24,7 @@ function MotionDetails() {
     const [currentUserState, setCurrentUserState] = useState(null)
     const [isGuest, setIsGuest] = useState(false)
     const [isMember, setIsMember] = useState(false)
-    const [isAdmin, setIsAdmin] = useState(false)
+    const [isAdminUser, setIsAdminUser] = useState(false)
     const [isChair, setIsChair] = useState(false)
 
     // Fetch motion details from API when component mounts
@@ -52,24 +53,29 @@ function MotionDetails() {
                 try {
                     const current = await getCurrentUser();
                     const user = (current && (current.user || current.data)) || current || null;
+                    if (!user) {
+                        navigate('/login');
+                        return;
+                    }
                     setCurrentUserState(user);
                     const userId = user && (String(user.id || user._id || user._id || user._id));
                     const userRoles = user && user.roles ? user.roles : [];
-                    const adminFlag = userRoles.includes('admin');
-                    setIsAdmin(Boolean(adminFlag));
+                    const adminFlag = isAdmin(user);
+                    setIsAdminUser(Boolean(adminFlag));
                     if (adminFlag) allowed = true;
 
                     // Prefer committee.myRole if available (faster and more accurate)
                     try {
                         const cdata = await getCommitteeById(committeeId);
                         const myRole = cdata && cdata.myRole ? cdata.myRole : null;
-                        setIsAdmin(Boolean(adminFlag));
+                        setIsAdminUser(Boolean(adminFlag));
                         setIsChair(Boolean(myRole === 'chair' || myRole === 'owner'));
                         setIsMember(Boolean(myRole === 'member' || myRole === 'chair' || myRole === 'owner'));
                         setIsGuest(Boolean(myRole === 'guest'));
                         // Any confirmed committee role (member/chair/owner/guest) can view motion details.
                         // Guests are intentionally allowed to view the motion but cannot vote.
-                        if (myRole) allowed = true;
+                        // Admins can always view.
+                        if (myRole || adminFlag) allowed = true;
                     } catch (e) {
                         // fallback to older approach
                         try {
@@ -125,7 +131,67 @@ function MotionDetails() {
         }
     }, [committeeId, motionId])
 
-    const canVote = !isGuest && (isAdmin || isMember)
+    const canVote = !isGuest && (isAdminUser || isMember)
+    
+    // Fetch initial counts for badges (without switching tabs)
+    useEffect(() => {
+        if (!committeeId || !motionId || !motion) return;
+        
+        // Fetch comment count
+        const loadComments = async () => {
+            try {
+                const res = await getCommentsByMotion(committeeId, motionId, 1);
+                if (res && res.comments) {
+                    setCommentCount(res.comments.length);
+                }
+            } catch (err) {
+                console.warn('Failed to load comments for badge', err);
+            }
+        };
+        
+        // Fetch subsidiary motions count
+        const loadSubsidiaries = async () => {
+            try {
+                const res = await getSubsidiaryMotions(committeeId, motionId);
+                if (res && res.subsidiaryMotions) {
+                    setSubsidiaryMotions(res.subsidiaryMotions);
+                }
+            } catch (err) {
+                console.warn('Failed to load subsidiaries for badge', err);
+            }
+        };
+        
+        // Fetch votes count
+        const loadVotes = async () => {
+            try {
+                const res = await getVotes(committeeId, motionId);
+                if (res && res.summary) {
+                    setVoteSummary(res.summary);
+                }
+            } catch (err) {
+                console.warn('Failed to load votes for badge', err);
+            }
+        };
+        
+        // Initial load
+        loadComments();
+        loadSubsidiaries();
+        if (canVote) {
+            loadVotes();
+        }
+        
+        // Poll every 5 seconds for updates
+        const pollInterval = setInterval(() => {
+            loadComments();
+            loadSubsidiaries();
+            if (canVote) {
+                loadVotes();
+            }
+        }, 5000);
+        
+        // Cleanup interval on unmount
+        return () => clearInterval(pollInterval);
+    }, [committeeId, motionId, motion, canVote]);
     
     // Extract current user ID - check all possible formats
     const currentUserId = currentUserState?._id || currentUserState?.id || currentUserState?.userId;
@@ -164,15 +230,48 @@ function MotionDetails() {
     const [votingEligibility, setVotingEligibility] = useState(null);
     const [committeeSettings, setCommitteeSettings] = useState(null);
     const [isSeconding, setIsSeconding] = useState(false);
+    
+    // Badge counters for unseen items
+    const [commentCount, setCommentCount] = useState(0);
+    const [unseenComments, setUnseenComments] = useState(0);
+    const [unseenVotes, setUnseenVotes] = useState(0);
+    const [unseenSubsidiaries, setUnseenSubsidiaries] = useState(0);
+    const [viewedTabs, setViewedTabs] = useState(new Set(['description'])); // Start with description as viewed
+    const [lastSeenCounts, setLastSeenCounts] = useState({ comments: 0, votes: 0, subsidiaries: 0 });
+    
+    // Load last seen counts from localStorage on mount
+    useEffect(() => {
+        if (!motionId) return;
+        const storageKey = `motion_${motionId}_lastSeen`;
+        const stored = localStorage.getItem(storageKey);
+        if (stored) {
+            try {
+                const parsed = JSON.parse(stored);
+                setLastSeenCounts(parsed);
+                // Mark tabs as viewed if they were previously seen
+                if (parsed.comments > 0) {
+                    setViewedTabs(prev => new Set([...prev, 'comments']));
+                }
+                if (parsed.votes > 0) {
+                    setViewedTabs(prev => new Set([...prev, 'voting']));
+                }
+                if (parsed.subsidiaries > 0) {
+                    setViewedTabs(prev => new Set([...prev, 'subsidiaries']));
+                }
+            } catch (e) {
+                console.warn('Failed to parse last seen counts', e);
+            }
+        }
+    }, [motionId]);
 
     // Debug logging
     useEffect(() => {
-        console.log('MotionDetailsPage - Current User ID:', currentUserId);
-        console.log('MotionDetailsPage - Motion Author:', motion?.author);
-        console.log('MotionDetailsPage - Is Author:', isAuthor);
-        console.log('MotionDetailsPage - Can Vote:', canVote);
-        console.log('MotionDetailsPage - Require Second:', committeeSettings?.requireSecond);
-        console.log('MotionDetailsPage - Seconded By:', motion?.secondedBy);
+        // console.log('MotionDetailsPage - Current User ID:', currentUserId);
+        // console.log('MotionDetailsPage - Motion Author:', motion?.author);
+        // console.log('MotionDetailsPage - Is Author:', isAuthor);
+        // console.log('MotionDetailsPage - Can Vote:', canVote);
+        // console.log('MotionDetailsPage - Require Second:', committeeSettings?.requireSecond);
+        // console.log('MotionDetailsPage - Seconded By:', motion?.secondedBy);
     }, [currentUserId, motion, isAuthor, canVote, committeeSettings]);
 
     // fetch votes for the motion and set state
@@ -206,15 +305,15 @@ function MotionDetails() {
         async function fetchCommitteeSettings() {
             try {
                 const data = await getCommitteeById(committeeId);
-                console.log('Committee data:', data);
-                console.log('Committee settings:', data?.settings);
-                console.log('Committee.settings:', data?.committee?.settings);
+                // console.log('Committee data:', data);
+                // console.log('Committee settings:', data?.settings);
+                // console.log('Committee.settings:', data?.committee?.settings);
                 
                 // Try different possible structures
                 const settings = data?.settings || data?.committee?.settings;
                 if (settings) {
                     setCommitteeSettings(settings);
-                    console.log('Set committee settings:', settings);
+                    // console.log('Set committee settings:', settings);
                 } else {
                     console.warn('No settings found in committee data');
                 }
@@ -238,11 +337,71 @@ function MotionDetails() {
     useEffect(() => {
         if (activeTab === 'voting' && committeeId && motionId) {
             fetchVotes();
+            markTabAsViewed('voting');
         }
         if (activeTab === 'subsidiaries' && committeeId && motionId) {
             fetchSubsidiaries();
+            markTabAsViewed('subsidiaries');
+        }
+        if (activeTab === 'comments') {
+            markTabAsViewed('comments');
         }
     }, [activeTab, committeeId, motionId]);
+    
+    // Mark a tab as viewed
+    const markTabAsViewed = (tabName) => {
+        setViewedTabs(prev => {
+            const newSet = new Set(prev);
+            newSet.add(tabName);
+            return newSet;
+        });
+        
+        // Save current counts to localStorage when viewing a tab
+        if (!motionId) return;
+        const storageKey = `motion_${motionId}_lastSeen`;
+        const currentCounts = {
+            comments: tabName === 'comments' ? commentCount : lastSeenCounts.comments,
+            votes: tabName === 'voting' ? ((voteSummary?.yes || 0) + (voteSummary?.no || 0) + (voteSummary?.abstain || 0)) : lastSeenCounts.votes,
+            subsidiaries: tabName === 'subsidiaries' ? subsidiaryMotions.length : lastSeenCounts.subsidiaries
+        };
+        setLastSeenCounts(currentCounts);
+        localStorage.setItem(storageKey, JSON.stringify(currentCounts));
+    };
+    
+    // Update unseen counts when data changes
+    useEffect(() => {
+        const newCount = Math.max(0, commentCount - lastSeenCounts.comments);
+        setUnseenComments(newCount);
+    }, [commentCount, lastSeenCounts.comments]);
+    
+    useEffect(() => {
+        if (voteSummary) {
+            const totalVotes = (voteSummary.yes || 0) + (voteSummary.no || 0) + (voteSummary.abstain || 0);
+            const newCount = Math.max(0, totalVotes - lastSeenCounts.votes);
+            setUnseenVotes(newCount);
+        }
+    }, [voteSummary, lastSeenCounts.votes]);
+    
+    useEffect(() => {
+        const newCount = Math.max(0, subsidiaryMotions.length - lastSeenCounts.subsidiaries);
+        setUnseenSubsidiaries(newCount);
+    }, [subsidiaryMotions, lastSeenCounts.subsidiaries]);
+    
+    // Handler for comment count updates
+    const handleCommentsLoad = (comments, userJustPosted = false) => {
+        setCommentCount(comments.length);
+        
+        // If user just posted, update the last seen count immediately
+        if (userJustPosted && motionId) {
+            const storageKey = `motion_${motionId}_lastSeen`;
+            const updatedCounts = {
+                ...lastSeenCounts,
+                comments: comments.length
+            };
+            setLastSeenCounts(updatedCounts);
+            localStorage.setItem(storageKey, JSON.stringify(updatedCounts));
+        }
+    };
 
     const fetchSubsidiaries = async () => {
         if (!committeeId || !motionId) return;
@@ -272,6 +431,18 @@ function MotionDetails() {
             if (res && res.summary) {
                 setVoteSummary(res.summary);
                 setMotion(prev => ({ ...(prev || {}), votes: res.summary }));
+                
+                // Update last seen count immediately since user just voted
+                if (motionId) {
+                    const totalVotes = (res.summary.yes || 0) + (res.summary.no || 0) + (res.summary.abstain || 0);
+                    const storageKey = `motion_${motionId}_lastSeen`;
+                    const updatedCounts = {
+                        ...lastSeenCounts,
+                        votes: totalVotes
+                    };
+                    setLastSeenCounts(updatedCounts);
+                    localStorage.setItem(storageKey, JSON.stringify(updatedCounts));
+                }
             }
             if (res && res.vote) {
                 setUserVote(res.vote);
@@ -304,6 +475,18 @@ function MotionDetails() {
             if (res && res.summary) {
                 setVoteSummary(res.summary);
                 setMotion(prev => ({ ...(prev || {}), votes: res.summary }));
+                
+                // Update last seen count immediately since user just removed their vote
+                if (motionId) {
+                    const totalVotes = (res.summary.yes || 0) + (res.summary.no || 0) + (res.summary.abstain || 0);
+                    const storageKey = `motion_${motionId}_lastSeen`;
+                    const updatedCounts = {
+                        ...lastSeenCounts,
+                        votes: totalVotes
+                    };
+                    setLastSeenCounts(updatedCounts);
+                    localStorage.setItem(storageKey, JSON.stringify(updatedCounts));
+                }
             }
             setUserVote(null);
         } catch (err) {
@@ -347,7 +530,7 @@ function MotionDetails() {
     }
 
     const handleDeleteMotion = async () => {
-        if (!isAuthor && !isAdmin) return;
+        if (!isAuthor && !isAdminUser) return;
         if (!confirm('Are you sure you want to delete this motion? This cannot be undone.')) return;
         setIsDeleting(true);
             try {
@@ -461,29 +644,44 @@ function MotionDetails() {
                             <BsFillFilterSquareFill />
                         </button>
                         <button
-                            className={`tab-button ${activeTab === "comments" ? "active" : ""}`}
+                            className={`tab-button ${activeTab === "comments" ? "active" : ""} relative`}
                             onClick={() => setActiveTab("comments")}
                             title="Comments"
                         >
                             <BsChatLeftDotsFill />
+                            {unseenComments > 0 && (
+                                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+                                    {unseenComments}
+                                </span>
+                            )}
                         </button>
                         {canVote && (
                             <button
-                                className={`tab-button ${activeTab === "voting" ? "active" : ""}`}
+                                className={`tab-button ${activeTab === "voting" ? "active" : ""} relative`}
                                 onClick={() => setActiveTab("voting")}
                                 title="Voting"
                             >
                                 <BsCheckCircleFill />
+                                {unseenVotes > 0 && (
+                                    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+                                        {unseenVotes}
+                                    </span>
+                                )}
                             </button>
                         )}
                         <button
-                            className={`tab-button ${activeTab === "subsidiaries" ? "active" : ""}`}
+                            className={`tab-button ${activeTab === "subsidiaries" ? "active" : ""} relative`}
                             onClick={() => setActiveTab("subsidiaries")}
                             title="Subsidiary Motions"
                         >
                             <BsListUl />
+                            {unseenSubsidiaries > 0 && (
+                                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+                                    {unseenSubsidiaries}
+                                </span>
+                            )}
                         </button>
-                        {(isAuthor || isAdmin) && (
+                        {(isAuthor || isAdminUser) && (
                             <button
                                 className={`tab-button delete`}
                                 onClick={handleDeleteMotion}
@@ -511,6 +709,8 @@ function MotionDetails() {
                                     committeeId={committeeId} 
                                     motionId={motionId} 
                                     isDebatable={motion.debatable !== false}
+                                    isGuest={isGuest}
+                                    onCommentsLoad={handleCommentsLoad}
                                 />
                                 
                             </div>

@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import SideBar from './reusable/SideBar';
 import HeaderNav from './reusable/HeaderNav';
 import { createCommittee } from '../services/committeeApi';
-import { getUsersList, getCurrentUser } from '../services/userApi';
+import { getUsersList, getCurrentUser, isAdmin } from '../services/userApi';
 import { useNavigationBlock } from '../context/NavigationContext';
 
 function CreateCommitteePage() {
@@ -21,7 +21,7 @@ function CreateCommitteePage() {
     const [potentialUsers, setPotentialUsers] = useState([]);
     const [userSearch, setUserSearch] = useState('');
     const [selectedMembers, setSelectedMembers] = useState([]); // { _id, name, email, role }
-    const [isAdmin, setIsAdmin] = useState(false);
+    const [isAdminUser, setIsAdminUser] = useState(false);
 
     // Check if form has been modified
     const checkIfModified = (data) => {
@@ -74,7 +74,7 @@ function CreateCommitteePage() {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        if (!isAdmin) {
+        if (!isAdminUser) {
             alert('Only administrators can create committees');
             return;
         }
@@ -123,9 +123,9 @@ function CreateCommitteePage() {
             try {
                 // Check current user role
                 const current = await getCurrentUser();
-                const admin = current && current.user && current.user.roles && current.user.roles.includes('admin');
+                const admin = current && current.user && isAdmin(current.user);
                 if (mounted) {
-                    setIsAdmin(Boolean(admin));
+                    setIsAdminUser(Boolean(admin));
                     // Redirect non-admin users away from this page
                     if (!admin) {
                         navigate('/committees');
@@ -141,11 +141,7 @@ function CreateCommitteePage() {
                 }
             } catch (err) {
                 console.error('Error fetching users list:', err);
-                try {
-                    navigate('/committees');
-                } catch (e) {
-                    // ignore navigation errors
-                }
+                navigate('/login');
             }
         }
 
@@ -218,7 +214,7 @@ function CreateCommitteePage() {
                         </div>
 
                         {/* Action Buttons */}
-                        {isAdmin ? (
+                        {isAdminUser ? (
                             <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
                                 <label className="block text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2">Add Members</label>
 
@@ -288,8 +284,8 @@ function CreateCommitteePage() {
                             </button>
                             <button
                                 type="submit"
-                                disabled={!isAdmin}
-                                className={"px-6 py-2 !bg-lighter-green !text-white rounded-lg font-semibold transition-all hover:scale-105 !border-none " + (isAdmin ? 'hover:!bg-darker-green' : 'opacity-50 cursor-not-allowed')}
+                                disabled={!isAdminUser}
+                                className={"px-6 py-2 !bg-lighter-green !text-white rounded-lg font-semibold transition-all hover:scale-105 !border-none " + (isAdminUser ? 'hover:!bg-darker-green' : 'opacity-50 cursor-not-allowed')}
                             >
                                 Create Committee
                             </button>

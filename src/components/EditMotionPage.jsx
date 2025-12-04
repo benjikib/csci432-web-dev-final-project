@@ -4,7 +4,7 @@ import HeaderNav from './reusable/HeaderNav';
 import SideBar from './reusable/SideBar';
 import { getCommitteeById } from '../services/committeeApi';
 import { getMotionById, updateMotion } from '../services/motionApi';
-import { getCurrentUser } from '../services/userApi';
+import { getCurrentUser, isAdmin } from '../services/userApi';
 import NoAccessPage from './NoAccessPage';
 
 function EditMotionPage() {
@@ -29,11 +29,15 @@ function EditMotionPage() {
                 setFormData({ title: motionData.title || '', description: motionData.description || '', fullDescription: motionData.fullDescription || '' });
                 const userRes = await getCurrentUser();
                 const user = userRes && (userRes.user || userRes.data) || userRes || null;
+                if (!user) {
+                    navigate('/login');
+                    return;
+                }
                 setCurrentUser(user);
                 // Author can edit
                 const isAuthor = motionData.author && (String(motionData.author) === String(user?.id || user?._id || user?._id));
-                const isAdmin = user && user.roles && user.roles.includes('admin');
-                setHasAccess(isAuthor || isAdmin);
+                const isAdminUser = user && isAdmin(user);
+                setHasAccess(isAuthor || isAdminUser);
             } catch (err) {
                 console.error('Failed to load motion/committee', err);
             } finally {

@@ -6,7 +6,7 @@ import { getCommitteeById, getCommitteeMembers } from '../services/committeeApi'
 import { createMotion } from '../services/motionApi';
 import { useNavigationBlock } from '../context/NavigationContext';
 import { API_BASE_URL } from '../config/api.js';
-import { getCurrentUser } from '../services/userApi';
+import { getCurrentUser, isAdmin } from '../services/userApi';
 import NoAccessPage from './NoAccessPage';
 
 function CreateMotionPage() {
@@ -43,10 +43,14 @@ function CreateMotionPage() {
                 try {
                     const current = await getCurrentUser();
                     const user = current && current.user ? current.user : null;
+                    if (!user) {
+                        navigate('/login');
+                        return;
+                    }
                     setCurrentUser(user);
                     
                     // Check if user is admin
-                    if (user && user.roles && user.roles.includes('admin')) {
+                    if (user && isAdmin(user)) {
                         allowed = true;
                     }
 

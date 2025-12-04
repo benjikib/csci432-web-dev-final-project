@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom"
 import SideBar from './reusable/SideBar'
 import HeaderNav from './reusable/HeaderNav'
 import { getCommitteeById, updateCommittee, deleteCommittee, getCommitteeMembers, getPotentialMembers, addMember, removeMember } from "../services/committeeApi"
-import { getCurrentUser } from '../services/userApi'
+import { getCurrentUser, isAdmin } from '../services/userApi';
 import NoAccessPage from './NoAccessPage'
 
 function CommitteeSettingsPage() {
@@ -108,9 +108,13 @@ function CommitteeSettingsPage() {
             try {
                 const current = await getCurrentUser();
                 const user = current && current.user ? current.user : null;
+                if (!user) {
+                    navigate('/login');
+                    return;
+                }
                 // Only allow admins or the committee chair/owner to access settings
                 let allowed = false;
-                if (user && user.roles && user.roles.includes('admin')) allowed = true;
+                if (user && isAdmin(user)) allowed = true;
                 if (!allowed && committee && (user && user.id)) {
                     const uid = String(user.id || user._id || user.id);
                     if (String(committee.chair || '') === uid || String(committee.owner || '') === uid) allowed = true;
@@ -268,71 +272,72 @@ function CommitteeSettingsPage() {
                                     <div className="space-y-2">
                                         {members.filter(m => (
                                             userMatchesSearch(m, memberSearch)
-                                        )).map(member => (
-                                            <div key={member._id || member.id} className="flex items-center justify-between p-2 bg-white dark:bg-gray-800 rounded">
-                                                <div>
+                                        )).map(member => {
+                                            const memberId = member._id || member.id;
+                                            const isChair = committee.chair && memberId === committee.chair;
+                                            const isOwner = committee.owner && memberId === committee.owner;
+                                            const isGuest = memberIsGuest(member);
+                                            const currentRole = isChair ? 'chair' : (isGuest ? 'guest' : 'member');
+                                            
+                                            return (
+                                            <div key={memberId} className="flex items-center justify-between p-2 bg-white dark:bg-gray-800 rounded">
+                                                <div className="flex-1">
                                                     <div className="font-semibold text-gray-800 dark:text-gray-200">
                                                         {member.name}
-                                                        {(member.committeeRole === 'chair' || (committee.chair && (member._id || member.id) === (committee.chair || ''))) ? (
+                                                        {isChair ? (
                                                             <span className="ml-2 inline-block bg-yellow-100 text-yellow-800 text-xs px-2 py-0.5 rounded">Chair</span>
                                                         ) : null}
-                                                        {(member.committeeRole === 'owner' || (committee.owner && (member._id || member.id) === (committee.owner || ''))) ? (
+                                                        {isOwner ? (
                                                             <span className="ml-2 inline-block bg-blue-100 text-blue-800 text-xs px-2 py-0.5 rounded">Owner</span>
                                                         ) : null}
-                                                        {memberIsGuest(member) ? (
+                                                        {isGuest ? (
                                                             <span className="ml-2 inline-block bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 text-xs px-2 py-0.5 rounded">Guest</span>
                                                         ) : null}
                                                     </div>
                                                     <div className="text-xs text-gray-500 dark:text-gray-400">{member.email}</div>
                                                 </div>
                                                 <div className="flex items-center gap-2">
-                                                    { /* If this member is the chair, show Demote button */ }
-                                                    {(committee.chair && (member._id || member.id) === (committee.chair || '')) ? (
-                                                        <button
-                                                            onClick={async () => {
-                                                                if (!confirm(`Demote ${member.name} from Chair?`)) return;
-                                                                try {
-                                                                    // Set chair to null
-                                                                    await updateCommittee(id, { chair: null });
-                                                                    // Refresh committee and lists
-                                                                    const refreshed = await getCommitteeById(id);
-                                                                    setCommittee(refreshed.committee || refreshed);
-                                                                    fetchMembers(id);
-                                                                } catch (err) {
-                                                                    console.error('Error demoting chair:', err);
-                                                                    alert('Failed to demote chair');
-                                                                }
-                                                            }}
-                                                            className="px-3 py-1 bg-gray-500 text-white rounded text-sm"
-                                                        >
-                                                            Demote
-                                                        </button>
-                                                    ) : (
-                                                        <button
-                                                            onClick={async () => {
-                                                                if (!confirm(`Promote ${member.name} to Chair? This will replace the current chair.`)) return;
-                                                                try {
-                                                                    await addMember(id, member._id || member.id, 'chair');
-                                                                    // Refresh committee and lists
-                                                                    const refreshed = await getCommitteeById(id);
-                                                                    setCommittee(refreshed.committee || refreshed);
-                                                                    fetchMembers(id);
-                                                                } catch (err) {
-                                                                    console.error('Error promoting member:', err);
-                                                                    alert('Failed to promote member');
-                                                                }
-                                                            }}
-                                                            className="px-3 py-1 bg-yellow-500 text-white rounded text-sm"
-                                                        >
-                                                            Promote to Chair
-                                                        </button>
-                                                    )}
+                                                    {/* Role dropdown */}
+                                                    <select
+                                                        value={currentRole}
+                                                        onChange={async (e) => {
+                                                            const newRole = e.target.value;
+                                                            if (newRole === currentRole) return;
+                                                            
+                                                            let confirmMsg = `Change ${member.name}'s role to ${newRole}?`;
+                                                            if (newRole === 'chair' && committee.chair) {
+                                                                confirmMsg = `Promote ${member.name} to Chair? This will demote the current chair to member.`;
+                                                            }
+                                                            
+                                                            if (!confirm(confirmMsg)) {
+                                                                e.target.value = currentRole; // Reset dropdown
+                                                                return;
+                                                            }
+                                                            
+                                                            try {
+                                                                await addMember(id, memberId, newRole);
+                                                                // Refresh committee and lists
+                                                                const refreshed = await getCommitteeById(id);
+                                                                setCommittee(refreshed.committee || refreshed);
+                                                                fetchMembers(id);
+                                                            } catch (err) {
+                                                                console.error('Error changing role:', err);
+                                                                alert('Failed to change role');
+                                                                e.target.value = currentRole; // Reset dropdown
+                                                            }
+                                                        }}
+                                                        className="px-2 py-1 border border-gray-300 dark:border-gray-600 rounded text-sm bg-white dark:bg-gray-700"
+                                                    >
+                                                        <option value="member">Member</option>
+                                                        <option value="guest">Guest</option>
+                                                        <option value="chair">Chair</option>
+                                                    </select>
 
                                                     <button
                                                         onClick={async () => {
                                                             if (!confirm(`Remove ${member.name} from ${committee.title}?`)) return;
                                                             try {
-                                                                await removeMember(id, member._id || member.id);
+                                                                await removeMember(id, memberId);
                                                                 // Refresh lists
                                                                 fetchMembers(id);
                                                             } catch (err) {
@@ -346,7 +351,7 @@ function CommitteeSettingsPage() {
                                                     </button>
                                                 </div>
                                             </div>
-                                        ))}
+                                        )})}
                                     </div>
                                 )}
 
