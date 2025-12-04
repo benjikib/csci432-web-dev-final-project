@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import SideBar from './reusable/SideBar';
 import HeaderNav from './reusable/HeaderNav';
 import { useTheme } from '../context/ThemeContext';
-import { getUserSettings, updateUserSettings } from '../services/userApi';
+import { getUserSettings, updateUserSettings, deleteUser, getCurrentUser } from '../services/userApi';
 
 function Settings() {
   const { theme, toggleTheme, setTheme } = useTheme();
@@ -22,12 +22,19 @@ function Settings() {
   const [originalData, setOriginalData] = useState({
     notifications: true,
   });
+  const [currentUser, setCurrentUser] = useState(null);
 
   // Fetch user settings on mount
   useEffect(() => {
     const fetchSettings = async () => {
       try {
         setLoading(true);
+        
+        const userResponse = await getCurrentUser();
+        if (userResponse.success) {
+          setCurrentUser(userResponse.user);
+        }
+        
         const response = await getUserSettings();
         if (response.success) {
           const settings = {
@@ -39,10 +46,12 @@ function Settings() {
           if (response.settings.theme !== theme) {
             setTheme(response.settings.theme);
           }
+        } else {
+          navigate('/login');
         }
       } catch (err) {
         console.error('Error fetching settings:', err);
-        setError('Failed to load settings');
+        navigate('/login');
       } finally {
         setLoading(false);
       }
@@ -203,6 +212,95 @@ function Settings() {
                   Logout
                 </button>
               </div>
+            </div>
+
+            {/* Delete Account Section */}
+            <div className="bg-red-50 dark:bg-red-900/20 p-6 rounded-lg shadow-sm border-2 border-red-300 dark:border-red-700">
+              <div className="flex items-start gap-3 mb-4">
+                <span className="material-symbols-outlined text-red-600 dark:text-red-400 text-3xl">delete_forever</span>
+                <div className="flex-1">
+                  <h3 className="text-sm font-semibold text-red-900 dark:text-red-200 mb-2">Delete Account</h3>
+                  <p className="text-sm text-red-700 dark:text-red-300 mb-2">
+                    <strong>Warning:</strong> This action is permanent and will:
+                  </p>
+                  <ul className="text-sm text-red-700 dark:text-red-300 list-disc list-inside space-y-1 mb-4">
+                    <li>Remove you from all committees</li>
+                    <li>Delete all your votes and comments</li>
+                    <li>Delete all your notifications</li>
+                    {currentUser?.organizationRole === 'admin' && currentUser?.organizationId && (
+                      <>
+                        <li><strong>Delete your entire organization (you are the owner)</strong></li>
+                        <li><strong>Cancel your subscription (mock)</strong></li>
+                        <li><strong>Delete all committees and motions</strong></li>
+                      </>
+                    )}
+                    <li>Permanently delete your account</li>
+                  </ul>
+                </div>
+              </div>
+              <button
+                onClick={async () => {
+                  const currentUserData = await getCurrentUser();
+                  const isOrgOwner = currentUserData.user?.organizationRole === 'admin' && currentUserData.user?.organizationId;
+                  
+                  let warningMessage = 'Are you absolutely sure you want to delete your account?\n\n' +
+                    'This will:\n' +
+                    '- Remove you from all committees\n' +
+                    '- Delete all your votes and comments\n' +
+                    '- Delete all your notifications\n';
+                  
+                  if (isOrgOwner) {
+                    warningMessage += '- DELETE YOUR ORGANIZATION (you are the owner)\n' +
+                      '- Cancel your subscription (mock)\n' +
+                      '- Remove all organization members\n' +
+                      '- Delete all committees and motions\n';
+                  }
+                  
+                  warningMessage += '- Log you out immediately\n\n' +
+                    'This action CANNOT be undone!';
+                  
+                  const confirmed = window.confirm(warningMessage);
+                  
+                  if (!confirmed) return;
+                  
+                  const confirmText = window.prompt(
+                    'Type "DELETE MY ACCOUNT" to confirm:'
+                  );
+                  
+                  if (confirmText !== 'DELETE MY ACCOUNT') {
+                    setError('Confirmation text did not match. Deletion cancelled.');
+                    setTimeout(() => setError(null), 3000);
+                    return;
+                  }
+                  
+                  try {
+                    const result = await deleteUser(currentUserData.user.id);
+                    if (result.success) {
+                      if (result.organizationDeleted) {
+                        alert(
+                          `Account and Organization Deleted\n\n` +
+                          `Organization: ${result.organizationStats.organizationName}\n` +
+                          `Committees deleted: ${result.organizationStats.committees}\n` +
+                          `Motions deleted: ${result.organizationStats.motions}\n` +
+                          `Subscription cancelled (mock)`
+                        );
+                      }
+                      localStorage.removeItem('token');
+                      localStorage.removeItem('user');
+                      navigate('/login');
+                    } else {
+                      setError(result.message || 'Failed to delete account');
+                      setTimeout(() => setError(null), 5000);
+                    }
+                  } catch (err) {
+                    setError('Failed to delete account: ' + err.message);
+                    setTimeout(() => setError(null), 5000);
+                  }
+                }}
+                className="px-6 py-2 !bg-red-600 !text-white rounded-lg font-semibold hover:!bg-red-700 transition-all hover:scale-105 !border-none"
+              >
+                Delete My Account
+              </button>
             </div>
             </div>
           )}

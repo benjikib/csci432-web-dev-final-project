@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import SideBar from './reusable/SideBar';
 import HeaderNav from './reusable/HeaderNav';
-import { getCurrentUser, hasRole } from '../services/userApi';
+import { getCurrentUser, hasRole, isAdmin as checkIsAdmin } from '../services/userApi';
 import AnalyticsPanel from './AnalyticsPanel';
 import UpcomingMeetingsPanel from './UpcomingMeetingsPanel';
 import ActiveMotionsPanel from './ActiveMotionsPanel';
@@ -10,7 +10,7 @@ import ActiveMotionsPanel from './ActiveMotionsPanel';
 export default function HomePage() {
     const navigate = useNavigate();
     const [searchedTerm, setSearchedTerm] = useState("");
-    const [isAdmin, setIsAdmin] = useState(false);
+    const [isAdminUser, setIsAdminUser] = useState(false);
     const [user, setUser] = useState(null);
 
     useEffect(() => {
@@ -21,19 +21,18 @@ export default function HomePage() {
                 if (!mounted) return;
                 if (res && res.user) {
                     setUser(res.user);
-                    setIsAdmin(hasRole(res.user, 'admin'));
+                    const adminStatus = checkIsAdmin(res.user);
+                    setIsAdminUser(adminStatus);
                 } else {
-                    setUser(null);
-                    setIsAdmin(false);
+                    navigate('/login');
                 }
             } catch (e) {
-                setUser(null);
-                setIsAdmin(false);
+                navigate('/login');
             }
         }
         fetchUser();
         return () => { mounted = false; };
-    }, []);
+    }, [navigate]);
 
     return (
         <>
@@ -68,15 +67,17 @@ export default function HomePage() {
                                 </div>
                             </div>
                         </div>
-                        <div className="box small-box home-action-box" onClick={() => navigate("/create-committee")}>
-                            <div className="home-action-content">
-                                <span className="material-symbols-outlined home-action-icon">add_circle</span>
-                                <div className="home-action-text">
-                                    <h3 className="home-action-title">Create Committee</h3>
-                                    <p className="home-action-subtitle">Start a new committee</p>
+                        {isAdminUser && (
+                            <div className="box small-box home-action-box" onClick={() => navigate("/create-committee")}>
+                                <div className="home-action-content">
+                                    <span className="material-symbols-outlined home-action-icon">add_circle</span>
+                                    <div className="home-action-text">
+                                        <h3 className="home-action-title">Create Committee</h3>
+                                        <p className="home-action-subtitle">Start a new committee</p>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
+                        )}
                     </div>
 
                     <div className="bottom-box box">

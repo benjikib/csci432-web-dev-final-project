@@ -27,10 +27,12 @@ function Profile() {
                         displayName: response.user.settings?.displayName || response.user.name || '',
                         fullName: response.user.name || ''
                     });
+                } else {
+                    navigate('/login');
                 }
             } catch (err) {
                 console.error('Error fetching user:', err);
-                setError(err.message || 'Failed to load user data');
+                navigate('/login');
             } finally {
                 setLoading(false);
             }
@@ -160,12 +162,24 @@ function Profile() {
                                 {(user.settings?.displayName || user.name || 'U')[0].toUpperCase()}
                             </div>
                         )}
-                        <div className="ml-6">
-                            <h3 className="text-2xl font-semibold text-gray-800 dark:text-gray-100">
-                                {user.settings?.displayName || user.name || 'User'}
-                            </h3>
+                        <div className="ml-6 flex-1">
+                            <div className="flex items-center gap-3">
+                                <h3 className="text-2xl font-semibold text-gray-800 dark:text-gray-100">
+                                    {user.settings?.displayName || user.name || 'User'}
+                                </h3>
+                                {user.organizationRole === 'admin' && (
+                                    <span className="px-3 py-1 text-xs font-semibold rounded-full bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-sm">
+                                        ⭐ Admin
+                                    </span>
+                                )}
+                                {user.roles?.includes('super-admin') && (
+                                    <span className="px-3 py-1 text-xs font-semibold rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-sm">
+                                        ✨ Super Admin
+                                    </span>
+                                )}
+                            </div>
                             <p className="text-gray-600 dark:text-gray-400 capitalize">
-                                {user.roles?.join(', ') || 'Member'}
+                                {user.organizationRole === 'admin' ? 'Organization Administrator' : user.roles?.join(', ') || 'Member'}
                             </p>
                         </div>
                     </div>

@@ -10,7 +10,8 @@ function LoginPage() {
         password: '',
         firstName: '',
         lastName: '',
-        communityCode: ''
+        organizationInviteCode: '',
+        isAdmin: false
     });
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
@@ -26,9 +27,10 @@ function LoginPage() {
     }, [navigate]);
 
     const handleInputChange = (e) => {
+        const { name, value, type, checked } = e.target;
         setFormData({
             ...formData,
-            [e.target.name]: e.target.value
+            [name]: type === 'checkbox' ? checked : value
         });
         setError(''); // Clear error when user types
     };
@@ -46,7 +48,8 @@ function LoginPage() {
                     email: formData.email,
                     password: formData.password,
                     name: `${formData.firstName} ${formData.lastName}`.trim(),
-                    communityCode: formData.communityCode
+                    organizationInviteCode: formData.organizationInviteCode,
+                    isAdmin: formData.isAdmin
                 };
 
             const response = await fetch(`${API_BASE_URL}${endpoint}`, {
@@ -66,6 +69,12 @@ function LoginPage() {
             // Store token and user info
             localStorage.setItem('token', data.token);
             localStorage.setItem('user', JSON.stringify(data.user));
+
+            // If admin signup, redirect to payment page
+            if (data.user?.requiresPayment) {
+                navigate('/organization/payment', { state: { userId: data.user.id } });
+                return;
+            }
 
             // Fetch user settings (including theme) after login
             await refetchSettings();
@@ -87,7 +96,8 @@ function LoginPage() {
             password: '',
             firstName: '',
             lastName: '',
-            communityCode: ''
+            organizationInviteCode: '',
+            isAdmin: false
         });
     };
 
@@ -169,15 +179,32 @@ function LoginPage() {
                                 </div>
                             )}
 
-                            {!isLogin && (
+                            {!isLogin && !formData.isAdmin && (
                                 <input
                                     type="text"
-                                    name="communityCode"
-                                    placeholder="Community Code"
-                                    value={formData.communityCode}
+                                    name="organizationInviteCode"
+                                    placeholder="Organization Invite Code (Required)"
+                                    value={formData.organizationInviteCode}
                                     onChange={handleInputChange}
+                                    required={!formData.isAdmin}
                                     className="login-input"
                                 />
+                            )}
+
+                            {!isLogin && (
+                                <div style={{ marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                    <input
+                                        type="checkbox"
+                                        name="isAdmin"
+                                        id="isAdmin"
+                                        checked={formData.isAdmin}
+                                        onChange={handleInputChange}
+                                        style={{ width: 'auto', margin: 0, flexShrink: 0 }}
+                                    />
+                                    <label htmlFor="isAdmin" className="terms" style={{ margin: 0, cursor: 'pointer', fontSize: '10px', lineHeight: '1.3' }}>
+                                        Check if you are a systems administrator and need to create an organization
+                                    </label>
+                                </div>
                             )}
 
                             <input
@@ -206,7 +233,7 @@ function LoginPage() {
                             </button>
                         </form>
 
-                        <p className="terms">
+                        <p className="terms" style={{ fontSize: '10px', lineHeight: '1.4', marginTop: '16px' }}>
                             By signing up, you agree to our Terms of Service and Privacy Policy
                         </p>
                     </div>
