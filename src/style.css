@@ -66,10 +66,15 @@ html.dark .row1 {
   z-index: 1000;
   display: flex;
   justify-content: space-between;
-  align-items: right;
+  align-items: center;
   padding: 0 24px;
-  width: 102%;
-  margin: -5% 0% 0% -2%;
+  width: 100%;
+  height: 70px;
+}
+
+html.dark .topnav {
+  background-color: #1f2937;
+  border-bottom-color: #374151;
 }
 
 .topnav a {
@@ -487,24 +492,39 @@ html.dark .section-title {
 }
 
 /* Mobile responsive */
-@media screen and (max-width: 600px) {
+@media (max-width: 1330px) {
+  
+  /* Hide tab labels on mobile - show icons only */
+  .tab-label {
+    display: none !important;
+  }
+}
+@media screen and (max-width: 768px) {
+  /* Header Navigation - Mobile Optimizations */
   .topnav {
     padding: 0 12px;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
+    height: auto;
+    margin: 0;
+    width: 100%;
   }
   
   .topnav a {
-    padding: 16px 16px;
+    padding: 12px 8px;
     font-size: 14px;
   }
   
   .nav-logo {
-    height: 24px;
+    height: 40px;
   }
   
   .nav-right {
-    width: 100%;
-    justify-content: space-around;
+    gap: 8px;
+  }
+  
+  /* Mobile header is taller - adjust page margins */
+  header {
+    height: auto !important;
   }
   
   #main {
@@ -516,6 +536,434 @@ html.dark .section-title {
     height: auto;
     border-right: none;
     border-bottom: 1px solid #e2e8f0;
+  }
+
+  /* All pages with sidebar - adjust for mobile header (~150px) */
+  .mt-20,
+  .mt-16 {
+    margin-top: 160px !important; /* Increased for taller mobile header */
+  }
+
+  .ml-\\[16rem\\] {
+    margin-left: 0 !important; /* Remove sidebar margin on mobile */
+  }
+
+  .px-8 {
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+  }
+
+  /* Mobile-optimized motions section */
+  .motions-section {
+    width: 100%;
+    padding: 0;
+  }
+
+  #motions-container {
+    margin-left: 0 !important;
+    padding: 16px 12px;
+  }
+
+  .section-title {
+    font-size: 20px;
+    margin: 0 0 16px 0;
+  }
+
+  /* Mobile motion cards */
+  .motion-card {
+    height: auto;
+    min-height: 140px;
+    padding: 16px;
+    margin: 0 0 12px 0 !important;
+  }
+
+  .row1 {
+    font-size: 16px;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  /* Mobile login - already handled above in integrated-landing-page section */
+
+  /* Mobile user profile */
+  .user-profile-container {
+    margin: 80px auto 40px;
+    padding: 16px;
+  }
+
+  .user-avatar {
+    width: 60px;
+    height: 60px;
+    font-size: 24px;
+  }
+
+  /* Mobile modal optimizations */
+  .modal-backdrop {
+    padding: 0;
+  }
+
+  .modal-content {
+    border-radius: 0;
+    max-height: 100vh;
+    height: 100vh;
+  }
+
+  .modal-header {
+    padding: 20px 50px 16px 16px;
+  }
+
+  .modal-title {
+    font-size: 22px;
+  }
+
+  .modal-subtitle {
+    font-size: 14px;
+  }
+
+  .modal-close {
+    top: 8px;
+    right: 8px;
+    width: 32px;
+    height: 32px;
+    min-width: 32px;
+    min-height: 32px;
+  }
+
+  .modal-sidebar {
+    width: 100%;
+    flex-direction: row;
+    border-right: none;
+    border-bottom: 1px solid #e2e8f0;
+    padding: 0;
+    overflow-x: auto;
+  }
+
+  html.dark .modal-sidebar {
+    border-bottom-color: #374151;
+  }
+
+  .tab-button {
+    flex: 1;
+    min-width: 80px;
+    padding: 16px 12px;
+    font-size: 20px;
+  }
+
+  .tab-button.active::before {
+    left: 0;
+    right: 0;
+    top: auto;
+    bottom: 0;
+    width: auto;
+    height: 3px;
+  }
+
+  .modal-main-content {
+    padding: 20px 16px;
+  }
+
+  .vote-buttons {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .vote-button {
+    width: 100%;
+    padding: 14px 24px;
+    min-height: 48px;
+  }
+
+  /* Mobile home layout */
+  .home-outline {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto;
+    gap: 16px;
+    padding: 12px;
+    width: 100%;
+    height: auto;
+    min-height: auto;
+    margin-right: 0;
+    margin-left: 0 !important;
+  }
+
+  .home-outline .left-column {
+    gap: 16px;
+  }
+
+  .home-outline .right-column {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    height: auto;
+    max-height: none;
+  }
+
+  .home-outline .big-box {
+    height: auto;
+    min-height: 200px;
+    max-height: none;
+    padding: 16px;
+    overflow: hidden;
+  }
+
+  .home-outline .big-box .welcome-text {
+    font-size: 24px;
+    margin: 0 0 16px 0;
+  }
+
+  .home-outline .small-box {
+    height: auto;
+    min-height: 80px;
+    max-height: none;
+    padding: 12px;
+  }
+
+  .home-outline .top-right-box {
+    height: auto;
+    min-height: 250px;
+    max-height: none;
+    padding: 16px;
+    overflow: hidden;
+  }
+
+  .home-outline .bottom-box {
+    height: auto;
+    min-height: 300px;
+    max-height: none;
+    padding: 16px;
+    grid-column: 1;
+    overflow: hidden;
+  }
+
+  /* Analytics grid - prevent overflow and cutoff */
+  .analytics-grid {
+    grid-template-columns: 1fr !important;
+    gap: 12px;
+    width: 100%;
+    overflow: visible;
+  }
+
+  .analytics-stat-value {
+    font-size: 28px;
+  }
+
+  /* Active motions and upcoming meetings - prevent overlap */
+  .active-motions-title,
+  .upcoming-meetings-title,
+  .analytics-title {
+    font-size: 16px;
+    margin: 0 0 12px 0;
+  }
+
+  .active-motion-card {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+    padding: 12px;
+    margin-bottom: 12px;
+  }
+
+  .active-motion-header {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .active-motion-status-badge {
+    align-self: flex-start;
+  }
+
+  .active-motion-button {
+    width: 100%;
+  }
+
+  /* Mobile details container */
+  .details-container {
+    margin-left: 0 !important;
+    padding: 16px 12px;
+  }
+
+  /* Mobile committee cards */
+  .committee-card {
+    margin: 0 0 12px 0 !important;
+    padding: 16px !important;
+  }
+
+  /* Forms and inputs on mobile */
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  textarea,
+  select {
+    font-size: 16px !important; /* Prevent zoom on iOS */
+  }
+
+  /* Mobile tables */
+  table {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+
+  /* Mobile buttons */
+  button {
+    min-height: 44px;
+    font-size: 16px;
+  }
+
+  /* Committee Settings - Member input and buttons */
+  .max-w-2xl input[type="text"],
+  .max-w-2xl input[type="email"] {
+    max-width: 100% !important;
+    width: 100% !important;
+  }
+
+  .max-w-2xl .flex.items-center.gap-3 {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .max-w-2xl .flex.items-center.gap-3 input {
+    margin-left: 0 !important;
+  }
+
+  /* Admin Panel - Organization filter select */
+  .bg-purple-50 select,
+  .dark\\:bg-purple-900\\/20 select {
+    max-width: 100% !important;
+    width: 100% !important;
+    font-size: 14px !important;
+    padding: 8px 12px !important;
+  }
+
+  .bg-purple-50 .flex.items-center,
+  .dark\\:bg-purple-900\\/20 .flex.items-center {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  /* Chair Control Panel - Buttons and tabs */
+  .px-6.py-2 {
+    padding: 12px 16px !important;
+    font-size: 14px !important;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* Tabs overflow fix */
+  .modal-sidebar,
+  div[role="tablist"] {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Schedule Meeting button */
+  button .material-symbols-outlined + * {
+    display: inline;
+  }
+
+  /* Discussion Requirements - Time period buttons */
+  .space-y-6 button,
+  .space-y-4 button {
+    white-space: normal !important;
+    word-wrap: break-word;
+    line-height: 1.3;
+    padding: 8px 12px !important;
+  }
+
+  /* Committee Management - Member container inputs */
+  .border.border-gray-300.rounded-lg .flex.items-center.gap-3 {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .border.border-gray-300.rounded-lg input[type="text"] {
+    width: 100% !important;
+    margin-left: 0 !important;
+  }
+
+  .border.border-gray-300.rounded-lg .flex.items-center.justify-between {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .border.border-gray-300.rounded-lg .flex.items-center.gap-2 {
+    flex-wrap: wrap;
+  }
+
+  /* Motion Details Comments - Pro/Con buttons and Send button */
+  .bg-superlight-green form .flex.gap-2.mb-2 {
+    flex-wrap: wrap;
+    gap: 8px !important;
+  }
+
+  .bg-superlight-green form .flex.gap-2.mb-2 button {
+    flex: 1 1 calc(33.333% - 8px);
+    min-width: 80px;
+    padding: 8px 12px !important;
+    font-size: 14px !important;
+  }
+
+  .bg-superlight-green form .flex.gap-2:not(.mb-2) {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .bg-superlight-green form .flex.gap-2:not(.mb-2) input {
+    width: 100% !important;
+  }
+
+  .bg-superlight-green form .flex.gap-2:not(.mb-2) button {
+    width: 100% !important;
+    padding: 12px !important;
+    font-size: 16px !important;
+    margin-left: 0 !important;
+  }
+
+  /* Select dropdowns - prevent overflow */
+  select {
+    max-width: 100% !important;
+    font-size: 14px !important;
+  }
+
+  /* Flex containers - allow wrapping */
+  .flex.items-center.justify-between {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .flex.gap-6 {
+    gap: 12px !important;
+  }
+
+  /* Prevent text overflow in buttons */
+  button {
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  button span:not(.material-symbols-outlined) {
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
+/* Tablet breakpoint */
+@media screen and (min-width: 769px) and (max-width: 1024px) {
+  .ml-\\[16rem\\] {
+    margin-left: 5rem !important;
+  }
+
+  .home-outline {
+    margin-left: 5rem !important;
+  }
+
+  #motions-container,
+  .details-container {
+    margin-left: 5rem !important;
   }
 }
 
@@ -897,9 +1345,15 @@ html.dark .content-text {
     padding: 0;
   }
 
+  html.dark .modal-sidebar {
+    border-bottom-color: #374151;
+  }
+
   .tab-button {
     flex: 1;
     text-align: center;
+    min-height: 44px; /* Better touch target */
+    padding: 12px;
   }
 
   .tab-button.active::before {
@@ -913,6 +1367,10 @@ html.dark .content-text {
 
   .vote-buttons {
     flex-direction: column;
+  }
+
+  .vote-button {
+    min-height: 48px; /* Better touch target */
   }
 }
 /* Site name font - Lalezar */
@@ -1011,9 +1469,90 @@ html.dark .auth-section {
 .integrated-landing-page .login-card {
   margin-top: 0;
   width: 460px !important;
-  height: 640px;
+  height: auto;
+  min-height: 640px;
   padding: 80px 64px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+/* Mobile Login Page Optimization */
+@media (max-width: 768px) {
+  .integrated-landing-page {
+    flex-direction: column;
+    height: auto;
+    min-height: 100vh;
+  }
+
+  .branding-section {
+    padding: 24px 16px;
+    min-height: auto;
+  }
+
+  .branding-content {
+    transform: none;
+    max-width: 100%;
+  }
+
+  .branding-content .main-logo-font {
+    font-size: 48px;
+    margin-bottom: 12px;
+  }
+
+  .branding-content .main-logo {
+    height: 120px;
+    margin-left: 0;
+    display: block;
+    margin: 0 auto 16px;
+  }
+
+  .tagline {
+    font-size: 16px;
+    margin: 0 0 12px 0;
+  }
+
+  .attribution {
+    font-size: 12px;
+  }
+
+  .auth-section {
+    padding: 16px;
+    flex: none;
+  }
+
+  .integrated-landing-page .login-container {
+    width: 100%;
+    max-width: 100%;
+    padding: 0;
+  }
+
+  .integrated-landing-page .login-card {
+    width: 100% !important;
+    max-width: 100%;
+    height: auto;
+    min-height: auto;
+    padding: 32px 24px;
+    border-radius: 12px;
+  }
+
+  .login-title {
+    font-size: 20px;
+    margin-bottom: 20px;
+  }
+
+  .input-row {
+    width: 100%;
+    margin-bottom: 20px;
+  }
+
+  .login-option {
+    font-size: 18px;
+    padding: 0 16px;
+  }
+
+  .login-input {
+    font-size: 16px;
+    padding: 12px 14px;
+  }
 }
 
 /* Layout sizing variables for the homepage outline */
@@ -1696,28 +2235,85 @@ html.dark .home-outline .box {
 @media (max-width: 900px) {
   .home-outline {
     grid-template-columns: 1fr;
-    grid-template-rows: auto auto auto;
+    grid-template-rows: auto auto auto auto;
     height: auto;
+    min-height: auto;
     padding: 12px 16px;
     width: 100%;
     max-width: none;
+    padding-bottom: 80px;
   }
   .home-outline .right-column {
-    flex-direction: row;
+    flex-direction: column;
+    gap: 24px;
+    min-height: 500px;
+    display: flex;
   }
   .home-outline .right-column .small-box {
-    flex: 1 1 0;
+    flex: 0 0 auto;
     min-width: 0;
-    height: 140px;
+    height: 160px;
+    width: 100%;
+    margin-top: 0;
   }
   .home-outline .big-box {
-    height: 260px;
+    height: 500px;
   }
   .home-outline .bottom-box {
-    height: 180px;
+    height: 600px;
+    overflow-y: auto;
   }
   .home-outline .top-right-box {
-    height: 160px;
+    height: 350px;
+    overflow-y: auto;
+    margin-bottom: 0px;
+  }
+  
+  /* Home action boxes - reset margin for mobile */
+  .home-action-box {
+    margin-top: 0;
+  }
+  
+  /* Active motions - ensure proper scrolling */
+  .active-motions-list {
+    overflow-y: auto;
+    max-height: calc(100% - 60px);
+    padding-bottom: 150px;
+  }
+  
+  /* Analytics panel - enable scrolling */
+  .analytics-panel {
+    overflow-y: auto;
+  }
+  
+  .analytics-grid {
+    overflow: visible;
+  }
+}
+
+/* Mobile: Adjust main content to account for no sidebar on small screens */
+@media (max-width: 1024px) {
+  #motions-container {
+    margin-left: 0;
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+  
+  .home-outline {
+    margin-left: 0;
+  }
+}
+
+/* Desktop: Account for sidebar width */
+@media (min-width: 1024px) {
+  #motions-container,
+  .details-container {
+    margin-left: 16rem; /* Sidebar width */
+  }
+  
+  .home-outline {
+    margin-left: 0;
+    margin-right: auto;
   }
 }
 

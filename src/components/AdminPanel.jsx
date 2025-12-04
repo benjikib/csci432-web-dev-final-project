@@ -262,7 +262,7 @@ function AdminPanel() {
             <>
                 <HeaderNav setSearchedTerm={setSearchedTerm} />
                 <SideBar />
-                <div className="mt-20 ml-[16rem] px-8 min-h-screen bg-[#F8FEF9] dark:bg-gray-900">
+                <div className="mt-20 ml-0 lg:ml-[16rem] px-4 lg:px-8 min-h-screen bg-[#F8FEF9] dark:bg-gray-900">
                     <div className="text-gray-600 dark:text-gray-400">Loading...</div>
                 </div>
             </>
@@ -273,7 +273,7 @@ function AdminPanel() {
         <>
             <HeaderNav setSearchedTerm={setSearchedTerm} />
             <SideBar />
-            <div className="mt-20 ml-[16rem] px-8 min-h-screen bg-[#F8FEF9] dark:bg-gray-900">
+            <div className="mt-20 ml-0 lg:ml-[16rem] px-4 lg:px-8 min-h-screen bg-[#F8FEF9] dark:bg-gray-900">
                 <div className="max-w-6xl">
                     <h2 className="section-title dark:text-gray-100">Admin Panel</h2>
                     <p className="text-gray-600 dark:text-gray-400 mb-6">Manage users, committees, and system settings</p>
@@ -281,15 +281,15 @@ function AdminPanel() {
                     {/* Super-Admin Organization Filter */}
                     {currentUser?.roles?.includes('super-admin') && organizations.length > 0 && (
                         <div className="mb-6 p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg border border-purple-200 dark:border-purple-800">
-                            <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-4">
-                                    <label className="text-sm font-medium text-purple-900 dark:text-purple-200">
+                            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                                <div className="flex flex-col sm:flex-row sm:items-center gap-3 lg:gap-4 flex-1">
+                                    <label className="text-sm font-medium text-purple-900 dark:text-purple-200 whitespace-nowrap">
                                         Filter by Organization:
                                     </label>
                                     <select
                                         value={selectedOrgFilter}
                                         onChange={(e) => setSelectedOrgFilter(e.target.value)}
-                                        className="px-4 py-2 border border-purple-300 dark:border-purple-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                        className="w-full sm:flex-1 px-3 lg:px-4 py-2 border border-purple-300 dark:border-purple-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm lg:text-base"
                                     >
                                         <option value="all">All Organizations (Platform-wide)</option>
                                         {organizations.map(org => {
@@ -348,9 +348,9 @@ function AdminPanel() {
                     {/* Tabs */}
                     <Tabs
                         tabs={[
-                            { id: "users", label: "Users" },
-                            { id: "committees", label: "Committees" },
-                            { id: "system", label: "System" }
+                            { id: "users", label: "Users", icon: "person" },
+                            { id: "committees", label: "Committees", icon: "groups" },
+                            { id: "system", label: "System", icon: "settings" }
                         ]}
                         activeTab={activeTab}
                         onTabChange={setActiveTab}

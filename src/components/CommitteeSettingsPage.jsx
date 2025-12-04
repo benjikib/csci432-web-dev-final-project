@@ -135,7 +135,7 @@ function CommitteeSettingsPage() {
             <>
                 <HeaderNav setSearchedTerm={setSearchedTerm} />
                 <SideBar />
-                <div className="mt-20 ml-[16rem] px-8 min-h-screen bg-[#F8FEF9] dark:bg-gray-900">
+                <div className="mt-20 ml-0 lg:ml-[16rem] px-4 lg:px-8 min-h-screen bg-[#F8FEF9] dark:bg-gray-900">
                     <div className="motions-section">
                         <h2 className="section-title dark:text-gray-100">Loading...</h2>
                     </div>
@@ -149,7 +149,7 @@ function CommitteeSettingsPage() {
             <>
                 <HeaderNav setSearchedTerm={setSearchedTerm} />
                 <SideBar />
-                <div className="mt-20 ml-[16rem] px-8 min-h-screen bg-[#F8FEF9] dark:bg-gray-900">
+                <div className="mt-20 ml-0 lg:ml-[16rem] px-4 lg:px-8 min-h-screen bg-[#F8FEF9] dark:bg-gray-900">
                     <div className="motions-section">
                         <h2 className="section-title dark:text-gray-100">Committee Not Found</h2>
                         {/* Error Banner */}
@@ -167,7 +167,7 @@ function CommitteeSettingsPage() {
             <>
                 <HeaderNav setSearchedTerm={setSearchedTerm} />
                 <SideBar />
-                <div className="mt-20 ml-[16rem] px-8 min-h-screen bg-[#F8FEF9] dark:bg-gray-900">
+                <div className="mt-20 ml-0 lg:ml-[16rem] px-4 lg:px-8 min-h-screen bg-[#F8FEF9] dark:bg-gray-900">
                     <div className="motions-section">
                         <NoAccessPage committeeId={id} committeeTitle={committee?.title} />
                     </div>
@@ -216,7 +216,7 @@ function CommitteeSettingsPage() {
         <>
             <HeaderNav setSearchedTerm={setSearchedTerm} />
             <SideBar />
-            <div className="mt-20 ml-[16rem] px-8 min-h-screen bg-[#F8FEF9] dark:bg-gray-900">
+            <div className="mt-20 ml-0 lg:ml-[16rem] px-4 lg:px-8 min-h-screen bg-[#F8FEF9] dark:bg-gray-900">
                 <div className="motions-section">
                     <h2 className="section-title dark:text-gray-100">{committee.title} Settings</h2>
 
@@ -255,14 +255,14 @@ function CommitteeSettingsPage() {
                                 Members
                             </label>
                             <div className="border border-gray-300 rounded-lg p-4 dark:bg-gray-800 dark:border-gray-600">
-                                <div className="mb-3 flex items-center gap-3">
+                                <div className="mb-3 flex flex-col sm:flex-row sm:items-center gap-3">
                                     <p className="text-gray-600 dark:text-gray-400">{members.length} members</p>
                                     <input
                                         type="text"
                                         placeholder="Search members"
                                         value={memberSearch}
                                         onChange={(e) => setMemberSearch(e.target.value)}
-                                        className="ml-auto px-2 py-1 border rounded bg-white dark:bg-gray-700 text-sm"
+                                        className="sm:ml-auto px-3 py-2 border rounded bg-white dark:bg-gray-700 text-sm w-full sm:w-auto"
                                     />
                                 </div>
 
@@ -280,9 +280,9 @@ function CommitteeSettingsPage() {
                                             const currentRole = isChair ? 'chair' : (isGuest ? 'guest' : 'member');
                                             
                                             return (
-                                            <div key={memberId} className="flex items-center justify-between p-2 bg-white dark:bg-gray-800 rounded">
-                                                <div className="flex-1">
-                                                    <div className="font-semibold text-gray-800 dark:text-gray-200">
+                                            <div key={memberId} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 bg-white dark:bg-gray-800 rounded">
+                                                <div className="flex-1 min-w-0">
+                                                    <div className="font-semibold text-gray-800 dark:text-gray-200 truncate">
                                                         {member.name}
                                                         {isChair ? (
                                                             <span className="ml-2 inline-block bg-yellow-100 text-yellow-800 text-xs px-2 py-0.5 rounded">Chair</span>
@@ -294,9 +294,9 @@ function CommitteeSettingsPage() {
                                                             <span className="ml-2 inline-block bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 text-xs px-2 py-0.5 rounded">Guest</span>
                                                         ) : null}
                                                     </div>
-                                                    <div className="text-xs text-gray-500 dark:text-gray-400">{member.email}</div>
+                                                    <div className="text-xs text-gray-500 dark:text-gray-400 truncate">{member.email}</div>
                                                 </div>
-                                                <div className="flex items-center gap-2">
+                                                <div className="flex items-center gap-2 shrink-0">
                                                     {/* Role dropdown */}
                                                     <select
                                                         value={currentRole}

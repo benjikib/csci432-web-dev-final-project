@@ -18,6 +18,7 @@ import OrganizationPaymentPage from './components/OrganizationPaymentPage.jsx'
 import OrganizationSetupPage from './components/OrganizationSetupPage.jsx'
 import OrganizationDeletedPage from './components/OrganizationDeletedPage.jsx'
 import ProtectedRoute from './components/ProtectedRoute.jsx'
+import ScrollToTop from './components/ScrollToTop.jsx'
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 
 export default function App() {
@@ -30,6 +31,7 @@ export default function App() {
 
   return (
     <>
+      <ScrollToTop />
       <Routes location={background || location}>
         <Route path="/" element={<LoginPage />}></Route>
         <Route path="/login" element={<LoginPage />}></Route>

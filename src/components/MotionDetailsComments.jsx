@@ -194,11 +194,11 @@ export default function MotionDetailsComments({ committeeId, motionId, isDebatab
                         {/* Input area - only show if debatable */}
                         {isDebatable ? (
                         <form onSubmit={handleSubmit} className="mt-3">
-                                <div className="flex gap-2 mb-2">
+                                <div className="flex gap-1.5 mb-2">
                                         <button
                                                 type="button"
                                                 onClick={() => setStance("pro")}
-                                                className={`px-3 py-1 rounded text-sm font-medium ${
+                                                className={`flex-1 px-2 py-1 rounded text-xs font-medium ${
                                                         stance === "pro" 
                                                                 ? "bg-green-700 text-white" 
                                                                 : "bg-gray-200 text-gray-700 hover:bg-gray-300"
@@ -209,7 +209,7 @@ export default function MotionDetailsComments({ committeeId, motionId, isDebatab
                                         <button
                                                 type="button"
                                                 onClick={() => setStance("neutral")}
-                                                className={`px-3 py-1 rounded text-sm font-medium ${
+                                                className={`flex-1 px-2 py-1 rounded text-xs font-medium ${
                                                         stance === "neutral" 
                                                                 ? "bg-blue-500 text-white" 
                                                                 : "bg-gray-200 text-gray-700 hover:bg-gray-300"
@@ -220,7 +220,7 @@ export default function MotionDetailsComments({ committeeId, motionId, isDebatab
                                         <button
                                                 type="button"
                                                 onClick={() => setStance("con")}
-                                                className={`px-3 py-1 rounded text-sm font-medium ${
+                                                className={`flex-1 px-2 py-1 rounded text-xs font-medium ${
                                                         stance === "con" 
                                                                 ? "bg-red-700 text-white" 
                                                                 : "bg-gray-200 text-gray-700 hover:bg-gray-300"
@@ -235,11 +235,17 @@ export default function MotionDetailsComments({ committeeId, motionId, isDebatab
                                                 placeholder={isGuest ? "Guests cannot post comments" : "Type a message..."} 
                                                 value={newComment} 
                                                 onChange={(e) => setNewComment(e.target.value)} 
-                                                className="flex-grow border border-lighter-green rounded-md p-2 focus:outline-none bg-white text-gray-800" 
+                                                className="flex-grow border border-lighter-green rounded-md p-2 text-sm focus:outline-none bg-white text-gray-800" 
                                                 autoComplete="off"
                                                 disabled={isGuest}
                                         />
-                                        <button type="submit" className="ml-2" disabled={isGuest}>Send</button>
+                                        <button 
+                                                type="submit" 
+                                                className="px-4 py-2 bg-darker-green text-white rounded-md hover:bg-opacity-90 font-medium text-sm whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed" 
+                                                disabled={isGuest}
+                                        >
+                                                Send
+                                        </button>
                                 </div>
                                 {isGuest && (
                                         <div className="mt-2 p-2 bg-amber-50 dark:bg-amber-900/20 border border-amber-300 dark:border-amber-700 rounded-md">

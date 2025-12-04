@@ -39,7 +39,7 @@ export default function HomePage() {
             <HeaderNav setSearchedTerm={setSearchedTerm} />
             <SideBar />
             {/* Full-width content area offset by the sidebar, with small safe padding */}
-            <div className="mt-16 ml-[16rem] px-4 py-4 min-h-screen bg-[#F8FEF9] dark:bg-gray-900">
+            <div className="mt-16 ml-0 lg:ml-[16rem] px-4 py-4 min-h-screen bg-[#F8FEF9] dark:bg-gray-900">
                 {/* Homepage outline placeholder using the new CSS classes */}
                 <div className="home-outline">
                     <div className="left-column">

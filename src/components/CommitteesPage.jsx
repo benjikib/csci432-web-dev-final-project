@@ -93,8 +93,8 @@ function CommitteesPage() {
         <>
             <HeaderNav setSearchedTerm={setSearchedTerm} />
             <SideBar />
-            <div className="mt-20 ml-[16rem] px-8 min-h-screen bg-[#F8FEF9] dark:bg-gray-900">
-                <div className="motions-section">
+            <div className="mt-20 ml-0 lg:ml-[16rem] px-4 lg:px-8 min-h-screen bg-[#F8FEF9] dark:bg-gray-900">
+                <div className="motions-section max-w-full">
                     <h2 className="section-title dark:text-gray-100">Committees</h2>
 
                     {loading ? (

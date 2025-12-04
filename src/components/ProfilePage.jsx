@@ -104,7 +104,7 @@ function Profile() {
             <>
                 <HeaderNav setSearchedTerm={setSearchedTerm} />
                 <SideBar />
-                <div className="mt-20 ml-[16rem] px-8 min-h-screen bg-[#F8FEF9] dark:bg-gray-900">
+                <div className="mt-20 ml-0 lg:ml-[16rem] px-4 lg:px-8 min-h-screen bg-[#F8FEF9] dark:bg-gray-900">
                     <div className="text-gray-600 dark:text-gray-400">Loading profile...</div>
                 </div>
             </>
@@ -116,7 +116,7 @@ function Profile() {
             <>
                 <HeaderNav setSearchedTerm={setSearchedTerm} />
                 <SideBar />
-                <div className="mt-20 ml-[16rem] px-8 min-h-screen bg-[#F8FEF9] dark:bg-gray-900">
+                <div className="mt-20 ml-0 lg:ml-[16rem] px-4 lg:px-8 min-h-screen bg-[#F8FEF9] dark:bg-gray-900">
                     <div className="max-w-4xl">
                         <h2 className="section-title dark:text-gray-100">My Profile</h2>
                         <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 px-4 py-3 rounded-lg mt-4">
@@ -132,7 +132,7 @@ function Profile() {
         <>
             <HeaderNav setSearchedTerm={setSearchedTerm} />
             <SideBar />
-            <div className="mt-20 ml-[16rem] px-8 min-h-screen bg-[#F8FEF9] dark:bg-gray-900">
+            <div className="mt-20 ml-0 lg:ml-[16rem] px-4 lg:px-8 min-h-screen bg-[#F8FEF9] dark:bg-gray-900">
                 <div className="max-w-4xl">
                     <h2 className="section-title dark:text-gray-100">My Profile</h2>
 
@@ -163,17 +163,17 @@ function Profile() {
                             </div>
                         )}
                         <div className="ml-6 flex-1">
-                            <div className="flex items-center gap-3">
-                                <h3 className="text-2xl font-semibold text-gray-800 dark:text-gray-100">
+                            <div className="flex flex-wrap items-center gap-2">
+                                <h3 className="text-xl lg:text-2xl font-semibold text-gray-800 dark:text-gray-100">
                                     {user.settings?.displayName || user.name || 'User'}
                                 </h3>
                                 {user.organizationRole === 'admin' && (
-                                    <span className="px-3 py-1 text-xs font-semibold rounded-full bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-sm">
+                                    <span className="px-2 lg:px-3 py-1 text-xs font-semibold rounded-full bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-sm whitespace-nowrap">
                                         ⭐ Admin
                                     </span>
                                 )}
                                 {user.roles?.includes('super-admin') && (
-                                    <span className="px-3 py-1 text-xs font-semibold rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-sm">
+                                    <span className="px-2 lg:px-3 py-1 text-xs font-semibold rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-sm whitespace-nowrap">
                                         ✨ Super Admin
                                     </span>
                                 )}
