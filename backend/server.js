@@ -1,7 +1,11 @@
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
-require('dotenv').config({ path: path.resolve(__dirname, '../.env') });
+
+// Only load dotenv in non-Vercel environments (local development)
+if (process.env.VERCEL !== '1') {
+  require('dotenv').config({ path: path.resolve(__dirname, '../.env') });
+}
 
 const { connectDB } = require('./config/database');
 const { checkAndNotifyVotingDeadlines } = require('./utils/votingDeadlineNotifications');
