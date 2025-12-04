@@ -31,6 +31,7 @@ class Committee {
       members: this.normalizeMembers(committeeData.members || []),
       owner: committeeData.owner || null, // User ID of the owner (optional for now)
       chair: committeeData.chair || null, // User ID of the chair
+      organizationId: committeeData.organizationId || null, // Organization this committee belongs to
       settings: committeeData.settings || {},
       motions: [], // Array of embedded motion documents
       createdAt: new Date(),
@@ -314,7 +315,16 @@ class Committee {
       filteredUnpaginated = filteredUnpaginated.filter(m => m.motionType === typeFilter);
     }
     if (statusFilter) {
-      filteredUnpaginated = filteredUnpaginated.filter(m => m.status === statusFilter);
+      // Support multiple statuses separated by comma (e.g., "passed,failed")
+      const statuses = statusFilter.split(',').map(s => s.trim());
+      // Support legacy 'past' status which should be treated same as 'passed' or 'failed'
+      const includesPast = statuses.includes('passed') || statuses.includes('failed');
+      filteredUnpaginated = filteredUnpaginated.filter(m => {
+        if (statuses.includes(m.status)) return true;
+        // Legacy support: 'past' status should show in 'passed,failed' filter
+        if (includesPast && m.status === 'past') return true;
+        return false;
+      });
     }
     if (targetMotion) {
       filteredUnpaginated = filteredUnpaginated.filter(m => {
