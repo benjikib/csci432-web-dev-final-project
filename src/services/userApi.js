@@ -112,12 +112,37 @@ export function hasPermission(user, permission) {
 }
 
 /**
- * Helper function to check if user is admin (can do anything)
+ * Helper function to check if user is admin (can access admin panel)
+ * Checks for super-admin or organization admin
  * @param {Object} user - User object from getCurrentUser()
  * @returns {boolean}
  */
 export function isAdmin(user) {
-    return hasRole(user, 'admin');
+    // Check for super-admin role (platform level)
+    if (hasRole(user, 'super-admin')) {
+        return true;
+    }
+    // Check for organization admin role
+    if (user && user.organizationRole === 'admin') {
+        return true;
+    }
+    return false;
+}
+
+/**
+ * Delete user account
+ * @param {string} userId - ID of user to delete
+ * @returns {Promise} Response confirming deletion
+ */
+export async function deleteUser(userId) {
+    const response = await fetch(
+        `${API_BASE_URL}/auth/user/${userId}`,
+        {
+            method: 'DELETE',
+            headers: getHeaders(),
+        }
+    );
+    return handleResponse(response);
 }
 
 export default {
@@ -127,4 +152,5 @@ export default {
     hasRole,
     hasPermission,
     isAdmin,
+    deleteUser,
 };

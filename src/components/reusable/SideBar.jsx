@@ -1,7 +1,7 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { useNavigationBlock } from '../../context/NavigationContext';
-import { getCurrentUser, hasRole } from '../../services/userApi';
+import { getCurrentUser, hasRole, isAdmin } from '../../services/userApi';
 import { getCommitteeById } from '../../services/committeeApi';
 
 //   const SideBar = () => {
@@ -23,8 +23,12 @@ export default function SideBar() {
                   const response = await getCurrentUser();
                   if (response && response.success) {
                       const user = response.user || {};
-                      setUserIsChair(hasRole(user, 'chair'));
-                      setUserIsAdmin(hasRole(user, 'admin'));
+                      const hasChairRole = hasRole(user, 'chair');
+                      const hasAdminRole = isAdmin(user); // Use isAdmin function for super-admin/admin/org-admin check
+                      const isSuperAdmin = hasRole(user, 'super-admin');
+                      const isOrgAdmin = user.organizationRole === 'admin';
+                      
+                      setUserIsAdmin(hasAdminRole);
 
                       // determine committee context (may change when location changes)
                       const committeeId = getNavigationContext().committeeId;
@@ -34,8 +38,8 @@ export default function SideBar() {
                           try {
                               const committee = await getCommitteeById(committeeId);
                               const myRole = committee && committee.myRole ? committee.myRole : null;
-                              setUserIsAdmin(hasRole(user, 'admin'));
-                              setUserIsChair(myRole === 'chair' || myRole === 'owner');
+                              // Super-admins and org-admins can act as chairs for all committees
+                              setUserIsChair(hasChairRole || myRole === 'chair' || myRole === 'owner' || isSuperAdmin || isOrgAdmin);
                               setUserIsOwner(myRole === 'owner');
                               setUserIsMember(myRole === 'member' || myRole === 'chair' || myRole === 'owner');
                               setUserIsGuest(myRole === 'guest');
@@ -43,13 +47,14 @@ export default function SideBar() {
                               // fallback to checking user arrays if committee lookup fails
                               setUserIsMember(committeeId && Array.isArray(user.memberCommittees) ? user.memberCommittees.map(String).includes(String(committeeId)) : false);
                               setUserIsGuest(committeeId && Array.isArray(user.guestCommittees) ? user.guestCommittees.map(String).includes(String(committeeId)) : false);
-                              setUserIsChair(hasRole(user, 'chair'));
+                              setUserIsChair(hasChairRole || isSuperAdmin || isOrgAdmin);
                               setUserIsOwner(committeeId && Array.isArray(user.ownedCommittees) ? user.ownedCommittees.map(String).includes(String(committeeId)) : false);
                           }
                       } else {
+                          // Not viewing a specific committee - super-admins and org-admins have chair access globally
                           setUserIsMember(false);
                           setUserIsGuest(false);
-                          setUserIsChair(false);
+                          setUserIsChair(hasChairRole || isSuperAdmin || isOrgAdmin);
                           setUserIsOwner(false);
                       }
 

@@ -49,22 +49,36 @@ export default function HeaderNav( {setSearchedTerm} ) {
                 try {
                         const data = await getNotifications(1, 20)
                         const list = data.notifications || data
+                        // console.log('Fetched notifications:', list);
                         setNotifications(list)
-                        const pending = list.filter(n => n.status === 'pending').length
-                        setUnreadCount(pending)
-
-                        // Mark non-approval notifications as seen when loaded in the dropdown
-                        try {
-                                const toMark = list.filter(n => n.type !== 'access_request' && !n.seenAt).map(n => n._id)
-                                if (toMark.length > 0) {
-                                        // mark each as seen (fire-and-forget, but await to keep UI consistent)
-                                        await Promise.allSettled(toMark.map(id => handleNotification(id, 'mark_seen')))
-                                }
-                        } catch (e) {
-                                console.warn('Failed to mark notifications seen:', e)
-                        }
+                        // Count unseen notifications (not marked with seenAt)
+                        const unseen = list.filter(n => !n.seenAt).length
+                        // console.log('Unseen count:', unseen);
+                        setUnreadCount(unseen)
                 } catch (err) {
                         console.error('Failed fetching notifications', err)
+                }
+        }
+
+        async function markNotificationsAsSeen() {
+                try {
+                        // console.log('markNotificationsAsSeen called, notifications:', notifications);
+                        const toMark = notifications.filter(n => 
+                                n.type !== 'access_request' && 
+                                n.type !== 'voting_opened' && 
+                                n.type !== 'voting_deadline_approaching' &&
+                                !n.seenAt
+                        ).map(n => n._id)
+                        // console.log('Notifications to mark as seen:', toMark);
+                        if (toMark.length > 0) {
+                                // mark each as seen
+                                const results = await Promise.allSettled(toMark.map(id => handleNotification(id, 'mark_seen')))
+                                // console.log('Mark seen results:', results);
+                                // Refresh to update badge
+                                await fetchNotifications()
+                        }
+                } catch (e) {
+                        console.warn('Failed to mark notifications seen:', e)
                 }
         }
 
@@ -129,6 +143,13 @@ export default function HeaderNav( {setSearchedTerm} ) {
                 }, 300000); // 300,000 ms = 5 minutes
                 return () => clearInterval(intervalId);
         }, [user]);
+
+        // Mark notifications as seen when dropdown opens
+        useEffect(() => {
+                if (open && notifications.length > 0) {
+                        markNotificationsAsSeen();
+                }
+        }, [open]);
 
         const handleLogout = () => {
                 // Clear token and user from localStorage
@@ -197,13 +218,24 @@ export default function HeaderNav( {setSearchedTerm} ) {
                                                                                                 </div>
                                                                                                 <div className="text-sm text-gray-700 dark:text-gray-300 mt-1">{n.requesterName ? `${n.requesterName} — ` : ''}{n.message}</div>
                                                                                                 <div className="mt-2 flex gap-2">
-                                                                                                        {n.status === 'pending' && (user?.roles?.includes('admin') || (user?.chairedCommittees && user.chairedCommittees.map(String).includes(String(n.committeeId)))) && (
+                                                                                                        {(n.type === 'voting_opened' || n.type === 'voting_deadline_approaching') && n.metadata && (
+                                                                                                                <button 
+                                                                                                                        onClick={() => {
+                                                                                                                                navigate(`/committee/${n.metadata.committeeSlug}/motion/${n.metadata.motionId}`);
+                                                                                                                                onHandle(n._id, 'mark_seen');
+                                                                                                                        }} 
+                                                                                                                        className="px-2 py-1 bg-[#13562C] hover:bg-[#1a7a3f] text-white text-xs rounded"
+                                                                                                                >
+                                                                                                                        {n.type === 'voting_deadline_approaching' ? 'Vote Before Deadline' : 'Vote Now'}
+                                                                                                                </button>
+                                                                                                        )}
+                                                                                                        {n.status === 'pending' && n.type !== 'meeting_scheduled' && n.type !== 'voting_opened' && n.type !== 'voting_deadline_approaching' && ((user?.roles?.includes('super-admin') || user?.organizationRole === 'admin') || (user?.chairedCommittees && user.chairedCommittees.map(String).includes(String(n.committeeId)))) && (
                                                                                                                 <>
                                                                                                                         <button onClick={() => onHandle(n._id, 'approve')} className="px-2 py-1 bg-[#54966D] hover:bg-[#5ca377] text-white text-xs rounded">Approve</button>
                                                                                                                         <button onClick={() => onHandle(n._id, 'deny')} className="px-2 py-1 bg-red-500 hover:bg-red-600 text-white text-xs rounded">Deny</button>
                                                                                                                 </>
                                                                                                         )}
-                                                                                                        {n.status !== 'pending' && (
+                                                                                                        {n.status !== 'pending' && n.type !== 'meeting_scheduled' && n.type !== 'voting_opened' && n.type !== 'voting_deadline_approaching' && (
                                                                                                                 <div className="text-xs text-gray-500 dark:text-gray-400">{n.status}</div>
                                                                                                         )}
                                                                                                 </div>
