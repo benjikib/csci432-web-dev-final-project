@@ -179,8 +179,8 @@ async function checkVotingEligibility(motion, committeeSettings, committeeId) {
 }
 
 /**
- * Check if a voting period has expired based on committee settings
- * @param {Object} motion - The motion document with votingOpenedAt
+ * Check if voting period has expired
+ * @param {Object} motion - The motion document
  * @param {Object} committeeSettings - The committee settings
  * @returns {boolean} - true if voting period has expired
  */
@@ -193,6 +193,46 @@ function isVotingPeriodExpired(motion, committeeSettings) {
     const expiresAt = new Date(votingOpenedAt.getTime() + (committeeSettings.votingPeriodDays * 24 * 60 * 60 * 1000));
     
     return Date.now() > expiresAt.getTime();
+}
+
+/**
+ * Close voting and fail motion if voting period has expired without meeting requirements
+ * @param {Object} motion - The motion document
+ * @param {Object} committee - The committee document
+ * @param {Function} updateMotionFn - Function to update the motion
+ * @param {Function} createCommentFn - Function to create a system comment
+ * @returns {Promise<boolean>} - true if motion was closed due to expiration
+ */
+async function closeExpiredVoting(motion, committee, updateMotionFn, createCommentFn) {
+    const settings = committee.settings || {};
+    
+    if (!isVotingPeriodExpired(motion, settings)) {
+        return false;
+    }
+
+    // Voting period has expired - close voting and fail the motion
+    await updateMotionFn(committee._id, motion._id.toString(), {
+        status: 'failed',
+        votingStatus: 'closed',
+        votingClosedAt: new Date()
+    });
+
+    // Create system message
+    const totalVotes = motion.votes.yes + motion.votes.no + motion.votes.abstain;
+    const totalMembers = committee.members ? committee.members.length : 0;
+    
+    await createCommentFn({
+        motionId: motion._id.toString(),
+        committeeId: committee._id.toString(),
+        author: null,
+        content: `❌ Voting period expired. Motion failed - quorum/participation requirements not met (${totalVotes}/${totalMembers} members voted)`,
+        stance: 'neutral',
+        isSystemMessage: true,
+        messageType: 'voting-expired'
+    });
+
+    console.log(`Voting expired for motion ${motion._id} - marked as failed`);
+    return true;
 }
 
 /**
@@ -262,6 +302,7 @@ function calculateMotionResult(motion, threshold = 'simple_majority') {
 module.exports = {
     checkVotingEligibility,
     isVotingPeriodExpired,
+    closeExpiredVoting,
     checkQuorum,
     calculateMotionResult
 };

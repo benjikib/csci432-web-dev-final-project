@@ -1,5 +1,9 @@
 const { MongoClient, ServerApiVersion } = require('mongodb');
-require('dotenv').config();
+
+// Only load dotenv in non-Vercel environments (local development)
+if (process.env.VERCEL !== '1') {
+  require('dotenv').config();
+}
 
 const uri = process.env.MONGODB_URI;
 

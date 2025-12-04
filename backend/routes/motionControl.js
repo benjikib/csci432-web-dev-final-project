@@ -5,6 +5,7 @@ const { authenticate } = require('../middleware/auth');
 const Committee = require('../models/Committee');
 const Comment = require('../models/Comment');
 const Vote = require('../models/Vote');
+const Notification = require('../models/Notification');
 const { checkVotingEligibility, isVotingPeriodExpired } = require('../utils/votingEligibility');
 
 /**
@@ -65,26 +66,62 @@ router.post('/:committeeId/:motionId/second', authenticate, async (req, res) => 
         const settings = committee.settings || {};
         const eligibility = await checkVotingEligibility(updatedMotion, settings, committee._id);
 
-        // If voting can now begin, create system message
-        if (eligibility.canBegin && settings.minSpeakersBeforeVote === 0) {
+        // If voting can now begin, auto-open voting and create notifications
+        if (eligibility.canBegin && updatedMotion.votingStatus !== 'open') {
+            // Auto-open voting
+            await Committee.updateMotion(committee._id, motionId, {
+                votingStatus: 'open',
+                votingOpenedAt: new Date()
+            });
+            
+            // Create system message
             await Comment.create({
                 motionId: motionId,
                 committeeId: committee._id.toString(),
                 author: null,
-                content: '✓ Motion has been seconded. Voting can begin.',
+                content: '✅ Motion has been seconded. Voting is now open.',
                 stance: 'neutral',
                 isSystemMessage: true,
                 messageType: 'voting-eligible'
             });
+            
+            // Create notification for all committee members
+            try {
+                console.log('Creating voting notification for seconded motion:', updatedMotion.title);
+                const notification = await Notification.create({
+                    type: 'voting_opened',
+                    committeeId: committee._id,
+                    committeeTitle: committee.title,
+                    message: `Voting is now open for "${updatedMotion.title}"`,
+                    metadata: {
+                        motionId: motionId.toString(),
+                        motionTitle: updatedMotion.title,
+                        committeeSlug: committee.slug
+                    }
+                });
+                console.log('Voting notification created:', notification);
+            } catch (notifErr) {
+                console.error('Failed to create voting notification:', notifErr);
+            }
+            
+            // Refresh motion to get updated votingStatus
+            const refreshedMotion = await Committee.findMotionById(committee._id, motionId);
+            res.json({
+                success: true,
+                message: 'Motion seconded and voting opened',
+                motion: refreshedMotion,
+                voteSummary,
+                eligibility
+            });
+        } else {
+            res.json({
+                success: true,
+                message: 'Motion seconded successfully',
+                motion: updatedMotion,
+                voteSummary,
+                eligibility
+            });
         }
-
-        res.json({
-            success: true,
-            message: 'Motion seconded successfully',
-            motion: updatedMotion,
-            voteSummary,
-            eligibility
-        });
     } catch (error) {
         console.error('Error seconding motion:', error);
         res.status(500).json({ success: false, message: 'Failed to second motion', error: error.message });
@@ -177,7 +214,25 @@ router.post('/:committeeId/:motionId/open-voting', authenticate, async (req, res
             messageType: 'voting-opened'
         });
 
+        // Create notification for all committee members who haven't voted
         const updatedMotion = await Committee.findMotionById(committee._id, motionId);
+        try {
+            console.log('Creating voting notification for motion:', updatedMotion.title);
+            const notification = await Notification.create({
+                type: 'voting_opened',
+                committeeId: committee._id,
+                committeeTitle: committee.title,
+                message: `Voting is now open for "${updatedMotion.title}"`,
+                metadata: {
+                    motionId: motionId.toString(),
+                    motionTitle: updatedMotion.title,
+                    committeeSlug: committee.slug
+                }
+            });
+            console.log('Voting notification created:', notification);
+        } catch (notifErr) {
+            console.error('Failed to create voting notification:', notifErr);
+        }
 
         res.json({
             success: true,

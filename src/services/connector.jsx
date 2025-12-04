@@ -1,5 +1,11 @@
 const { MongoClient, ServerApiVersion } = require('mongodb');
-const uri = "mongodb+srv://generic_connector:FOwzxE0Lja8NIekw@cluster0.hytruxi.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
+
+// Only load dotenv in non-Vercel environments (local development)
+if (process.env.VERCEL !== '1') {
+  require('dotenv').config();
+}
+
+const uri = process.env.MONGODB_URI;
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
 const client = new MongoClient(uri, {
@@ -16,7 +22,7 @@ async function run() {
     await client.connect();
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
-    console.log("Pinged your deployment. You successfully connected to MongoDB!");
+    // console.log("Pinged your deployment. You successfully connected to MongoDB!");
   } finally {
     // Ensures that the client will close when you finish/error
     await client.close();

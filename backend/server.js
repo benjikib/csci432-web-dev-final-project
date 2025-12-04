@@ -1,9 +1,14 @@
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
-require('dotenv').config({ path: path.resolve(__dirname, '../.env') });
+
+// Only load dotenv in non-Vercel environments (local development)
+if (process.env.VERCEL !== '1') {
+  require('dotenv').config({ path: path.resolve(__dirname, '../.env') });
+}
 
 const { connectDB } = require('./config/database');
+const { checkAndNotifyVotingDeadlines } = require('./utils/votingDeadlineNotifications');
 
 // Import routes
 const authRoutes = require('./routes/auth');
@@ -13,6 +18,7 @@ const commentRoutes = require('./routes/comments');
 const voteRoutes = require('./routes/votes');
 const notificationsRoutes = require('./routes/notifications');
 const motionControlRoutes = require('./routes/motionControl');
+const organizationRoutes = require('./routes/organizations');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -108,6 +114,7 @@ app.use('/', commentRoutes);
 app.use('/', voteRoutes);
 app.use('/', notificationsRoutes);
 app.use('/motion-control', motionControlRoutes);
+app.use('/organizations', organizationRoutes);
 
 // 404 handler
 app.use((req, res) => {
@@ -164,6 +171,12 @@ async function startServer() {
       console.log(`   Votes:      POST   /committee/:id/motion/:motionId/vote`);
       console.log(`   Votes:      DELETE /committee/:id/motion/:motionId/vote\n`);
     });
+    
+    // Start periodic voting deadline check (every 30 minutes)
+    console.log('⏰ Starting voting deadline notification scheduler...');
+    checkAndNotifyVotingDeadlines(); // Run immediately on startup
+    setInterval(checkAndNotifyVotingDeadlines, 30 * 60 * 1000); // Then every 30 minutes
+    
   } catch (error) {
     console.error('❌ Failed to start server:', error);
     process.exit(1);

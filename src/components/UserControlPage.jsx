@@ -21,6 +21,10 @@ function UserControlPage() {
                 
                 // Check if user has chair role
                 const userResponse = await getCurrentUser();
+                if (!userResponse || !userResponse.success) {
+                    navigate('/login');
+                    return;
+                }
                 if (userResponse.success) {
                     const userIsChair = hasRole(userResponse.user, 'chair');
                     setIsChair(userIsChair);

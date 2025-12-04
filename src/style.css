@@ -1078,6 +1078,7 @@ html.dark .auth-section {
   padding: 24px;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
 }
 
 /* Welcome text styling */
@@ -1132,7 +1133,7 @@ html.dark .active-motions-title {
   flex-direction: column;
   gap: 12px;
   min-height: 0;
-  max-height: 100%;
+  padding-bottom: 64px;
 }
 
 .active-motion-card {
@@ -1566,7 +1567,7 @@ html.dark .upcoming-meetings-view-all:hover {
   grid-column: 1 / -1;
   grid-row: 2;
   height: var(--bottom-box-height);
-  min-height: 0;
+  min-height: 400px;
   max-height: var(--bottom-box-height);
   overflow: hidden;
   padding: 24px;

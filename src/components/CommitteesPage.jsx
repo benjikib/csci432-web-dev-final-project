@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react"
-import { Link } from "react-router-dom"
+import { Link, useNavigate } from "react-router-dom"
 import SideBar from './reusable/SideBar'
 import HeaderNav from './reusable/HeaderNav'
 import { getCommittees } from "../services/committeeApi"
-import { getCurrentUser } from '../services/userApi'
+import { getCurrentUser, isAdmin } from '../services/userApi';
 
 function CommitteesPage() {
+    const navigate = useNavigate();
     const [committees, setCommittees] = useState([])
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState(null)
@@ -22,16 +23,24 @@ function CommitteesPage() {
                 try {
                     const current = await getCurrentUser()
                     user = current && current.user ? current.user : null
+                    if (!user) {
+                        navigate('/login');
+                        return;
+                    }
                 } catch (e) {
                     // Not logged in or error fetching user
-                    user = null
+                    navigate('/login');
+                    return;
                 }
 
                 const data = await getCommittees(1)
                 const all = data.committees || []
 
-                // If user is admin, show all. Otherwise, only show committees where the user is a member/owner/chair.
-                if (user && user.roles && user.roles.includes('admin')) {
+                // If user is admin (super-admin or org-admin), show all. Otherwise, only show committees where the user is a member/owner/chair.
+                const isSuperAdmin = user?.roles?.includes('super-admin');
+                const isOrgAdmin = user?.organizationRole === 'admin';
+                
+                if (user && (isSuperAdmin || isOrgAdmin)) {
                     setCommittees(all)
                 } else if (user) {
                     const uid = String(user.id || user._id || user._id)

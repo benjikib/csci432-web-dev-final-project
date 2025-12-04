@@ -6,7 +6,7 @@ import HeaderNav from './reusable/HeaderNav'
 import Tabs from './reusable/Tabs'
 import { getCommitteeById, getCommitteeMembers } from "../services/committeeApi"
 import { getMotionsByCommittee } from "../services/motionApi"
-import { getCurrentUser } from '../services/userApi'
+import { getCurrentUser, isAdmin } from '../services/userApi'
 import NoAccessPage from './NoAccessPage'
 
 function CommitteeMotionsPage() {
@@ -17,7 +17,7 @@ function CommitteeMotionsPage() {
     const [error, setError] = useState(null);
     const [searchedTerm, setSearchedTerm] = useState("");
     const [hasAccess, setHasAccess] = useState(null);
-    const [activeTab, setActiveTab] = useState("all");
+    const [activeTab, setActiveTab] = useState("active");
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
     const [totalMotions, setTotalMotions] = useState(0);
@@ -43,7 +43,12 @@ function CommitteeMotionsPage() {
                 try {
                     const current = await getCurrentUser();
                     const user = current && current.user ? current.user : null;
-                    if (user && user.roles && user.roles.includes('admin')) {
+                    if (!user) {
+                        navigate('/login');
+                        return;
+                    }
+                    // Check if user is any type of admin (super-admin, admin, or org-admin)
+                    if (user && isAdmin(user)) {
                         allowed = true;
                     }
 
@@ -90,8 +95,8 @@ function CommitteeMotionsPage() {
                         // Map frontend tab to backend status
                         // 'past' tab should show both 'passed' and 'failed' motions
                         if (activeTab === 'past') {
-                            // Backend doesn't support multiple status values, so we'll fetch all and filter client-side
-                            filters.status = null; // fetch all statuses
+                            // Backend now supports comma-separated multiple statuses
+                            filters.status = 'passed,failed';
                         } else if (activeTab && activeTab !== 'all') {
                             filters.status = activeTab;
                         }
@@ -117,7 +122,36 @@ function CommitteeMotionsPage() {
         if (id) {
             fetchData();
         }
-    }, [id, currentPage]);
+    }, [id, currentPage, activeTab]);
+
+    // Poll for motions every POLL_INTERVAL_MS (default 60s) while on this page and user has access
+    useEffect(() => {
+        if (!id || !hasAccess) return;
+        const POLL_INTERVAL_MS = (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_POLL_INTERVAL_MOTIONS_MS) ? Number(import.meta.env.VITE_POLL_INTERVAL_MOTIONS_MS) : 60000;
+        const DEBUG_POLLING = typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_DEBUG_POLLING === 'true';
+        // Poll when the page is visible to avoid unnecessary requests
+        const poll = () => {
+            if (document.visibilityState !== 'visible') return;
+            if (DEBUG_POLLING) console.log(`[CommitteeMotionsPage] poll triggered at ${new Date().toISOString()} interval=${POLL_INTERVAL_MS}`);
+            fetchData();
+        };
+
+        const intervalRef = setInterval(poll, POLL_INTERVAL_MS);
+
+        // Also perform one immediate poll to ensure freshness when enabling polling
+        poll();
+
+        // If the page becomes visible again, fetch immediately
+        const handleVisibility = () => {
+            if (document.visibilityState === 'visible') poll();
+        };
+        document.addEventListener('visibilitychange', handleVisibility);
+
+        return () => {
+            clearInterval(intervalRef);
+            document.removeEventListener('visibilitychange', handleVisibility);
+        };
+    }, [id, currentPage, activeTab, hasAccess]);
 
     // When activeTab changes (filter by status), reset to page 1 so we fetch the correct page set
     useEffect(() => {
@@ -180,16 +214,7 @@ function CommitteeMotionsPage() {
         });
     });
 
-    // Filter by tab
-    if (activeTab === 'past') {
-        // 'past' tab shows both 'passed' and 'failed' motions
-        filteredMotions = filteredMotions.filter(motion => 
-            motion.status === 'passed' || motion.status === 'failed'
-        );
-    } else if (activeTab !== "all") {
-        // Other tabs filter by exact status match
-        filteredMotions = filteredMotions.filter(motion => motion.status === activeTab);
-    }
+    // Backend now handles status filtering, so no need for client-side tab filtering
 
     // Generate page list to display (numbered) with ellipses
     function getPageList(current, total) {
