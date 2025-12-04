@@ -3,6 +3,31 @@ const User = require('../models/User');
 const Committee = require('../models/Committee');
 
 /**
+ * HYBRID ADMIN ARCHITECTURE
+ * =========================
+ * This system supports two types of administrators:
+ * 
+ * 1. SUPER-ADMIN (Platform Level)
+ *    - Role: roles: ['super-admin']
+ *    - Scope: Platform-wide access
+ *    - Use case: Developers, maintainers, platform operators
+ *    - Filtering: No organizationId filtering - sees all data across all organizations
+ *    - Assignment: Manually set in database (not through UI)
+ * 
+ * 2. ORGANIZATION ADMIN (Customer Level)
+ *    - Role: organizationRole: 'admin'
+ *    - Scope: Organization-scoped access only
+ *    - Use case: Paying customers who manage their organization
+ *    - Filtering: All queries filtered by organizationId - sees only their org's data
+ *    - Assignment: Promoted by organization owner through OrganizationSettings UI
+ * 
+ * This separation ensures:
+ * - Platform operators can maintain the system without being tied to organizations
+ * - Customers can safely manage their organization without platform-wide privileges
+ * - Clear security boundaries between platform and customer data
+ */
+
+/**
  * Middleware to verify JWT token and authenticate user
  */
 async function authenticate(req, res, next) {
@@ -33,11 +58,14 @@ async function authenticate(req, res, next) {
       });
     }
 
-    // Attach user to request object
+    // Attach user to request object with organization data
     req.user = {
       userId: user._id.toString(),
       email: user.email,
-      name: user.name
+      name: user.name,
+      roles: user.roles || [],
+      organizationId: user.organizationId ? user.organizationId.toString() : null,
+      organizationRole: user.organizationRole || null
     };
 
     next();
@@ -80,7 +108,10 @@ async function optionalAuth(req, res, next) {
         req.user = {
           userId: user._id.toString(),
           email: user.email,
-          name: user.name
+          name: user.name,
+          roles: user.roles || [],
+          organizationId: user.organizationId ? user.organizationId.toString() : null,
+          organizationRole: user.organizationRole || null
         };
       }
     }
@@ -116,13 +147,16 @@ function requirePermissionOrAdmin(permission) {
         });
       }
 
-      // Check if user is admin
+      // Check if user is any type of admin
+      const isSuperAdmin = user.roles && user.roles.includes('super-admin');
       const isAdmin = user.roles && user.roles.includes('admin');
+      const isOrgAdmin = user.organizationRole === 'admin';
+      const hasAdminPriv = isSuperAdmin || isAdmin || isOrgAdmin;
 
       // Check if user has the specific permission
       const hasPermission = user.permissions && user.permissions.includes(permission);
 
-      if (isAdmin || hasPermission) {
+      if (hasAdminPriv || hasPermission) {
         next();
       } else {
         return res.status(403).json({
@@ -185,7 +219,131 @@ function requireRole(role) {
   };
 }
 
-module.exports = { authenticate, optionalAuth, requirePermissionOrAdmin, requireRole, requireCommitteeChairOrPermission };
+/**
+ * Middleware to check if user is a super-admin (platform maintainer/developer)
+ * Super-admins have unrestricted access to all organizations and data
+ */
+function requireSuperAdmin(req, res, next) {
+  try {
+    if (!req.user || !req.user.userId) {
+      return res.status(401).json({
+        success: false,
+        message: 'Authentication required'
+      });
+    }
+
+    const isSuperAdmin = req.user.roles && req.user.roles.includes('super-admin');
+
+    if (isSuperAdmin) {
+      next();
+    } else {
+      return res.status(403).json({
+        success: false,
+        message: 'This action requires super-admin privileges'
+      });
+    }
+  } catch (error) {
+    console.error('Super-admin check error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Error checking super-admin privileges'
+    });
+  }
+}
+
+/**
+ * Middleware to check if user is an organization admin
+ * Organization admins have admin rights within their organization only
+ */
+function requireOrgAdmin(req, res, next) {
+  try {
+    if (!req.user || !req.user.userId) {
+      return res.status(401).json({
+        success: false,
+        message: 'Authentication required'
+      });
+    }
+
+    const isOrgAdmin = req.user.organizationRole === 'admin';
+
+    if (isOrgAdmin) {
+      next();
+    } else {
+      return res.status(403).json({
+        success: false,
+        message: 'This action requires organization administrator privileges'
+      });
+    }
+  } catch (error) {
+    console.error('Org admin check error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Error checking organization admin privileges'
+    });
+  }
+}
+
+/**
+ * Middleware to check if user is either a super-admin OR an organization admin
+ * This is useful for actions that both types of admins should be able to perform
+ */
+function requireAnyAdmin(req, res, next) {
+  try {
+    if (!req.user || !req.user.userId) {
+      return res.status(401).json({
+        success: false,
+        message: 'Authentication required'
+      });
+    }
+
+    const isSuperAdmin = req.user.roles && req.user.roles.includes('super-admin');
+    const isOrgAdmin = req.user.organizationRole === 'admin';
+
+    if (isSuperAdmin || isOrgAdmin) {
+      next();
+    } else {
+      return res.status(403).json({
+        success: false,
+        message: 'This action requires administrator privileges'
+      });
+    }
+  } catch (error) {
+    console.error('Admin check error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Error checking administrator privileges'
+    });
+  }
+}
+
+/**
+ * Helper function to check if user is a super-admin
+ * Can be used within route handlers
+ */
+function isSuperAdmin(user) {
+  return user && user.roles && user.roles.includes('super-admin');
+}
+
+/**
+ * Helper function to check if user is an organization admin
+ * Can be used within route handlers
+ */
+function isOrgAdmin(user) {
+  return user && user.organizationRole === 'admin';
+}
+
+module.exports = { 
+  authenticate, 
+  optionalAuth, 
+  requirePermissionOrAdmin, 
+  requireRole, 
+  requireCommitteeChairOrPermission,
+  requireSuperAdmin,
+  requireOrgAdmin,
+  requireAnyAdmin,
+  isSuperAdmin,
+  isOrgAdmin
+};
 
 /**
  * Middleware to allow either users with a permission/admin OR the chair of the target committee
@@ -204,10 +362,14 @@ function requireCommitteeChairOrPermission(permission) {
         return res.status(401).json({ success: false, message: 'User not found' });
       }
 
+      // Check for any admin type (super-admin, admin, or org-admin)
+      const isSuperAdmin = user.roles && user.roles.includes('super-admin');
       const isAdmin = user.roles && user.roles.includes('admin');
+      const isOrgAdmin = user.organizationRole === 'admin';
+      const hasAdminPriv = isSuperAdmin || isAdmin || isOrgAdmin;
       const hasPermission = user.permissions && user.permissions.includes(permission);
 
-      if (isAdmin || hasPermission) {
+      if (hasAdminPriv || hasPermission) {
         return next();
       }
 

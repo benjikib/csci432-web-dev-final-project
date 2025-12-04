@@ -3,23 +3,47 @@ const { body, validationResult } = require('express-validator');
 const { ObjectId } = require('mongodb');
 const Committee = require('../models/Committee');
 const User = require('../models/User');
+const Notification = require('../models/Notification');
+const Comment = require('../models/Comment');
+const Vote = require('../models/Vote');
 const { authenticate, optionalAuth, requirePermissionOrAdmin, requireCommitteeChairOrPermission } = require('../middleware/auth');
 
 const router = express.Router();
 
 /**
  * @route   GET /committees/my-chairs
- * @desc    Get committees where current user is chair
+ * @desc    Get committees where current user is chair (or all committees for super-admins/org-admins)
  * @access  Private (requires authentication)
  */
 router.get('/committees/my-chairs', authenticate, async (req, res) => {
   try {
     const userId = req.user.userId;
+    const isSuperAdmin = req.user.roles && req.user.roles.includes('super-admin');
+    const isOrgAdmin = req.user.organizationRole === 'admin';
     
-    // Find all committees where this user is the chair
-    const committees = await Committee.collection()
-      .find({ chair: userId })
-      .toArray();
+    let committees;
+    
+    if (isSuperAdmin) {
+      // Super-admins can access all committees across all organizations
+      committees = await Committee.collection().find({}).toArray();
+    } else if (isOrgAdmin) {
+      // Organization admins can access all committees in their organization
+      const user = await User.findById(userId);
+      const organizationId = user?.organizationId;
+      
+      if (organizationId) {
+        committees = await Committee.collection()
+          .find({ organizationId: new ObjectId(organizationId) })
+          .toArray();
+      } else {
+        committees = [];
+      }
+    } else {
+      // Regular users only see committees where they are chair
+      committees = await Committee.collection()
+        .find({ chair: userId })
+        .toArray();
+    }
 
     res.json({
       success: true,
@@ -37,19 +61,52 @@ router.get('/committees/my-chairs', authenticate, async (req, res) => {
 
 /**
  * @route   GET /committees/:page
- * @desc    Get all committees (paginated)
+ * @desc    Get all committees (paginated, filtered by organization unless super-admin)
  * @access  Public
  */
-router.get('/committees/:page', async (req, res) => {
+router.get('/committees/:page', authenticate, async (req, res) => {
   try {
     const page = parseInt(req.params.page) || 1;
     const limit = 10;
+    const skip = (page - 1) * limit;
 
-    const result = await Committee.findAll(page, limit);
+    // Super-admins see all committees, regular users see only their organization
+    const isSuperAdmin = req.user.roles && req.user.roles.includes('super-admin');
+    
+    let filter = {};
+    if (!isSuperAdmin) {
+      const user = await User.findById(req.user.userId);
+      const organizationId = user?.organizationId;
+      if (organizationId) {
+        filter.organizationId = new ObjectId(organizationId);
+      } else {
+        // User has no organization - return empty result
+        return res.json({
+          success: true,
+          committees: [],
+          page,
+          limit,
+          totalPages: 0,
+          total: 0
+        });
+      }
+    }
+
+    const committees = await Committee.collection()
+      .find(filter)
+      .skip(skip)
+      .limit(limit)
+      .toArray();
+
+    const total = await Committee.collection().countDocuments(filter);
 
     res.json({
       success: true,
-      ...result
+      committees,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+      total
     });
   } catch (error) {
     console.error('Get committees error:', error);
@@ -107,8 +164,11 @@ router.get('/committee/:id/potential-members', authenticate, async (req, res) =>
     const limit = parseInt(req.query.limit) || 20;
     const skip = (page - 1) * limit;
 
-    // Users who do not have this committee in their memberCommittees
-    const filter = { memberCommittees: { $ne: committee._id } };
+    // Users who do not have this committee in their memberCommittees AND are in the same organization
+    const filter = { 
+      memberCommittees: { $ne: committee._id },
+      organizationId: committee.organizationId || null
+    };
     const total = await User.collection().countDocuments(filter);
     const users = await User.collection()
       .find(filter)
@@ -281,12 +341,17 @@ router.post('/committee/create',
 
       const { title, description, members, chair } = req.body;
 
+      // Get user's organizationId
+      const user = await User.findById(req.user.userId);
+      const organizationId = user?.organizationId || null;
+
       // Create committee; members may be an array of ids or objects
       const committee = await Committee.create({
         title,
         description,
         members: members || [],
-        chair: chair || null
+        chair: chair || null,
+        organizationId: organizationId
       });
 
       // Persist user -> committee relationships for selected members and chair
@@ -477,8 +542,28 @@ router.delete('/committee/:id', authenticate, requirePermissionOrAdmin('delete_a
       });
     }
 
-    // Delete the committee
+    // Delete the committee (this will also delete all embedded motions)
     await Committee.deleteById(committee._id);
+
+    // Cascade delete all related data
+    try {
+      const committeeId = committee._id;
+
+      // Delete all notifications related to this committee
+      await Notification.collection().deleteMany({ committeeId: committeeId });
+
+      // Delete all comments on motions in this committee
+      // Comments have committeeId field
+      await Comment.collection().deleteMany({ committeeId: committeeId });
+
+      // Delete all votes on motions in this committee
+      // Votes have committeeId field
+      await Vote.collection().deleteMany({ committeeId: committeeId });
+
+      console.log(`Deleted related notifications, comments, and votes for committee ${committeeId}`);
+    } catch (e) {
+      console.warn('Failed to delete related data after committee deletion:', e);
+    }
 
     // Remove references from user documents by searching for users that reference this committee.
     // This is more robust than relying on `committee.members` being populated.
@@ -502,6 +587,14 @@ router.delete('/committee/:id', authenticate, requirePermissionOrAdmin('delete_a
         { ownedCommittees: committeeId },
         { $pull: { ownedCommittees: committeeId }, $set: { updatedAt: new Date() } }
       );
+
+      // Remove from guestCommittees
+      await User.collection().updateMany(
+        { guestCommittees: committeeId },
+        { $pull: { guestCommittees: committeeId }, $set: { updatedAt: new Date() } }
+      );
+
+      console.log(`Cleaned up user references for committee ${committeeId}`);
     } catch (e) {
       console.warn('Failed to clean up user references after committee deletion:', e);
     }

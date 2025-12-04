@@ -2,7 +2,9 @@ const express = require('express');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { body, validationResult } = require('express-validator');
+const { ObjectId } = require('mongodb');
 const User = require('../models/User');
+const Organization = require('../models/Organization');
 const { authenticate, requireRole } = require('../middleware/auth');
 
 const router = express.Router();
@@ -29,7 +31,7 @@ router.post('/register',
         });
       }
 
-      const { email, password, name, communityCode } = req.body;
+      const { email, password, name, communityCode, isAdmin, organizationInviteCode } = req.body;
 
       // Check if user already exists
       const existingUser = await User.findByEmail(email);
@@ -40,6 +42,14 @@ router.post('/register',
         });
       }
 
+      // If not an admin, require organization invite code
+      if (!isAdmin && !organizationInviteCode) {
+        return res.status(400).json({
+          success: false,
+          message: 'Organization invite code is required to sign up'
+        });
+      }
+
       // Hash password
       const salt = await bcrypt.genSalt(10);
       const hashedPassword = await bcrypt.hash(password, salt);
@@ -47,15 +57,39 @@ router.post('/register',
       // Generate profile picture URL using DiceBear API
       const profilePictureUrl = `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(name)}&backgroundColor=54966D&textColor=ffffff`;
 
-      // Create user (assign default role 'guest')
+      let organization = null;
+      let organizationId = null;
+      let organizationRole = null;
+
+      // If user provided an invite code, verify and join organization
+      if (organizationInviteCode && !isAdmin) {
+        organization = await Organization.findByInviteCode(organizationInviteCode);
+        if (!organization) {
+          return res.status(400).json({
+            success: false,
+            message: 'Invalid organization invite code'
+          });
+        }
+        organizationId = organization._id;
+        organizationRole = 'member';
+      }
+
+      // Create user (assign default role 'user' or 'guest')
       const user = await User.create({
         email,
         password: hashedPassword,
         name,
         communityCode,
         picture: profilePictureUrl,
-        roles: ['guest']
+        roles: ['user'], // All users start with 'user' role
+        organizationId,
+        organizationRole
       });
+
+      // If joining an organization, add user to organization members
+      if (organization) {
+        await Organization.addMember(organization._id, user._id);
+      }
 
       // Generate JWT token
       const token = jwt.sign(
@@ -71,7 +105,11 @@ router.post('/register',
         user: {
           id: user._id,
           email: user.email,
-          name: user.name
+          name: user.name,
+          isAdmin,
+          organizationId,
+          organizationRole,
+          requiresPayment: isAdmin // Frontend will redirect to payment page
         }
       });
     } catch (error) {
@@ -213,6 +251,8 @@ router.get('/me', authenticate, async (req, res) => {
         address: user.address,
         picture: user.picture,
         communityCode: user.communityCode,
+        organizationId: user.organizationId,
+        organizationRole: user.organizationRole,
         roles: user.roles || ['guest'],
         permissions: user.permissions || [],
         settings: user.settings || {
@@ -220,6 +260,9 @@ router.get('/me', authenticate, async (req, res) => {
           notifications: true,
           displayName: user.name
         },
+        memberCommittees: user.memberCommittees || [],
+        chairedCommittees: user.chairedCommittees || [],
+        ownedCommittees: user.ownedCommittees || [],
         guestCommittees: user.guestCommittees || [],
         createdAt: user.createdAt
       }
@@ -396,18 +439,41 @@ router.put('/profile', authenticate, async (req, res) => {
 
 /**
  * @route   GET /auth/users
- * @desc    Get all users (admin only)
+ * @desc    Get all users (admin only, filtered by organization unless super-admin)
  * @access  Private (Admin only)
  */
-router.get('/users', authenticate, requireRole('admin'), async (req, res) => {
+router.get('/users', authenticate, async (req, res) => {
   try {
-    const users = await User.findAll();
+    // Check if user is super-admin or org-admin
+    const isSuperAdmin = req.user.roles && req.user.roles.includes('super-admin');
+    const isOrgAdmin = req.user.organizationRole === 'admin';
+    
+    if (!isSuperAdmin && !isOrgAdmin) {
+      return res.status(403).json({
+        success: false,
+        message: 'Admin privileges required'
+      });
+    }
+    
+    let filter = {};
+    if (!isSuperAdmin) {
+      // For org-admins, filter by their organizationId
+      const currentUser = await User.findById(req.user.userId);
+      const organizationId = currentUser?.organizationId;
+      if (organizationId) {
+        filter.organizationId = new ObjectId(organizationId);
+      }
+    }
+    
+    const users = await User.collection().find(filter).toArray();
 
     const usersData = users.map(user => ({
       id: user._id,
       email: user.email,
       name: user.name,
       picture: user.picture,
+      organizationId: user.organizationId, // ← Include this for filtering
+      organizationRole: user.organizationRole,
       roles: user.roles || ['guest'],
       permissions: user.permissions || [],
       settings: user.settings || {
@@ -433,17 +499,35 @@ router.get('/users', authenticate, requireRole('admin'), async (req, res) => {
 
 /**
  * @route   GET /auth/users/list
- * @desc    Get list of users for selection (authenticated users)
+ * @desc    Get list of users for selection (authenticated users, filtered by organization unless super-admin)
  * @access  Private (authenticated)
  */
-router.get('/users/list', authenticate, requireRole('admin'), async (req, res) => {
+router.get('/users/list', authenticate, async (req, res) => {
   try {
+    // Check if user is super-admin or org-admin
+    const isSuperAdmin = req.user.roles && req.user.roles.includes('super-admin');
+    const isOrgAdmin = req.user.organizationRole === 'admin';
+    
+    if (!isSuperAdmin && !isOrgAdmin) {
+      return res.status(403).json({
+        success: false,
+        message: 'Admin privileges required'
+      });
+    }
     const search = (req.query.search || '').trim();
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 50;
     const skip = (page - 1) * limit;
 
-    const filter = {};
+    // Use the isSuperAdmin already declared above for filtering
+    let filter = {};
+    if (!isSuperAdmin) {
+      const currentUser = await User.findById(req.user.userId);
+      const organizationId = currentUser?.organizationId;
+      if (organizationId) {
+        filter.organizationId = new ObjectId(organizationId);
+      }
+    }
     if (search) {
       const regex = new RegExp(search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
       filter.$or = [
@@ -480,14 +564,26 @@ router.get('/users/list', authenticate, requireRole('admin'), async (req, res) =
  * @desc    Update a user's roles and permissions (admin only)
  * @access  Private (Admin only)
  */
-router.put('/users/:userId', authenticate, requireRole('admin'), async (req, res) => {
+router.put('/users/:userId', authenticate, async (req, res) => {
   try {
-    const { roles, permissions } = req.body;
+    // Check if user is super-admin or org-admin
+    const isSuperAdmin = req.user.roles && req.user.roles.includes('super-admin');
+    const isOrgAdmin = req.user.organizationRole === 'admin';
+    
+    if (!isSuperAdmin && !isOrgAdmin) {
+      return res.status(403).json({
+        success: false,
+        message: 'Admin privileges required'
+      });
+    }
+    
+    const { roles, permissions, organizationRole } = req.body;
     const { userId } = req.params;
 
     const updates = {};
     if (roles !== undefined) updates.roles = roles;
     if (permissions !== undefined) updates.permissions = permissions;
+    if (organizationRole !== undefined) updates.organizationRole = organizationRole;
     updates.updatedAt = new Date();
 
     const updatedUser = await User.updateById(userId, updates);
@@ -507,6 +603,7 @@ router.put('/users/:userId', authenticate, requireRole('admin'), async (req, res
         email: updatedUser.email,
         name: updatedUser.name,
         roles: updatedUser.roles,
+        organizationRole: updatedUser.organizationRole,
         permissions: updatedUser.permissions
       }
     });
@@ -515,6 +612,144 @@ router.put('/users/:userId', authenticate, requireRole('admin'), async (req, res
     res.status(500).json({
       success: false,
       message: 'Server error updating user'
+    });
+  }
+});
+
+/**
+ * @route   DELETE /auth/user/:userId
+ * @desc    Delete user account (user can delete own account, admins can delete any)
+ * @access  Private
+ */
+router.delete('/user/:userId', authenticate, async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const requestingUserId = req.user.userId;
+    
+    // Check if user is deleting their own account or is an admin
+    const isSuperAdmin = req.user.roles && req.user.roles.includes('super-admin');
+    const isOrgAdmin = req.user.organizationRole === 'admin';
+    const isSelfDelete = String(requestingUserId) === String(userId);
+    
+    if (!isSelfDelete && !isSuperAdmin && !isOrgAdmin) {
+      return res.status(403).json({
+        success: false,
+        message: 'Not authorized to delete this user'
+      });
+    }
+
+    // Get user before deletion
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    // If user is deleting their own account and they own an organization, delete it
+    let deletedOrgStats = null;
+    if (isSelfDelete && user.organizationId && user.organizationRole === 'admin') {
+      const Organization = require('../models/Organization');
+      const organization = await Organization.findById(user.organizationId);
+      
+      if (organization && String(organization.owner) === String(userId)) {
+        console.log(`User ${userId} is organization owner - deleting organization ${organization._id}`);
+        
+        // Delete organization and cascade (committees, motions, votes, comments, notifications)
+        const { getDB } = require('../config/database');
+        const db = getDB();
+        const orgId = new ObjectId(user.organizationId);
+
+        // Get all committees in this organization
+        const committees = await db.collection('committees')
+          .find({ organizationId: orgId })
+          .toArray();
+        
+        const committeeIds = committees.map(c => c._id);
+
+        // Get all motions in these committees
+        const motionIds = [];
+        for (const committee of committees) {
+          if (committee.motions && Array.isArray(committee.motions)) {
+            motionIds.push(...committee.motions.map(m => m._id || m.id));
+          }
+        }
+
+        // Delete cascade
+        if (motionIds.length > 0) {
+          await db.collection('votes').deleteMany({ motionId: { $in: motionIds } });
+          await db.collection('comments').deleteMany({ motionId: { $in: motionIds } });
+        }
+        if (committeeIds.length > 0) {
+          await db.collection('notifications').deleteMany({ committeeId: { $in: committeeIds } });
+        }
+        await db.collection('committees').deleteMany({ organizationId: orgId });
+
+        // Remove organization reference from all users
+        await db.collection('users').updateMany(
+          { organizationId: orgId },
+          { 
+            $unset: { 
+              organizationId: '', 
+              organizationRole: '' 
+            }
+          }
+        );
+
+        // Delete the organization
+        await Organization.deleteById(user.organizationId);
+
+        deletedOrgStats = {
+          organizationId: String(organization._id),
+          organizationName: organization.name,
+          committees: committeeIds.length,
+          motions: motionIds.length
+        };
+
+        console.log(`Deleted organization: ${organization.name} (${deletedOrgStats.committees} committees, ${deletedOrgStats.motions} motions)`);
+      }
+    }
+
+    // Remove user from all committees
+    const Committee = require('../models/Committee');
+    const { getDB } = require('../config/database');
+    const db = getDB();
+    
+    await db.collection('committees').updateMany(
+      { 'members.userId': new ObjectId(userId) },
+      { $pull: { members: { userId: new ObjectId(userId) } } }
+    );
+
+    // Delete user's votes
+    await db.collection('votes').deleteMany({ userId: new ObjectId(userId) });
+
+    // Delete user's comments
+    await db.collection('comments').deleteMany({ author: new ObjectId(userId) });
+
+    // Delete user's notifications
+    const Notification = require('../models/Notification');
+    await Notification.collection().deleteMany({ userId: new ObjectId(userId) });
+
+    // Delete the user
+    await User.deleteById(userId);
+
+    const response = {
+      success: true,
+      message: 'User account deleted successfully'
+    };
+
+    if (deletedOrgStats) {
+      response.organizationDeleted = true;
+      response.organizationStats = deletedOrgStats;
+    }
+
+    res.json(response);
+  } catch (error) {
+    console.error('Delete user error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error deleting user'
     });
   }
 });

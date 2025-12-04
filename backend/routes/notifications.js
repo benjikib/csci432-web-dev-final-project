@@ -131,22 +131,43 @@ router.get('/notifications', authenticate, async (req, res) => {
     const user = await User.findById(userId);
     if (!user) return res.status(404).json({ success: false, message: 'User not found' });
 
-    const isAdmin = user.roles && user.roles.includes('admin');
+    const isSuperAdmin = req.user.roles && req.user.roles.includes('super-admin');
+    const isOrgAdmin = user.organizationRole === 'admin';
+    const enabledOrgs = user.settings?.enabledNotificationOrgs || [];
+    const hasEnabledAllOrgs = enabledOrgs.includes('all');
 
-    // Find committees where user is chair or owner
-    const chaired = await Committee.collection().find({ $or: [{ chair: user._id }, { owner: user._id }] }).project({ _id: 1 }).toArray();
+    // Get user's organization
+    const { ObjectId } = require('mongodb');
+    const userOrgId = user.organizationId ? new ObjectId(user.organizationId) : null;
+
+    // Find committees where user is chair or owner (only these roles should see access requests)
+    let committeeFilter = { $or: [{ chair: user._id }, { owner: user._id }] };
+    
+    // Org-admins and regular users see only their organization
+    if (userOrgId) {
+      committeeFilter.organizationId = userOrgId;
+    }
+    
+    const chaired = await Committee.collection().find(committeeFilter).project({ _id: 1 }).toArray();
     const chairedIds = chaired.map(c => c._id);
+    
+    // Also include committees where user is a member (handle both ObjectId and string formats)
+    const memberIds = (user.memberCommittees || []).map(id => {
+      if (id && typeof id === 'object' && id._bsontype === 'ObjectID') return id;
+      if (ObjectId.isValid(id)) return new ObjectId(id);
+      return id;
+    }).filter(Boolean);
 
     const filter = {
-      $or: [ { requesterId: user._id } ]
+      $or: [ 
+        { requesterId: user._id },
+        { committeeId: { $in: [...chairedIds, ...memberIds] } }
+      ]
     };
 
-    if (isAdmin) {
-      // Admin sees all
-      delete filter.$or;
-    } else {
-      // Chairs/owners see requests for their committees
-      filter.$or.push({ committeeId: { $in: chairedIds } });
+    // Org-admins with organization: filter to only committees in their scope
+    if (isOrgAdmin && userOrgId) {
+      filter.committeeId = { $in: chairedIds.concat(memberIds) };
     }
 
     const page = parseInt(req.query.page) || 1;
@@ -156,26 +177,66 @@ router.get('/notifications', authenticate, async (req, res) => {
     const total = await Notification.collection().countDocuments(filter);
     const items = await Notification.collection().find(filter).skip(skip).limit(limit).sort({ createdAt: -1 }).toArray();
 
+    // Fetch all committees for organization filtering (super-admins only)
+    let committees = [];
+    if (isSuperAdmin && !hasEnabledAllOrgs && enabledOrgs.length > 0) {
+      committees = await Committee.collection().find({}).project({ _id: 1, organizationId: 1 }).toArray();
+    }
+
     // Filter out notifications that are expired according to rules:
-    // - access_request (approval) notifications: if handled (status != 'pending'), hide after 30 minutes from handledAt
+    // - access_request (approval) notifications: HIDE if status is 'approved' or 'denied' (don't persist after handling)
+    //   ALSO: Super-admins only see if organization is in enabledNotificationOrgs array or 'all' is enabled
+    // - meeting_scheduled: always show if in the future
+    // - voting_opened: show if not seen or within 30 minutes of being seen
+    // - voting_deadline_approaching: show if not seen or within 30 minutes of being seen
+    // - ALL notifications: Super-admins only see them if organization is in enabledNotificationOrgs
     // - non-approval notifications: hide 30 minutes after being seen (seenAt) or handled (handledAt)
     const now = new Date();
     const threshold = new Date(now.getTime() - 30 * 60 * 1000);
     const filtered = items.filter(item => {
-      const isApproval = item.type === 'access_request';
-      if (item.status === 'pending') return true;
-
-      // handledAt may be null; seenAt may be null
-      if (isApproval) {
-        // show only if handledAt within last 30 minutes
-        if (item.handledAt && new Date(item.handledAt) >= threshold) return true;
-        return false;
-      } else {
-        // non-approval: show if seenAt within last 30 minutes OR handledAt within last 30 minutes
-        if (item.seenAt && new Date(item.seenAt) >= threshold) return true;
-        if (item.handledAt && new Date(item.handledAt) >= threshold) return true;
+      // Super-admins must opt-in to see notifications from specific organizations
+      if (isSuperAdmin && !hasEnabledAllOrgs) {
+        // Check if this notification's committee belongs to an enabled organization
+        if (item.committeeId) {
+          const committee = committees.find(c => String(c._id) === String(item.committeeId));
+          if (committee && committee.organizationId) {
+            const committeeOrgId = String(committee.organizationId);
+            const isOrgEnabled = enabledOrgs.some(orgId => String(orgId) === committeeOrgId);
+            if (!isOrgEnabled) {
+              return false; // Skip this notification
+            }
+          } else {
+            // No organization on committee, skip for super-admins unless 'all' is enabled
+            return false;
+          }
+        }
+      }
+      
+      // Always show meeting notifications (they'll be filtered by date in the frontend)
+      if (item.type === 'meeting_scheduled') return true;
+      
+      // Show voting notifications if unseen or recent
+      if (item.type === 'voting_opened' || item.type === 'voting_deadline_approaching') {
+        if (!item.seenAt) return true; // Not seen yet
+        if (new Date(item.seenAt) >= threshold) return true; // Seen within last 30 min
         return false;
       }
+      
+      const isAccessRequest = item.type === 'access_request';
+      
+      // For access requests: ONLY show if status is 'pending'
+      // Hide approved/denied requests immediately (don't persist after handling)
+      if (isAccessRequest) {
+        return item.status === 'pending';
+      }
+      
+      // Other notification types (motion updates, etc.): show if pending or recently handled
+      if (item.status === 'pending') return true;
+      
+      // Non-approval: show if seenAt within last 30 minutes OR handledAt within last 30 minutes
+      if (item.seenAt && new Date(item.seenAt) >= threshold) return true;
+      if (item.handledAt && new Date(item.handledAt) >= threshold) return true;
+      return false;
     });
 
     res.json({ success: true, notifications: filtered, page, limit, total: filtered.length, totalPages: Math.ceil(filtered.length/limit) });
@@ -192,17 +253,21 @@ router.get('/notifications', authenticate, async (req, res) => {
  */
 router.put('/notifications/:id', authenticate, async (req, res) => {
   try {
-    const { action } = req.body; // 'approve' or 'deny'
-    if (!action || !['approve','deny'].includes(action)) return res.status(400).json({ success: false, message: 'Invalid action' });
+    const { action } = req.body; // 'approve', 'deny', or 'mark_seen'
+    if (!action || !['approve','deny','mark_seen'].includes(action)) return res.status(400).json({ success: false, message: 'Invalid action' });
 
     const note = await Notification.findById(req.params.id);
     if (!note) return res.status(404).json({ success: false, message: 'Notification not found' });
 
     // Ensure the authenticated user is allowed to act: admin OR committee chair/owner
     const user = await User.findById(req.user.userId);
+    const isSuperAdmin = user.roles && user.roles.includes('super-admin');
     const isAdmin = user.roles && user.roles.includes('admin');
+    const isOrgAdmin = user.organizationRole === 'admin';
+    const hasAdminPriv = isSuperAdmin || isAdmin || isOrgAdmin;
+    
     let allowed = false;
-    if (isAdmin) allowed = true;
+    if (hasAdminPriv) allowed = true;
     else {
       const committee = await Committee.findById(note.committeeId);
       if (committee) {
@@ -236,18 +301,30 @@ router.put('/notifications/:id', authenticate, async (req, res) => {
 
       // mark_seen action handled below
       if (action === 'mark_seen') {
-        // Only allow marking as seen for notifications the user can view
+        // Allow marking as seen for notifications the user can view
         try {
-          const allowedToMark = (note.requesterId && note.requesterId.toString() === req.user.userId) || isAdmin || false;
-          // Chairs/owners should also be able to mark items for their committees
-          if (!allowedToMark) {
-            const committee = note.committeeId ? await Committee.findById(note.committeeId) : null;
-            if (committee && (committee.chair && committee.chair.toString() === req.user.userId || committee.owner && committee.owner.toString() === req.user.userId)) {
-              // allowed
-            } else {
-              return res.status(403).json({ success: false, message: 'Not authorized to mark this notification seen' });
+          let allowedToMark = false;
+          
+          // Admin can mark any notification
+          if (isAdmin) allowedToMark = true;
+          
+          // If user is the requester
+          if (note.requesterId && note.requesterId.toString() === req.user.userId) allowedToMark = true;
+          
+          // If user is a committee chair/owner/member for this notification's committee
+          if (note.committeeId) {
+            const committee = await Committee.findById(note.committeeId);
+            if (committee) {
+              const role = await Committee.getMemberRole(committee._id, req.user.userId);
+              // Any member of the committee can mark notifications as seen
+              if (role) allowedToMark = true;
             }
           }
+          
+          if (!allowedToMark) {
+            return res.status(403).json({ success: false, message: 'Not authorized to mark this notification seen' });
+          }
+          
           const updated = await Notification.updateById(note._id, { seenAt: new Date() });
           return res.json({ success: true, message: 'Notification marked seen', notification: updated });
         } catch (e) {

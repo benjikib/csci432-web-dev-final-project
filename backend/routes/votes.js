@@ -5,8 +5,9 @@ const Motion = require('../models/Motion');
 const Committee = require('../models/Committee');
 const Comment = require('../models/Comment');
 const User = require('../models/User');
+const Notification = require('../models/Notification');
 const { authenticate } = require('../middleware/auth');
-const { checkVotingEligibility, isVotingPeriodExpired, checkQuorum, calculateMotionResult } = require('../utils/votingEligibility');
+const { checkVotingEligibility, isVotingPeriodExpired, closeExpiredVoting, checkQuorum, calculateMotionResult } = require('../utils/votingEligibility');
 
 const router = express.Router();
 
@@ -121,12 +122,15 @@ router.post('/committee/:id/motion/:motionId/vote',
       // Normalize votingStatus - treat undefined as 'not-started'
       const currentVotingStatus = motion.votingStatus || 'not-started';
 
-      // Check if voting period has expired
-      if (isVotingPeriodExpired(motion, settings)) {
-        return res.status(400).json({
-          success: false,
-          message: 'Voting period has expired for this motion'
-        });
+      // Check if voting period has expired and auto-close if needed
+      if (currentVotingStatus === 'open') {
+        const wasExpired = await closeExpiredVoting(motion, committee, Committee.updateMotion, Comment.create);
+        if (wasExpired) {
+          return res.status(400).json({
+            success: false,
+            message: 'Voting period has expired for this motion'
+          });
+        }
       }
 
       // Check voting eligibility (unless voting is already open or user is chair)
@@ -160,6 +164,25 @@ router.post('/committee/:id/motion/:motionId/vote',
             isSystemMessage: true,
             messageType: 'voting-eligible'
           });
+          
+          // Create notification for all committee members
+          try {
+            console.log('Creating voting notification for motion:', motion.title);
+            const notification = await Notification.create({
+              type: 'voting_opened',
+              committeeId: committee._id,
+              committeeTitle: committee.title,
+              message: `Voting is now open for "${motion.title}"`,
+              metadata: {
+                motionId: req.params.motionId.toString(),
+                motionTitle: motion.title,
+                committeeSlug: committee.slug
+              }
+            });
+            console.log('Voting notification created:', notification);
+          } catch (notifErr) {
+            console.error('Failed to create voting notification:', notifErr);
+          }
         }
       }
 
