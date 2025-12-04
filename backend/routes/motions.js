@@ -308,12 +308,15 @@ router.put('/committee/:id/motion/:motionId',
         currentUser = null;
       }
 
+      const isSuperAdmin = currentUser && currentUser.roles && currentUser.roles.includes('super-admin');
       const isAdmin = currentUser && currentUser.roles && currentUser.roles.includes('admin');
+      const isOrgAdmin = currentUser && currentUser.organizationRole === 'admin';
+      const hasAdminPriv = isSuperAdmin || isAdmin || isOrgAdmin;
       const canEditAny = currentUser && currentUser.permissions && currentUser.permissions.includes('edit_any_motion');
       const isAuthor = motion.author && String(motion.author) === String(req.user.userId);
       const isChair = await Committee.isChair(committee._id, req.user.userId);
 
-      if (!isAdmin && !canEditAny && !isAuthor && !isChair) {
+      if (!hasAdminPriv && !canEditAny && !isAuthor && !isChair) {
         return res.status(403).json({ success: false, message: 'You are not authorized to edit this motion' });
       }
 
