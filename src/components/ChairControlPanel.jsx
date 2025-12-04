@@ -78,11 +78,11 @@ function ChairControlPanel({ committeeId, committee }) {
     }, [committeeId]);
 
     const tabs = [
-        { id: "discussion", label: "Discussion" },
-        { id: "voting", label: "Voting Rules" },
-        { id: "motions", label: "Motion Control" },
-        { id: "management", label: "Management" },
-        { id: "history", label: "History" }
+        { id: "discussion", label: "Discussion", icon: "chat" },
+        { id: "voting", label: "Voting Rules", icon: "how_to_vote" },
+        { id: "motions", label: "Motion Control", icon: "article" },
+        { id: "management", label: "Management", icon: "group" },
+        { id: "history", label: "History", icon: "history" }
     ];
 
     const updateSetting = (key, value) => {
@@ -131,35 +131,35 @@ function ChairControlPanel({ committeeId, committee }) {
     return (
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm">
             {/* Header with committee name and save button */}
-            <div className="p-6 border-b border-gray-200 dark:border-gray-700">
-                <div className="flex items-center justify-between">
+            <div className="p-4 lg:p-6 border-b border-gray-200 dark:border-gray-700">
+                <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
                     <div>
-                        <h3 className="text-xl font-bold text-gray-800 dark:text-gray-200">
+                        <h3 className="text-lg lg:text-xl font-bold text-gray-800 dark:text-gray-200">
                             {committee.title}
                         </h3>
                         <p className="text-sm text-gray-500 dark:text-gray-500 mt-1">
                             Configure procedural settings and controls
                         </p>
                     </div>
-                    <div className="flex items-center gap-3">
+                    <div className="flex flex-col sm:flex-row items-stretch gap-2 lg:gap-3">
                         <button
                             onClick={() => navigate(`/committee/${committeeId}`)}
-                            className="px-6 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-all font-medium flex items-center gap-2"
+                            className="px-4 lg:px-6 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-all font-medium flex items-center justify-center gap-2 text-sm lg:text-base whitespace-nowrap"
                         >
-                            <span className="material-symbols-outlined text-xl">
+                            <span className="material-symbols-outlined text-lg lg:text-xl">
                                 arrow_forward
                             </span>
-                            Go To Committee
+                            <span>Go To Committee</span>
                         </button>
                         <button
                             onClick={saveAllSettings}
                             disabled={isSaving}
-                            className="px-6 py-2 bg-darker-green text-white rounded-lg hover:bg-opacity-90 transition-all font-medium flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="px-4 lg:px-6 py-2 bg-darker-green text-white rounded-lg hover:bg-opacity-90 transition-all font-medium flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed text-sm lg:text-base whitespace-nowrap"
                         >
-                            <span className="material-symbols-outlined text-xl">
+                            <span className="material-symbols-outlined text-lg lg:text-xl">
                                 {isSaving ? 'progress_activity' : 'save'}
                             </span>
-                            {isSaving ? 'Saving...' : 'Save All Changes'}
+                            <span>{isSaving ? 'Saving...' : 'Save All Changes'}</span>
                         </button>
                     </div>
                 </div>

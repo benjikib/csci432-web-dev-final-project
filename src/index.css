@@ -43,6 +43,8 @@ body {
   min-width: 320px;
   min-height: 100vh;
   overflow-x: hidden;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
 }
 
 h1 {
@@ -62,9 +64,16 @@ button {
   transition: border-color 0.25s;
   height: fit-content;
   width: fit-content;
+  min-height: 44px; /* iOS recommended touch target */
+  min-width: 44px;
 }
 button:hover {
   background-color: #5ca377;
+}
+@media (hover: none) {
+  button:active {
+    background-color: #5ca377;
+  }
 }
 
 button2 {

@@ -65,7 +65,7 @@ function DiscussionRequirements({ settings, updateSetting, committeeId, committe
 
             {/* Schedule Meeting Section */}
             <div className="p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
-                <div className="flex items-start justify-between mb-3">
+                <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-3 mb-3">
                     <div className="flex-1">
                         <h5 className="font-semibold text-gray-800 dark:text-gray-200 mb-1 flex items-center gap-2">
                             <span className="material-symbols-outlined">event</span>
@@ -77,12 +77,12 @@ function DiscussionRequirements({ settings, updateSetting, committeeId, committe
                     </div>
                     <button
                         onClick={() => setShowMeetingForm(!showMeetingForm)}
-                        className="px-4 py-2 bg-darker-green text-white rounded-lg hover:bg-opacity-90 transition-all font-medium flex items-center gap-2"
+                        className="px-3 lg:px-4 py-2 bg-darker-green text-white rounded-lg hover:bg-opacity-90 transition-all font-medium flex items-center justify-center gap-2 text-sm lg:text-base whitespace-nowrap shrink-0"
                     >
-                        <span className="material-symbols-outlined text-xl">
+                        <span className="material-symbols-outlined text-lg lg:text-xl">
                             {showMeetingForm ? 'close' : 'add'}
                         </span>
-                        {showMeetingForm ? 'Cancel' : 'Schedule Meeting'}
+                        <span>{showMeetingForm ? 'Cancel' : 'Schedule Meeting'}</span>
                     </button>
                 </div>
 
@@ -253,28 +253,28 @@ function DiscussionRequirements({ settings, updateSetting, committeeId, committe
                         </p>
                     </div>
                 </div>
-                <div className="mt-3 flex gap-2">
+                <div className="mt-3 flex flex-wrap gap-2">
                     <button 
                         onClick={() => updateSetting('minDiscussionHours', 0)}
-                        className="px-3 py-1 text-xs bg-gray-200 dark:bg-gray-700 rounded hover:bg-gray-300 dark:hover:bg-gray-600"
+                        className="px-3 py-1.5 text-xs lg:text-sm bg-gray-200 dark:bg-gray-700 rounded hover:bg-gray-300 dark:hover:bg-gray-600 whitespace-nowrap"
                     >
                         None
                     </button>
                     <button 
                         onClick={() => updateSetting('minDiscussionHours', 24)}
-                        className="px-3 py-1 text-xs bg-gray-200 dark:bg-gray-700 rounded hover:bg-gray-300 dark:hover:bg-gray-600"
+                        className="px-3 py-1.5 text-xs lg:text-sm bg-gray-200 dark:bg-gray-700 rounded hover:bg-gray-300 dark:hover:bg-gray-600 whitespace-nowrap"
                     >
                         1 day
                     </button>
                     <button 
                         onClick={() => updateSetting('minDiscussionHours', 72)}
-                        className="px-3 py-1 text-xs bg-gray-200 dark:bg-gray-700 rounded hover:bg-gray-300 dark:hover:bg-gray-600"
+                        className="px-3 py-1.5 text-xs lg:text-sm bg-gray-200 dark:bg-gray-700 rounded hover:bg-gray-300 dark:hover:bg-gray-600 whitespace-nowrap"
                     >
                         3 days
                     </button>
                     <button 
                         onClick={() => updateSetting('minDiscussionHours', 168)}
-                        className="px-3 py-1 text-xs bg-gray-200 dark:bg-gray-700 rounded hover:bg-gray-300 dark:hover:bg-gray-600"
+                        className="px-3 py-1.5 text-xs lg:text-sm bg-gray-200 dark:bg-gray-700 rounded hover:bg-gray-300 dark:hover:bg-gray-600 whitespace-nowrap"
                     >
                         1 week
                     </button>
