@@ -544,10 +544,6 @@ html.dark .section-title {
     margin-top: 160px !important; /* Increased for taller mobile header */
   }
 
-  .ml-\\[16rem\\] {
-    margin-left: 0 !important; /* Remove sidebar margin on mobile */
-  }
-
   .px-8 {
     padding-left: 16px !important;
     padding-right: 16px !important;
@@ -828,16 +824,14 @@ html.dark .section-title {
   }
 
   /* Admin Panel - Organization filter select */
-  .bg-purple-50 select,
-  .dark\\:bg-purple-900\\/20 select {
+  .bg-purple-50 select {
     max-width: 100% !important;
     width: 100% !important;
     font-size: 14px !important;
     padding: 8px 12px !important;
   }
 
-  .bg-purple-50 .flex.items-center,
-  .dark\\:bg-purple-900\\/20 .flex.items-center {
+  .bg-purple-50 .flex.items-center {
     flex-direction: column;
     align-items: stretch;
     gap: 8px;
@@ -953,10 +947,6 @@ html.dark .section-title {
 
 /* Tablet breakpoint */
 @media screen and (min-width: 769px) and (max-width: 1024px) {
-  .ml-\\[16rem\\] {
-    margin-left: 5rem !important;
-  }
-
   .home-outline {
     margin-left: 5rem !important;
   }
