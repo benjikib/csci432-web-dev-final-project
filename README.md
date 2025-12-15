@@ -18,7 +18,15 @@ This project belongs to the group consisting of:
 
 ## Purpose
 
-This platform provides a complete digital governance solution for organizations following parliamentary procedure. The system supports multi-tenant organizations, committee management, and full parliamentary motion workflows.
+> This platform provides a complete digital governance solution for organizations following parliamentary procedure. The system supports multi-tenant organizations, committee management, and full parliamentary motion workflows.
+
+## Video Demo 
+
+> A video demo of the website can be found on YouTube at this [link](https://youtube.com)
+
+## Website Walk-through 
+
+> A walk-through of the website, including screenshots, can be found [here](https://google.com)
 
 ### Key Capabilities:
 - **Organization Management**: Multi-tenant support with invite codes
@@ -418,14 +426,11 @@ git push origin feature/your-feature-name
 - **[Database Schema](./database-structure.md)** - Full database structure with relationships and constraints
 - **README.md** - This file, project overview and setup instructions
 
-## License
 
-This project is developed as part of CS 432: Web Programming coursework.
-
-## Acknowledgments
+## Information
 
 - **Course**: CS 432 - Web Programming
-- **Institution**: Montana State University
+- **Institution**: William and Mary
 - **Semester**: Fall 2025
 - **Team Members**: Taewon Kwon, Benji Kiblinger, Michael White, Jeffery Lin
 
