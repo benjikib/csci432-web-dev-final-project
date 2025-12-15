@@ -70,7 +70,7 @@ function EditMotionPage() {
         <>
             <HeaderNav />
             <SideBar />
-            <div className="mt-20 ml-[16rem] px-8 min-h-screen bg-[#F8FEF9] dark:bg-gray-900">Loading...</div>
+            <div className="mt-20 ml-0 lg:ml-[16rem] px-4 lg:px-8 min-h-screen bg-[#F8FEF9] dark:bg-gray-900">Loading...</div>
         </>
     );
 
@@ -79,7 +79,7 @@ function EditMotionPage() {
             <>
                 <HeaderNav />
                 <SideBar />
-                <div className="mt-20 ml-[16rem] px-8 min-h-screen bg-[#F8FEF9] dark:bg-gray-900">
+                <div className="mt-20 ml-0 lg:ml-[16rem] px-4 lg:px-8 min-h-screen bg-[#F8FEF9] dark:bg-gray-900">
                     <NoAccessPage committeeId={committeeId} committeeTitle={committee?.title} />
                 </div>
             </>
@@ -90,7 +90,7 @@ function EditMotionPage() {
         <>
             <HeaderNav />
             <SideBar />
-            <div className="mt-20 ml-[16rem] px-8 min-h-screen bg-[#F8FEF9] dark:bg-gray-900">
+            <div className="mt-20 ml-0 lg:ml-[16rem] px-4 lg:px-8 min-h-screen bg-[#F8FEF9] dark:bg-gray-900">
                 <div className="max-w-4xl">
                     <h2 className="section-title">Edit Motion</h2>
                     <form onSubmit={handleSubmit} className="space-y-6 mt-6">

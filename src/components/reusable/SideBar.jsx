@@ -15,6 +15,7 @@ export default function SideBar() {
         const [userIsGuest, setUserIsGuest] = useState(false);
             const [userIsOwner, setUserIsOwner] = useState(false);
         const [userIsMember, setUserIsMember] = useState(false);
+      const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
       // Check if user is a chair
       useEffect(() => {
@@ -205,92 +206,117 @@ export default function SideBar() {
       const handleNavigation = (e, path) => {
           if (!confirmNavigation()) {
               e.preventDefault();
+          } else {
+              setMobileMenuOpen(false);
           }
       };
 
       return (
-          <div className="fixed top-0 left-0 z-10 h-screen flex-shrink-0 flex">
-              {/* Dark green section with icons */}
-              <div className="w-20 flex-shrink-0 h-screen bg-darker-green flex flex-col items-center pt-24 gap-6 overflow-hidden">
-                  {navItems.map((item) => (
-                      <Link
-                          key={item.path}
-                          to={item.path}
-                          onClick={(e) => handleNavigation(e, item.path)}
-                          title={item.label}
-                          className={`flex items-center justify-center w-14 h-14 flex-shrink-0 rounded-lg transition-all ${
-                              location.pathname === item.path
-                                  ? '!text-white scale-125'
-                                  : '!text-superlight-green/60 hover:!text-superlight-green/90 hover:scale-110'
-                          }`}
-                      >
-                          <span className={`material-symbols-outlined ${
-                              location.pathname === item.path ? 'text-4xl' : 'text-3xl'
-                          }`}>{item.icon}</span>
-                      </Link>
-                  ))}
+          <>
+              {/* Mobile hamburger button */}
+              <button
+                  onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                  className="fixed top-4 left-4 z-50 lg:hidden w-12 h-12 flex items-center justify-center bg-darker-green text-white rounded-lg shadow-lg"
+                  aria-label="Toggle menu"
+              >
+                  <span className="material-symbols-outlined text-2xl">
+                      {mobileMenuOpen ? 'close' : 'menu'}
+                  </span>
+              </button>
+
+              {/* Mobile overlay */}
+              {mobileMenuOpen && (
+                  <div
+                      className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
+                      onClick={() => setMobileMenuOpen(false)}
+                  />
+              )}
+
+              <div className={`fixed top-0 left-0 z-40 h-screen flex-shrink-0 flex transition-transform duration-300 lg:translate-x-0 ${
+                  mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
+              }`}>
+                  {/* Dark green section with icons */}
+                  <div className="w-20 flex-shrink-0 h-screen bg-darker-green flex flex-col items-center pt-44 lg:pt-24 gap-6 overflow-hidden">
+                      {navItems.map((item) => (
+                          <Link
+                              key={item.path}
+                              to={item.path}
+                              onClick={(e) => handleNavigation(e, item.path)}
+                              title={item.label}
+                              className={`flex items-center justify-center w-14 h-14 flex-shrink-0 rounded-lg transition-all ${
+                                  location.pathname === item.path
+                                      ? '!text-white scale-125'
+                                      : '!text-superlight-green/60 hover:!text-superlight-green/90 hover:scale-110'
+                              }`}
+                          >
+                              <span className={`material-symbols-outlined ${
+                                  location.pathname === item.path ? 'text-4xl' : 'text-3xl'
+                              }`}>{item.icon}</span>
+                          </Link>
+                      ))}
+                  </div>
+
+                  {/* Light green section for back navigation and committee controls */}
+                  <div className={`flex-shrink-0 h-screen bg-lighter-green pt-44 lg:pt-24 transition-all duration-300 ease-in-out ${
+                      hasContent ? 'w-44 px-4 opacity-100' : 'w-0 px-0 opacity-0'
+                  } ${hasContent ? 'overflow-y-auto' : 'overflow-hidden'}`}>
+                      {navContext.backNav && (
+                          <Link
+                              to={navContext.backNav.path}
+                              onClick={(e) => handleNavigation(e, navContext.backNav.path)}
+                              className="flex items-center gap-2 !text-gray-300 hover:!text-white transition-colors group mb-4"
+                          >
+                              <span className="material-symbols-outlined !text-gray-300 group-hover:!text-white text-2xl group-hover:translate-x-[-4px] transition-all">
+                                  arrow_back
+                              </span>
+                              <span className="text-lg font-medium !text-gray-300 group-hover:!text-white">{navContext.backNav.label}</span>
+                          </Link>
+                      )}
+
+                      {navContext.showSettings && navContext.committeeId && (
+                          <>
+                              {(userIsAdmin || userIsChair || (userIsMember && !userIsGuest)) && (
+                                  <Link
+                                      to={`/committee/${navContext.committeeId}/create-motion`}
+                                      onClick={(e) => handleNavigation(e, `/committee/${navContext.committeeId}/create-motion`)}
+                                      className="flex items-center gap-2 !text-gray-300 hover:!text-white transition-colors group mt-6"
+                                  >
+                                      <span className="material-symbols-outlined !text-gray-300 group-hover:!text-white text-2xl">
+                                          add_circle
+                                      </span>
+                                      <span className="text-lg font-medium !text-gray-300 group-hover:!text-white">Create</span>
+                                  </Link>
+                              )}
+                              {(userIsAdmin || userIsChair || userIsOwner) && (
+                                  <Link
+                                      to={`/committee/${navContext.committeeId}/settings`}
+                                      onClick={(e) => handleNavigation(e, `/committee/${navContext.committeeId}/settings`)}
+                                      className="flex items-center gap-2 !text-gray-300 hover:!text-white transition-colors group mt-2"
+                                  >
+                                      <span className="material-symbols-outlined !text-gray-300 group-hover:!text-white text-2xl">
+                                          settings
+                                      </span>
+                                      <span className="text-lg font-medium !text-gray-300 group-hover:!text-white">Settings</span>
+                                  </Link>
+                              )}
+                          </>
+                      )}
+
+                      {navContext.showCreateCommittee && userIsAdmin && (
+                          <Link
+                              to="/create-committee"
+                              onClick={(e) => handleNavigation(e, '/create-committee')}
+                              className="flex items-center gap-2 !text-gray-300 hover:!text-white transition-colors group mt-6"
+                          >
+                              <span className="material-symbols-outlined !text-gray-300 group-hover:!text-white text-2xl">
+                                  add_circle
+                              </span>
+                              <span className="text-lg font-medium !text-gray-300 group-hover:!text-white">Create</span>
+                          </Link>
+                      )}
+                  </div>
               </div>
-
-              {/* Light green section for back navigation and committee controls */}
-              <div className={`flex-shrink-0 h-screen bg-lighter-green pt-24 transition-all duration-300 ease-in-out ${
-                  hasContent ? 'w-44 px-4 opacity-100' : 'w-0 px-0 opacity-0'
-              } ${hasContent ? 'overflow-y-auto' : 'overflow-hidden'}`}>
-                  {navContext.backNav && (
-                      <Link
-                          to={navContext.backNav.path}
-                          onClick={(e) => handleNavigation(e, navContext.backNav.path)}
-                          className="flex items-center gap-2 !text-gray-300 hover:!text-white transition-colors group mb-4"
-                      >
-                          <span className="material-symbols-outlined !text-gray-300 group-hover:!text-white text-2xl group-hover:translate-x-[-4px] transition-all">
-                              arrow_back
-                          </span>
-                          <span className="text-lg font-medium !text-gray-300 group-hover:!text-white">{navContext.backNav.label}</span>
-                      </Link>
-                  )}
-
-                  {navContext.showSettings && navContext.committeeId && (
-                      <>
-                          {(userIsAdmin || userIsChair || (userIsMember && !userIsGuest)) && (
-                              <Link
-                                  to={`/committee/${navContext.committeeId}/create-motion`}
-                                  onClick={(e) => handleNavigation(e, `/committee/${navContext.committeeId}/create-motion`)}
-                                  className="flex items-center gap-2 !text-gray-300 hover:!text-white transition-colors group mt-6"
-                              >
-                                  <span className="material-symbols-outlined !text-gray-300 group-hover:!text-white text-2xl">
-                                      add_circle
-                                  </span>
-                                  <span className="text-lg font-medium !text-gray-300 group-hover:!text-white">Create</span>
-                              </Link>
-                          )}
-                          {(userIsAdmin || userIsChair || userIsOwner) && (
-                              <Link
-                                  to={`/committee/${navContext.committeeId}/settings`}
-                                  onClick={(e) => handleNavigation(e, `/committee/${navContext.committeeId}/settings`)}
-                                  className="flex items-center gap-2 !text-gray-300 hover:!text-white transition-colors group mt-2"
-                              >
-                                  <span className="material-symbols-outlined !text-gray-300 group-hover:!text-white text-2xl">
-                                      settings
-                                  </span>
-                                  <span className="text-lg font-medium !text-gray-300 group-hover:!text-white">Settings</span>
-                              </Link>
-                          )}
-                      </>
-                  )}
-
-                  {navContext.showCreateCommittee && userIsAdmin && (
-                      <Link
-                          to="/create-committee"
-                          onClick={(e) => handleNavigation(e, '/create-committee')}
-                          className="flex items-center gap-2 !text-gray-300 hover:!text-white transition-colors group mt-6"
-                      >
-                          <span className="material-symbols-outlined !text-gray-300 group-hover:!text-white text-2xl">
-                              add_circle
-                          </span>
-                          <span className="text-lg font-medium !text-gray-300 group-hover:!text-white">Create</span>
-                      </Link>
-                  )}
-              </div>
-          </div>
+          </>
       );
       
   };

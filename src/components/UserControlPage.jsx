@@ -63,7 +63,7 @@ function UserControlPage() {
             <>
                 <HeaderNav setSearchedTerm={setSearchedTerm} />
                 <SideBar />
-                <div className="mt-20 ml-[16rem] px-8 min-h-screen bg-[#F8FEF9] dark:bg-gray-900">
+                <div className="mt-20 ml-0 lg:ml-[16rem] px-4 lg:px-8 min-h-screen bg-[#F8FEF9] dark:bg-gray-900">
                     <div className="max-w-4xl">
                         <h2 className="section-title dark:text-gray-100">Chair Control Panel</h2>
                         <div className="mt-8 p-6 bg-white dark:bg-gray-800 rounded-lg shadow-sm flex items-center justify-center">
@@ -81,7 +81,7 @@ function UserControlPage() {
             <>
                 <HeaderNav setSearchedTerm={setSearchedTerm} />
                 <SideBar />
-                <div className="mt-20 ml-[16rem] px-8 min-h-screen bg-[#F8FEF9] dark:bg-gray-900">
+                <div className="mt-20 ml-0 lg:ml-[16rem] px-4 lg:px-8 min-h-screen bg-[#F8FEF9] dark:bg-gray-900">
                     <div className="max-w-4xl">
                         <h2 className="section-title dark:text-gray-100">Chair Control Panel</h2>
 
@@ -110,7 +110,7 @@ function UserControlPage() {
         <>
             <HeaderNav setSearchedTerm={setSearchedTerm} />
             <SideBar />
-            <div className="mt-20 ml-[16rem] px-8 min-h-screen bg-[#F8FEF9] dark:bg-gray-900">
+            <div className="mt-20 ml-0 lg:ml-[16rem] px-4 lg:px-8 min-h-screen bg-[#F8FEF9] dark:bg-gray-900">
                 <div className="w-full">
                     <h2 className="section-title dark:text-gray-100">
                         Chair Control Panel
@@ -119,9 +119,9 @@ function UserControlPage() {
                         Manage procedural settings and controls for committees where you serve as chair
                     </p>
 
-                    <div className="grid grid-cols-12 gap-6">
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
                         {/* Left side - Committee Selection */}
-                        <div className="col-span-3">
+                        <div className="lg:col-span-3">
                             <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4">
                                 <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4 flex items-center gap-2">
                                     <span className="material-symbols-outlined">groups</span>
@@ -168,7 +168,7 @@ function UserControlPage() {
                         </div>
 
                         {/* Right side - Control Panel */}
-                        <div className="col-span-9">
+                        <div className="lg:col-span-9">
                             {!selectedCommitteeId ? (
                                 <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-8 flex flex-col items-center justify-center min-h-[500px]">
                                     <span className="material-symbols-outlined text-6xl text-gray-300 dark:text-gray-700 mb-4">

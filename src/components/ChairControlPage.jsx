@@ -46,7 +46,7 @@ function ChairControlPage() {
         <>
             <HeaderNav setSearchedTerm={setSearchedTerm} />
             <SideBar />
-            <div className="mt-20 ml-[16rem] px-8 min-h-screen bg-[#F8FEF9] dark:bg-gray-900">
+            <div className="mt-20 ml-0 lg:ml-[16rem] px-4 lg:px-8 min-h-screen bg-[#F8FEF9] dark:bg-gray-900">
                 <div className="w-full">
                     <h2 className="section-title dark:text-gray-100">
                         Chair Control Panel
@@ -67,9 +67,9 @@ function ChairControlPage() {
                             </p>
                         </div>
                     ) : (
-                        <div className="grid grid-cols-12 gap-6">
+                        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
                             {/* Left side - Committee Selection */}
-                            <div className="col-span-3">
+                            <div className="lg:col-span-3">
                                 <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4">
                                     <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4 flex items-center gap-2">
                                         <span className="material-symbols-outlined">groups</span>
@@ -81,13 +81,7 @@ function ChairControlPage() {
                                             <button
                                                 key={committee._id}
                                                 onClick={() => setSelectedCommittee(committee)}
-                                                style={{ 
-                                                    width: '320px', 
-                                                    height: '140px', 
-                                                    padding: '24px',
-                                                    border: '2px solid transparent'
-                                                }}
-                                                className={`text-left rounded-lg transition-all ${
+                                                className={`w-full text-left rounded-lg transition-all p-6 border-2 border-transparent ${
                                                     selectedCommittee?._id === committee._id
                                                         ? 'bg-white dark:bg-lighter-green shadow-md'
                                                         : 'bg-gray-50 dark:bg-gray-800'
@@ -116,7 +110,7 @@ function ChairControlPage() {
                             </div>
 
                             {/* Right side - Control Panel */}
-                            <div className="col-span-9">
+                            <div className="lg:col-span-9">
                                 {!selectedCommittee ? (
                                     <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-8 flex flex-col items-center justify-center min-h-[500px]">
                                         <span className="material-symbols-outlined text-6xl text-gray-300 dark:text-gray-700 mb-4">

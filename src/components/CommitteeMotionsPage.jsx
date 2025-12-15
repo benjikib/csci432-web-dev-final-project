@@ -201,10 +201,10 @@ function CommitteeMotionsPage() {
 
 
     const tabs = [
-        { id: "all", label: "All" },
-        { id: "active", label: "Active" },
-        { id: "past", label: "Past" },
-        { id: "voided", label: "Voided" }
+        { id: "all", label: "All", icon: "list" },
+        { id: "active", label: "Active", icon: "bolt" },
+        { id: "past", label: "Past", icon: "check_circle" },
+        { id: "voided", label: "Voided", icon: "block" }
     ];
 
     // Filter motions based on search term
@@ -240,7 +240,7 @@ function CommitteeMotionsPage() {
         <>
             <HeaderNav setSearchedTerm={setSearchedTerm} />
             <SideBar />
-            <div className="mt-20 ml-[16rem] px-8 min-h-screen bg-[#F8FEF9] dark:bg-gray-900">
+            <div className="mt-20 ml-0 lg:ml-[16rem] px-4 lg:px-8 min-h-screen bg-[#F8FEF9] dark:bg-gray-900">
                 <div className="motions-section">
                     {loading ? (
                         <>
