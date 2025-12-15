@@ -18,11 +18,32 @@ function LoginPage() {
     const navigate = useNavigate();
     const { refetchSettings } = useTheme();
 
-    // Check if user is already logged in
+    // Check if user is already logged in and validate token
     useEffect(() => {
         const token = localStorage.getItem('token');
         if (token) {
-            navigate('/committees');
+            // Verify token is still valid before redirecting
+            fetch(`${API_BASE_URL}/auth/me`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                }
+            })
+            .then(response => {
+                if (response.ok) {
+                    navigate('/committees');
+                } else {
+                    // Token is invalid, clear it
+                    localStorage.removeItem('token');
+                    localStorage.removeItem('user');
+                }
+            })
+            .catch(() => {
+                // Network error or invalid token, clear it
+                localStorage.removeItem('token');
+                localStorage.removeItem('user');
+            });
         }
     }, [navigate]);
 
