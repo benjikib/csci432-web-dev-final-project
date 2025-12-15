@@ -1103,19 +1103,3 @@ Check if an invite code is valid.
 
 ---
 
-## Rate Limiting
-
-Currently no rate limiting is implemented. This may be added in future versions.
-
----
-
-## Versioning
-
-API Version: 1.0
-No explicit versioning in URLs currently. All endpoints are at the root level.
-
----
-
-## Support
-
-For issues or questions, please refer to the project repository or contact the development team.
