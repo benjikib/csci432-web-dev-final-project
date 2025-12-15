@@ -26,7 +26,7 @@ This project belongs to the group consisting of:
 
 ## Website Walk-through 
 
-> A walk-through of the website, including screenshots, can be found [here](/docs/walkthrough)
+> A walk-through of the website, including screenshots, can be found [here](/docs/walkthrough.md)
 
 ### Key Capabilities:
 - **Organization Management**: Multi-tenant support with invite codes
