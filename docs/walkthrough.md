@@ -1,6 +1,6 @@
 # Application Walkthrough
 
-This document provides a visual walkthrough of the key pages and features of the Parliamentary Motion Management System.
+This document provides a visual walkthrough of the key pages and features of the Robert's Rules of Management Motion Management System.
 
 ---
 
