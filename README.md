@@ -425,7 +425,7 @@ This project is developed as part of CS 432: Web Programming coursework.
 ## Acknowledgments
 
 - **Course**: CS 432 - Web Programming
-- **Institution**: Montana State University
+- **Institution**: William and Mary
 - **Semester**: Fall 2025
 - **Team Members**: Taewon Kwon, Benji Kiblinger, Michael White, Jeffery Lin
 
