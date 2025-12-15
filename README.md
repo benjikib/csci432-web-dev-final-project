@@ -263,44 +263,6 @@ This starts:
 6. **Access the application**:
 Open your browser and navigate to `http://localhost:5173`
 
-### Available Scripts
-
-- `npm run dev` - Start both frontend and backend development servers
-- `npm run build` - Build the project for production
-- `npm run lint` - Run ESLint to check code quality
-- `npm run preview` - Preview the production build locally
-- `npm run db:up` - Start MongoDB using Docker Compose
-- `npm run db:down` - Stop MongoDB Docker container
-- `npm run migrate:dry` - Run database migration in dry-run mode
-- `npm run migrate:run` - Execute database migration
-
-### Database Migrations
-
-If you need to run database migrations (e.g., for schema updates):
-
-**Dry run** (preview changes without applying):
-```bash
-npm run migrate:dry
-```
-
-**Execute migration**:
-```bash
-npm run migrate:run
-```
-
-## Development
-
-### Code Style
-This project uses ESLint for maintaining code quality. The configuration includes:
-- React-specific rules
-- React Hooks linting
-- React Refresh support for fast development
-- Modern ES6+ JavaScript standards
-
-Run linting:
-```bash
-npm run lint
-```
 
 ### Routing Structure
 The application uses React Router DOM 7 with the following routes:
@@ -378,47 +340,6 @@ See **[database-structure.md](./database-structure.md)** for complete schema doc
 - Vercel for hosting (serverless functions for API)
 - MongoDB Atlas for production database
 - Environment-based configuration
-
-## Contributing
-
-This project follows a structured Git workflow to maintain code quality:
-
-1. **Never push directly to `main`** - All changes must go through pull requests
-2. **Create feature branches** - Use descriptive branch names (e.g., `feature/voting-system`, `fix/auth-bug`)
-3. **Develop and test** - Thoroughly test changes locally before creating a PR
-4. **Submit pull requests** - Provide clear descriptions of changes and their purpose
-5. **Code review** - Another team member must review and approve before merging
-6. **Verify functionality** - Ensure the PR passes all checks and doesn't break existing features
-7. **Merge to main** - Only merge after approval and successful testing
-
-### Development Workflow
-
-```bash
-# Create and switch to a new feature branch
-git checkout -b feature/your-feature-name
-
-# Make your changes and commit
-git add .
-git commit -m "Description of your changes"
-
-# Push to remote
-git push origin feature/your-feature-name
-
-# Create a pull request on GitHub
-# Wait for review and approval
-# Merge to main after approval
-```
-
-### Code Quality Guidelines
-
-- Follow existing code style and conventions
-- Write clear, self-documenting code
-- Add comments for complex logic
-- Keep functions small and focused
-- Use meaningful variable and function names
-- Validate all user inputs
-- Handle errors gracefully
-- Test edge cases
 
 ## Documentation
 
