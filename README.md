@@ -22,7 +22,7 @@ This project belongs to the group consisting of:
 
 ## Video Demo 
 
-> A video demo of the website can be found on YouTube at this [link](https://youtube.com)
+> A video demo of the website can be found on YouTube at this [link](https://www.youtube.com/watch?v=zHqMoG8TwfE)
 
 ## Website Walk-through 
 
@@ -203,67 +203,6 @@ csci432-web-dev-final-project/
 - **Loading States**: User feedback during async operations
 - **Error Handling**: Clear error messages and validation feedback
 
-## Getting Started
-
-### Prerequisites
-- **Node.js**: v16 or higher recommended
-- **npm**: Package manager (comes with Node.js)
-- **MongoDB**: Local instance or MongoDB Atlas cloud database
-- **Docker** (optional): For running MongoDB locally via Docker Compose
-
-### Installation
-
-1. **Clone the repository**:
-```bash
-git clone https://github.com/benjikib/csci432-web-dev-final-project.git
-cd csci432-web-dev-final-project
-```
-
-2. **Install dependencies**:
-```bash
-npm install
-```
-
-3. **Set up environment variables**:
-
-Create a `.env` file in the root directory:
-```env
-MONGODB_URI=mongodb://127.0.0.1:27017/commie_dev
-JWT_SECRET=your-secret-key-here
-PORT=3001
-NODE_ENV=development
-```
-
-For production (Vercel), set these environment variables in your deployment platform.
-
-4. **Start MongoDB**:
-
-**Option A: Using Docker Compose** (recommended for development):
-```bash
-npm run db:up
-```
-
-**Option B: Local MongoDB installation**:
-Ensure MongoDB is running on `mongodb://127.0.0.1:27017`
-
-**Option C: MongoDB Atlas**:
-Update `MONGODB_URI` in `.env` with your Atlas connection string
-
-5. **Start the development servers**:
-
-The application runs both frontend and backend simultaneously:
-```bash
-npm run dev
-```
-
-This starts:
-- **Frontend**: Vite dev server at `http://localhost:5173`
-- **Backend**: Express API server at `http://localhost:3001`
-
-6. **Access the application**:
-Open your browser and navigate to `http://localhost:5173`
-
-
 ### Routing Structure
 The application uses React Router DOM 7 with the following routes:
 
@@ -322,7 +261,7 @@ See **[database-structure.md](./database-structure.md)** for complete schema doc
 
 ### Architecture Overview
 
-**Frontend (React SPA)**:
+**Frontend**:
 - React 19 with functional components and hooks
 - Vite for fast development and optimized builds
 - Tailwind CSS 4 for styling
